@@ -5,6 +5,7 @@ export interface SessionRoleState {
     source: string;
     updatedAt: string;
 }
+export declare function loadSessionAgentRoleState(input: HookInput, cfg: EnvConfig): SessionRoleState | null;
 export declare function getSessionAgentRole(input: HookInput, cfg: EnvConfig): string;
 export declare function setSessionAgentRole(input: HookInput, cfg: EnvConfig, role: string, source?: string): void;
 export declare function clearSessionAgentRole(input: HookInput, cfg: EnvConfig): void;

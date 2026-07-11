@@ -51,13 +51,16 @@ export function handleUserPrompt(input, cfg) {
     }
     const agentCmd = detectAgentCommand(prompt);
     if (agentCmd) {
+        // Explicit /agent wins over host agentName on the same prompt (e.g. clear oracle lock)
         setSessionAgentRole(input, cfg, agentCmd.role, "slash-agent");
         parts.push(`<OMG_CTRL>Session agent role set to **${agentCmd.role}** (/agent). Agent Guard applies sticky role.</OMG_CTRL>`);
     }
-    // Persist host-provided role at session start of prompt stream
-    const hostRole = resolveAgentRole(input, cfg);
-    if (hostRole && input.agentName) {
-        setSessionAgentRole(input, cfg, hostRole, "host-agentName");
+    else if (input.agentName) {
+        // Only sticky host role when user did not override with /agent
+        const hostRole = String(input.agentName).trim().toLowerCase();
+        if (hostRole) {
+            setSessionAgentRole(input, cfg, hostRole, "host-agentName");
+        }
     }
     const ralphCmd = detectRalphCommand(prompt);
     const existingLoop = loadRalph(input, cfg);

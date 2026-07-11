@@ -1,4 +1,4 @@
-import { getSessionAgentRole } from "./session-role.js";
+import { getSessionAgentRole, loadSessionAgentRoleState } from "./session-role.js";
 import { isMutatingTool } from "./skill-gate.js";
 /** Agents that must not write/edit/delete. */
 export const READ_ONLY_AGENTS = new Set([
@@ -31,23 +31,34 @@ function firstString(...vals) {
     }
     return "";
 }
+function normalizeRole(role) {
+    let r = role.toLowerCase().trim();
+    if (ROLE_ALIASES[r])
+        r = ROLE_ALIASES[r];
+    if (r.includes(":"))
+        r = r.split(":").pop() || r;
+    if (r.startsWith("oh-my-grok-"))
+        r = r.replace(/^oh-my-grok-/, "");
+    return r;
+}
 export function resolveAgentRole(input, cfg) {
     const raw = input.raw || {};
     const fromEnv = firstString(process.env.GROK_AGENT_NAME, process.env.OMG_AGENT_ROLE, process.env.GROK_SUBAGENT_TYPE);
     const fromInput = firstString(input.agentName, raw.agentName, raw.agent_name, raw.agent, raw.subagent_type, raw.subagentType, raw.agentType, raw.agent_type);
+    // Explicit /agent slash sticky overrides host agentName for the rest of the session
+    // (needed when subagent sessions keep tagging every tool as oracle/explore).
+    if (cfg) {
+        const sticky = loadSessionAgentRoleState(input, cfg);
+        if (sticky?.role && sticky.source === "slash-agent") {
+            return normalizeRole(sticky.role);
+        }
+    }
     let role = (fromInput || fromEnv).toLowerCase();
     // Sticky session role when host omits agentName on subsequent tools
     if (!role && cfg) {
         role = getSessionAgentRole(input, cfg);
     }
-    if (ROLE_ALIASES[role])
-        role = ROLE_ALIASES[role];
-    // strip plugin prefix
-    if (role.includes(":"))
-        role = role.split(":").pop() || role;
-    if (role.startsWith("oh-my-grok-"))
-        role = role.replace(/^oh-my-grok-/, "");
-    return role;
+    return normalizeRole(role);
 }
 export function isReadOnlyAgent(role) {
     return READ_ONLY_AGENTS.has(role.toLowerCase());

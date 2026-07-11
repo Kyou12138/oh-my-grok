@@ -166,6 +166,45 @@ describe("session sticky agent role", () => {
     expect(r.exitCode).toBe(0);
   });
 
+  it("/agent hephaestus wins over host agentName=oracle on same prompt and later tools", () => {
+    const ws = tmpWorkspace();
+    const data = path.join(ws, "pdata");
+    const c = cfg(data);
+    // Host still tags session as oracle (subagent context) while user clears lock
+    handleUserPrompt(
+      base(ws, {
+        prompt: "/agent hephaestus",
+        agentName: "oracle",
+        raw: { agentName: "oracle" },
+      }),
+      c,
+    );
+    expect(getSessionAgentRole(base(ws), c)).toBe("hephaestus");
+    // Documented clear path: Write without agentName allowed
+    const r = handlePreToolUse(
+      base(ws, {
+        event: "pre-tool-use",
+        toolName: "Write",
+        toolInput: { path: path.join(ws, "ok2.ts"), contents: "export const n = 2;\n" },
+      }),
+      c,
+    );
+    expect(r.exitCode).toBe(0);
+    // Host keeps stamping agentName=oracle on every tool — slash sticky must still win
+    const rHost = handlePreToolUse(
+      base(ws, {
+        event: "pre-tool-use",
+        toolName: "Write",
+        agentName: "oracle",
+        raw: { agentName: "oracle" },
+        toolInput: { path: path.join(ws, "ok3.ts"), contents: "export const n = 3;\n" },
+      }),
+      c,
+    );
+    expect(rHost.exitCode).toBe(0);
+    expect(JSON.stringify(rHost.output)).not.toMatch(/AGENT_GUARD/);
+  });
+
   it("clearSessionAgentRole restores fail-open", () => {
     const ws = tmpWorkspace();
     const data = path.join(ws, "pdata");

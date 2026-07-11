@@ -18,8 +18,15 @@ function fileFor(input: HookInput, cfg: EnvConfig): string {
   return path.join(p.session, "session-role.json");
 }
 
+export function loadSessionAgentRoleState(
+  input: HookInput,
+  cfg: EnvConfig,
+): SessionRoleState | null {
+  return readJson<SessionRoleState | null>(fileFor(input, cfg), null);
+}
+
 export function getSessionAgentRole(input: HookInput, cfg: EnvConfig): string {
-  const st = readJson<SessionRoleState | null>(fileFor(input, cfg), null);
+  const st = loadSessionAgentRoleState(input, cfg);
   return (st?.role || "").toLowerCase();
 }
 

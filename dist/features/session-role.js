@@ -8,8 +8,11 @@ function fileFor(input, cfg) {
     const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
     return path.join(p.session, "session-role.json");
 }
+export function loadSessionAgentRoleState(input, cfg) {
+    return readJson(fileFor(input, cfg), null);
+}
 export function getSessionAgentRole(input, cfg) {
-    const st = readJson(fileFor(input, cfg), null);
+    const st = loadSessionAgentRoleState(input, cfg);
     return (st?.role || "").toLowerCase();
 }
 export function setSessionAgentRole(input, cfg, role, source = "manual") {
