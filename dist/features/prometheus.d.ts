@@ -10,8 +10,9 @@ export declare function loadPlanMode(input: HookInput, cfg: EnvConfig): PlanMode
 export declare function startPlanMode(input: HookInput, cfg: EnvConfig, topic: string): PlanModeState;
 export declare function endPlanMode(input: HookInput, cfg: EnvConfig): void;
 /**
- * Plan must show Metis/Momus/review evidence before boulder execution.
- * Accepts ## Review with a checked item, or explicit Metis/Momus/VERDICT markers.
+ * Plan must show real review evidence before boulder execution.
+ * Only checked markdown items or VERDICT:PASS on a non-unchecked line count.
+ * Unchecked template prose (e.g. "- [ ] Momus … VERDICT") must NOT pass.
  */
 export declare function planFileHasReview(planPath?: string): boolean;
 export declare function planReviewDenyReason(planPath?: string): string;

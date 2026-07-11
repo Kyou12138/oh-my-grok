@@ -68,6 +68,20 @@ function base(ws: string, over: Partial<HookInput> = {}): HookInput {
 }
 
 describe("plan-review gate", () => {
+  it("default startPlanMode template does NOT pass review (unchecked prose)", () => {
+    const ws = tmpWorkspace();
+    const data = path.join(ws, "pdata");
+    const c = cfg(data);
+    const input = base(ws);
+    const pm = startPlanMode(input, c, "oauth");
+    // Must fail on stock template — no rewrite
+    expect(planFileHasReview(pm.planFile!)).toBe(false);
+    const r = startWorkFromPlan(input, c);
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/PLAN_REVIEW|review|Metis|Momus/i);
+    expect(loadBoulder(input, c)).toBeNull();
+  });
+
   it("rejects start-work when plan lacks review section", () => {
     const ws = tmpWorkspace();
     const data = path.join(ws, "pdata");

@@ -50,10 +50,12 @@ export function startPlanMode(input: HookInput, cfg: EnvConfig, topic: string): 
       "",
       "## Review",
       "",
-      "Required before `/start-work` (check at least one):",
+      "Required before `/start-work` — check items only after real Metis/Momus review:",
       "",
-      "- [ ] Metis gap analysis completed",
-      "- [ ] Momus VERDICT: PASS (or note residual blockers)",
+      "- [ ] Metis gap analysis (spawn metis first)",
+      "- [ ] Momus plan review (spawn momus; then record result below)",
+      "",
+      "After real review: check the boxes above, or append a Momus result line that starts with VERDICT followed by colon and PASS.",
       "",
     ].join("\n"),
   );
@@ -74,8 +76,9 @@ export function endPlanMode(input: HookInput, cfg: EnvConfig): void {
 }
 
 /**
- * Plan must show Metis/Momus/review evidence before boulder execution.
- * Accepts ## Review with a checked item, or explicit Metis/Momus/VERDICT markers.
+ * Plan must show real review evidence before boulder execution.
+ * Only checked markdown items or VERDICT:PASS on a non-unchecked line count.
+ * Unchecked template prose (e.g. "- [ ] Momus … VERDICT") must NOT pass.
  */
 export function planFileHasReview(planPath?: string): boolean {
   if (!planPath || !fs.existsSync(planPath)) return false;
@@ -85,12 +88,23 @@ export function planFileHasReview(planPath?: string): boolean {
   } catch {
     return false;
   }
-  if (/VERDICT:\s*PASS/i.test(text)) return true;
-  if (/Momus.*PASS|PASS.*Momus/i.test(text)) return true;
-  // Checked review bullets under Review or anywhere
-  if (/##\s*Review[\s\S]*?- \[x\]/i.test(text)) return true;
-  if (/- \[x\].*(Metis|Momus|review)/i.test(text)) return true;
-  if (/\bMetis\b[\s\S]{0,200}\b(done|completed|完成|已)/i.test(text)) return true;
+  const lines = text.split(/\r?\n/);
+  for (const line of lines) {
+    const t = line.trim();
+    // Unchecked checklist — never evidence (even if it mentions Metis/VERDICT)
+    if (/^[-*]\s*\[\s*\]/.test(t)) continue;
+    // Checked item about review / Metis / Momus
+    if (
+      /^[-*]\s*\[x\]/i.test(t) &&
+      /(metis|momus|review|评审|verdict)/i.test(t)
+    ) {
+      return true;
+    }
+    // Explicit Momus-style result line only (not instructional prose)
+    if (/^VERDICT:\s*PASS\b/i.test(t) || /^\*\*VERDICT:\s*PASS\b/i.test(t)) {
+      return true;
+    }
+  }
   return false;
 }
 
