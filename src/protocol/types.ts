@@ -6,6 +6,7 @@ export type HookEvent =
   | "pre-tool-use"
   | "post-tool-read"
   | "post-tool-todo"
+  | "post-tool-write"
   | "stop"
   | "session-end";
 
@@ -18,6 +19,8 @@ export interface HookInput {
   prompt?: string;
   toolName?: string;
   toolInput?: Record<string, unknown>;
+  /** PostToolUse may include tool output text */
+  toolOutput?: string;
   stopReason?: string;
   lastAssistantMessage?: string;
   isFirstPrompt?: boolean;
@@ -38,7 +41,14 @@ export interface EnvConfig {
   skillGate: boolean;
   intentGate: boolean;
   planMode: boolean;
+  hashline: boolean;
+  diagEnforce: boolean;
+  hardOrchestration: boolean;
   maxRalphIter: number;
   todoCooldownMs: number;
   todoAbortWindowMs: number;
+  /** Shell command for post-edit diagnostics; empty = off */
+  diagCommand: string;
+  diagTimeoutMs: number;
+  hashlineTtlMs: number;
 }

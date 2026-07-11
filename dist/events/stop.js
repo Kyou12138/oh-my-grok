@@ -1,18 +1,20 @@
+import { diagStopReason, isVerifiedMessage, loadDiag, markSoftPrompted, markVerified, } from "../features/diagnostics.js";
 import { bumpRalph, cancelRalph, isDoneMessage, loadRalph, ralphStopReason, } from "../features/ralph.js";
 import { boulderStopReason, hasOpenPlanCheckboxes, incompleteTodos, isStopPaused, loadBoulder, markTodoContinued, todoEnforcerAllows, todoStopReason, } from "../features/todo-boulder.js";
 export function handleStop(input, cfg) {
-    // If assistant already signaled done for ralph
-    const ralph = loadRalph(input, cfg);
-    if (ralph && isDoneMessage(input.lastAssistantMessage)) {
-        cancelRalph(input, cfg);
-        return {};
+    if (isVerifiedMessage(input.lastAssistantMessage)) {
+        markVerified(input, cfg);
     }
     if (isStopPaused(input, cfg)) {
         return {};
     }
     // 1. Ralph / ULW
+    const ralph = loadRalph(input, cfg);
     if (ralph) {
-        if (ralph.iteration >= ralph.maxIterations) {
+        if (isDoneMessage(input.lastAssistantMessage)) {
+            cancelRalph(input, cfg);
+        }
+        else if (ralph.iteration >= ralph.maxIterations) {
             cancelRalph(input, cfg);
             return {
                 decision: "block",
@@ -23,8 +25,10 @@ export function handleStop(input, cfg) {
                 ].join("\n"),
             };
         }
-        bumpRalph(input, cfg, ralph);
-        return { decision: "block", reason: ralphStopReason(ralph) };
+        else {
+            bumpRalph(input, cfg, ralph);
+            return { decision: "block", reason: ralphStopReason(ralph) };
+        }
     }
     // 2. Boulder
     const boulder = loadBoulder(input, cfg);
@@ -40,7 +44,19 @@ export function handleStop(input, cfg) {
             return { decision: "block", reason: todoStopReason(todos) };
         }
     }
-    // 4. Plan checkboxes
+    // 4. Diagnostics
+    const diag = diagStopReason(input, cfg);
+    if (diag) {
+        const st = loadDiag(input, cfg);
+        if (st.lastErrors) {
+            return { decision: "block", reason: diag };
+        }
+        if (st.needsVerify && !cfg.diagCommand && !st.softPrompted) {
+            markSoftPrompted(input, cfg);
+            return { decision: "block", reason: diag };
+        }
+    }
+    // 5. Plan checkboxes
     const planMsg = hasOpenPlanCheckboxes(input, cfg);
     if (planMsg) {
         return { decision: "block", reason: planMsg };

@@ -1,8 +1,5 @@
+import { loadConfig } from "../features/config.js";
 import type { EnvConfig, HookEvent, HookInput } from "./types.js";
-
-function str(v: unknown, fallback = ""): string {
-  return typeof v === "string" && v.length > 0 ? v : fallback;
-}
 
 function firstString(...vals: unknown[]): string {
   for (const v of vals) {
@@ -11,29 +8,9 @@ function firstString(...vals: unknown[]): string {
   return "";
 }
 
-export function readEnvConfig(): EnvConfig {
-  const home =
-    process.env.GROK_HOME ||
-    process.env.USERPROFILE ||
-    process.env.HOME ||
-    "";
-  const pluginRoot = process.env.GROK_PLUGIN_ROOT || process.cwd();
-  const pluginData =
-    process.env.GROK_PLUGIN_DATA ||
-    (home ? `${home.replace(/\\/g, "/")}/.grok/state/oh-my-grok` : `${pluginRoot}/.omg-plugin-data`);
-
-  return {
-    pluginRoot,
-    pluginData,
-    grokHome: home ? `${home.replace(/\\/g, "/")}/.grok` : "",
-    stateDirName: process.env.OMG_STATE_DIR || ".omg",
-    skillGate: process.env.OMG_SKILL_GATE !== "0",
-    intentGate: process.env.OMG_INTENT_GATE !== "0",
-    planMode: process.env.OMG_PLAN_MODE !== "0",
-    maxRalphIter: Number(process.env.OMG_MAX_RALPH_ITER || "50") || 50,
-    todoCooldownMs: Number(process.env.OMG_TODO_COOLDOWN_MS || "5000") || 5000,
-    todoAbortWindowMs: Number(process.env.OMG_TODO_ABORT_WINDOW_MS || "3000") || 3000,
-  };
+/** Prefer workspace-aware config after we know workspaceRoot. */
+export function readEnvConfig(workspaceRoot?: string): EnvConfig {
+  return loadConfig(workspaceRoot);
 }
 
 export function parseHookInput(event: HookEvent, raw: Record<string, unknown>): HookInput {
@@ -63,6 +40,13 @@ export function parseHookInput(event: HookEvent, raw: Record<string, unknown>): 
     "default",
   );
 
+  const toolOutput = firstString(
+    raw.toolOutput,
+    raw.tool_output,
+    raw.output,
+    raw.result,
+  );
+
   return {
     raw,
     event,
@@ -72,6 +56,7 @@ export function parseHookInput(event: HookEvent, raw: Record<string, unknown>): 
     prompt: firstString(raw.prompt, raw.userPrompt, raw.user_prompt) || undefined,
     toolName: firstString(raw.toolName, raw.tool_name, raw.name) || undefined,
     toolInput,
+    toolOutput: toolOutput || undefined,
     stopReason: firstString(raw.stopReason, raw.stop_reason, raw.reason) || undefined,
     lastAssistantMessage:
       firstString(
@@ -104,14 +89,4 @@ export function emit(output: unknown, exitCode = 0): never {
     process.stdout.write(s.endsWith("\n") ? s : s + "\n");
   }
   process.exit(exitCode);
-}
-
-export function envFlag(name: string, defaultOn = true): boolean {
-  const v = process.env[name];
-  if (v === undefined) return defaultOn;
-  return v !== "0" && v.toLowerCase() !== "false";
-}
-
-export function asStr(v: unknown): string {
-  return str(v);
 }

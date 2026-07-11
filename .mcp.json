@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "disabled": true,
+      "description": "Official library docs (enable when you want omo-like Context7). Set disabled:false after review."
+    }
+  }
+}

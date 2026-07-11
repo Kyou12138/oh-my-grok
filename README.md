@@ -2,13 +2,23 @@
 
 Grok Build 生产力插件：对标 [oh-my-openagent](https://github.com/code-yeongyu/oh-my-openagent)（omo）的 harness，内置 **Sisyphus 纪律 agent 团队**，并深度结合 [obra/superpowers](https://github.com/obra/superpowers)。
 
-## 三层架构
+## 三层架构（v0.2）
 
 | 层 | 内容 |
 |----|------|
-| **Harness** | Skill Gate、Ralph / ULW、Stop 续跑、Todo/Boulder、Handoff、IntentGate、Prometheus `/plan` |
+| **Harness** | Skill Gate、Ralph / ULW、Stop 续跑、Todo/Boulder、Handoff、IntentGate、Prometheus `/plan`、**Hashline**、**Diagnostics Stop**、**Hard Orchestration** |
 | **Discipline Agents** | Sisyphus、Hephaestus、Prometheus、Atlas、Oracle、Explore、Librarian |
 | **Superpowers** | `vendor/superpowers/skills` + 本地 bootstrap skill |
+
+### v0.2 相对 omo 补齐
+
+| 能力 | 说明 |
+|------|------|
+| Hashline | Read 后缓存；未 Read / stale / old_string 不匹配则 deny |
+| Hard orchestration | 每轮注入 Sisyphus 委派/验证硬协议 + comment checker |
+| Diagnostics | 改文件后可配置 `diagCommand`；无命令时 Stop 软提醒一次 |
+| 配置 | `.omg/config.json`（见 `docs/config.example.json`） |
+| MCP | `.mcp.json` 含 Context7（默认 disabled，自行启用） |
 
 ## 快速安装
 

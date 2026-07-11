@@ -1,6 +1,6 @@
 {
   "name": "oh-my-grok",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Grok Build productivity plugin — omo-style harness + Superpowers + Discipline Agents (Sisyphus team)",
   "type": "module",
   "bin": {

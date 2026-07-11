@@ -1,7 +1,7 @@
 {
   "name": "oh-my-grok",
-  "version": "0.1.0",
-  "description": "omo-style harness for Grok Build: Sisyphus team, Superpowers, Ralph/ulw loops, skill gate, Stop chain, Prometheus planning",
+  "version": "0.2.0",
+  "description": "omo-style harness for Grok Build: Sisyphus team, Superpowers, Ralph/ulw, skill gate, Hashline, diagnostics Stop, hard orchestration",
   "author": {
     "name": "vibe-coding"
   },

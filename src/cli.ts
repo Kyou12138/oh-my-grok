@@ -10,7 +10,11 @@ import {
   readStdinJson,
 } from "./protocol/parse.js";
 import type { HookEvent, HookOutput } from "./protocol/types.js";
-import { handlePostToolRead, handlePostToolTodo } from "./events/post-tool.js";
+import {
+  handlePostToolRead,
+  handlePostToolTodo,
+  handlePostToolWrite,
+} from "./events/post-tool.js";
 import { handlePreToolUse } from "./events/pre-tool-use.js";
 import { handleSessionEnd } from "./events/session-end.js";
 import { handleSessionStart } from "./events/session-start.js";
@@ -23,6 +27,7 @@ const EVENTS = new Set<string>([
   "pre-tool-use",
   "post-tool-read",
   "post-tool-todo",
+  "post-tool-write",
   "stop",
   "session-end",
 ]);
@@ -34,11 +39,11 @@ async function main(): Promise<void> {
     emit({}, 0);
   }
   const event = eventArg as HookEvent;
-  const cfg = readEnvConfig();
 
   try {
     const raw = await readStdinJson();
     const input = parseHookInput(event, raw);
+    const cfg = readEnvConfig(input.workspaceRoot);
 
     switch (event) {
       case "session-start":
@@ -58,6 +63,9 @@ async function main(): Promise<void> {
       case "post-tool-todo":
         emit(handlePostToolTodo(input, cfg) as HookOutput, 0);
         break;
+      case "post-tool-write":
+        emit(handlePostToolWrite(input, cfg) as HookOutput, 0);
+        break;
       case "stop":
         emit(handleStop(input, cfg), 0);
         break;
@@ -69,8 +77,7 @@ async function main(): Promise<void> {
     }
   } catch (err) {
     console.error("[oh-my-grok] fail-open:", err);
-    // PreToolUse deny is intentional elsewhere; here we always allow/empty
-    if (event === "pre-tool-use") emit({ decision: "allow" }, 0);
+    if (eventArg === "pre-tool-use") emit({ decision: "allow" }, 0);
     else emit({}, 0);
   }
 }

@@ -8,7 +8,21 @@ Authoritative I/O for Grok Build hooks (aligned with production behavior used by
 node "${GROK_PLUGIN_ROOT}/dist/cli.js" <event>
 ```
 
-Events: `session-start` | `user-prompt` | `pre-tool-use` | `post-tool-read` | `post-tool-todo` | `stop` | `session-end`
+Events: `session-start` | `user-prompt` | `pre-tool-use` | `post-tool-read` | `post-tool-todo` | `post-tool-write` | `stop` | `session-end`
+
+## PreToolUse order
+
+1. Prometheus plan-mode path deny  
+2. Hashline (fresh Read + old_string match + LINE#ID)  
+3. Skill Gate  
+
+## Stop order
+
+1. Ralph / ULW  
+2. Boulder  
+3. Todo enforcer  
+4. Diagnostics (errors hard-block; soft verify once if no `diagCommand`)  
+5. Plan checkboxes
 
 ## Outputs
 
@@ -28,3 +42,6 @@ Fail-open: unexpected errors → allow/empty + exit 0.
 - `OMG_STATE_DIR` (default `.omg`)
 - `OMG_SKILL_GATE`, `OMG_INTENT_GATE`, `OMG_PLAN_MODE` (`0` to disable)
 - `OMG_MAX_RALPH_ITER`, `OMG_TODO_COOLDOWN_MS`
+- `OMG_HASHLINE`, `OMG_DIAG_ENFORCE`, `OMG_HARD_ORCH`, `OMG_DIAG_CMD`
+
+Workspace file: `.omg/config.json` (see `docs/config.example.json`).

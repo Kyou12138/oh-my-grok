@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "skillGate": true,
+  "intentGate": true,
+  "planMode": true,
+  "hashline": true,
+  "diagEnforce": true,
+  "hardOrchestration": true,
+  "maxRalphIter": 50,
+  "todoCooldownMs": 5000,
+  "hashlineTtlMs": 1800000,
+  "diagCommand": "npm test",
+  "diagTimeoutMs": 60000
+}

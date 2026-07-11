@@ -26,7 +26,7 @@ afterEach(() => {
   }
 });
 
-function cfg(pluginRoot: string, pluginData: string): EnvConfig {
+function cfg(pluginRoot: string, pluginData: string, over: Partial<EnvConfig> = {}): EnvConfig {
   return {
     pluginRoot,
     pluginData,
@@ -35,9 +35,16 @@ function cfg(pluginRoot: string, pluginData: string): EnvConfig {
     skillGate: true,
     intentGate: true,
     planMode: true,
+    hashline: false,
+    diagEnforce: false,
+    hardOrchestration: true,
     maxRalphIter: 5,
     todoCooldownMs: 0,
     todoAbortWindowMs: 0,
+    diagCommand: "",
+    diagTimeoutMs: 5000,
+    hashlineTtlMs: 30 * 60 * 1000,
+    ...over,
   };
 }
 

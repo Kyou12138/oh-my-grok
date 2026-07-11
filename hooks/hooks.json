@@ -54,6 +54,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "Write|StrReplace|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${GROK_PLUGIN_ROOT}/dist/cli.js\" post-tool-write",
+            "timeout": 60
+          }
+        ]
       }
     ],
     "Stop": [
