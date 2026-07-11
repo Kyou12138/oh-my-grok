@@ -1,0 +1,34 @@
+# GitHub Actions template for oh-my-grok
+# Copy to .github/workflows/ci.yml when your git credentials include the `workflow` scope:
+#   mkdir -p .github/workflows && cp docs/ci.workflow.yml .github/workflows/ci.yml
+#
+# Local equivalent (no GitHub required):
+#   npm run ci
+
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  test:
+    name: test / doctor / validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        node-version: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - run: npm ci || npm install
+      - run: npm run build
+      - run: npm test
+      - run: npm run doctor
+      - run: npm run validate

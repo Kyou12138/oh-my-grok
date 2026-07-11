@@ -8,10 +8,22 @@ Thanks for helping make the Grok Build harness better.
 git clone https://github.com/Kyou12138/oh-my-grok.git
 cd oh-my-grok
 npm install
-npm run build
-npm test
-npm run doctor
-npm run validate
+npm run ci          # build + test + doctor + validate
+```
+
+### CI
+
+| Path | Role |
+|------|------|
+| `npm run ci` / `scripts/ci.mjs` | **Canonical checks** (run everywhere) |
+| `docs/ci.workflow.yml` | GitHub Actions template |
+
+To enable Actions on GitHub (needs a token with the `workflow` scope):
+
+```bash
+mkdir -p .github/workflows
+cp docs/ci.workflow.yml .github/workflows/ci.yml
+git add .github/workflows/ci.yml && git commit -m "ci: enable GitHub Actions" && git push
 ```
 
 Local install into Grok:

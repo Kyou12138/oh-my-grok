@@ -13,7 +13,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "vendor:superpowers": "node scripts/vendor-superpowers.mjs",
     "validate": "node scripts/validate-plugin.mjs",
-    "doctor": "node scripts/doctor.mjs"
+    "doctor": "node scripts/doctor.mjs",
+    "ci": "node scripts/ci.mjs"
   },
   "engines": {
     "node": ">=20"

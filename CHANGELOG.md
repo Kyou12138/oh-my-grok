@@ -24,7 +24,8 @@ All notable changes to this project are documented here.
 ### Docs / OSS
 
 - Star-ready README (problem → install → wow path → honest omo comparison)
-- CONTRIBUTING, CHANGELOG, GitHub Actions CI
+- CONTRIBUTING, CHANGELOG
+- Documented CI: `npm run ci` (`scripts/ci.mjs`) + Actions template `docs/ci.workflow.yml`
 
 ## [0.3.0] — 2026-07-11
 

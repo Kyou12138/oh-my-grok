@@ -15,10 +15,11 @@ const required = [
   "skills/init-deep/SKILL.md",
   "rules/00-sisyphus.md",
   "scripts/doctor.mjs",
+  "scripts/ci.mjs",
   "LICENSE",
   "CONTRIBUTING.md",
   "CHANGELOG.md",
-  ".github/workflows/ci.yml",
+  "docs/ci.workflow.yml",
   "README.md",
 ];
 

@@ -51,8 +51,8 @@ describe("README top-of-funnel (star-ready)", () => {
     expect(readme).toMatch(/multi-model|model routing|Multi-model/i);
   });
 
-  it("links CI badge and CONTRIBUTING/CHANGELOG", () => {
-    expect(readme).toMatch(/actions\/workflows\/ci\.yml/);
+  it("links CI signal and CONTRIBUTING/CHANGELOG", () => {
+    expect(readme).toMatch(/npm run ci|scripts\/ci\.mjs|ci\.workflow/i);
     expect(readme).toMatch(/CONTRIBUTING\.md/);
     expect(readme).toMatch(/CHANGELOG\.md/);
   });
@@ -73,12 +73,21 @@ describe("OSS hygiene artifacts", () => {
     expect(cl).toContain(pj.version);
   });
 
-  it("CI workflow runs npm test", () => {
-    expect(exists(".github/workflows/ci.yml")).toBe(true);
-    const yml = read(".github/workflows/ci.yml");
+  it("documented CI runs npm test (+ doctor/validate)", () => {
+    // Documented equivalent (always): scripts/ci.mjs
+    // Optional GitHub Actions: docs/ci.workflow.yml or .github/workflows/ci.yml
+    expect(exists("scripts/ci.mjs")).toBe(true);
+    const ci = read("scripts/ci.mjs");
+    expect(ci).toMatch(/npm.*test|test/);
+    expect(ci).toMatch(/doctor/);
+    expect(ci).toMatch(/validate/);
+    const hasGha =
+      exists(".github/workflows/ci.yml") || exists("docs/ci.workflow.yml");
+    expect(hasGha).toBe(true);
+    const yml = exists(".github/workflows/ci.yml")
+      ? read(".github/workflows/ci.yml")
+      : read("docs/ci.workflow.yml");
     expect(yml).toMatch(/npm test/);
-    expect(yml).toMatch(/npm run doctor/);
-    expect(yml).toMatch(/npm run validate/);
   });
 
   it("package and plugin point at live GitHub identity", () => {

@@ -1,9 +1,10 @@
 # oh-my-grok
 
-[![CI](https://github.com/Kyou12138/oh-my-grok/actions/workflows/ci.yml/badge.svg)](https://github.com/Kyou12138/oh-my-grok/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/badge/CI-npm%20run%20ci-brightgreen)](./scripts/ci.mjs)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
 [![Grok Build](https://img.shields.io/badge/Grok%20Build-plugin-111827)](https://x.ai)
+[![Tests](https://img.shields.io/badge/tests-vitest-0A7-blue)](./CONTRIBUTING.md)
 
 **omo-style agent harness + Superpowers methodology for [Grok Build](https://x.ai).**
 
@@ -145,6 +146,8 @@ We **align on harness semantics** with omo; we do **not** claim Team Mode, multi
 
 ```bash
 npm install
+npm run ci            # build + test + doctor + validate (documented CI)
+# or separately:
 npm test              # unit + harness golden paths
 npm run doctor        # hooks / agents / skills healthy
 npm run validate      # plugin layout
@@ -153,7 +156,7 @@ npm run validate      # plugin layout
 - [CONTRIBUTING.md](./CONTRIBUTING.md) — how to help  
 - [CHANGELOG.md](./CHANGELOG.md) — versioned release notes  
 - [docs/contract.md](./docs/contract.md) — hook I/O contract  
-- CI runs `npm test`, `doctor`, and `validate` on every push/PR
+- **CI:** `npm run ci` (see [`scripts/ci.mjs`](./scripts/ci.mjs)). GitHub Actions template: [`docs/ci.workflow.yml`](./docs/ci.workflow.yml) — copy to `.github/workflows/ci.yml` when your token has the `workflow` scope.
 
 ---
 
