@@ -10,7 +10,7 @@ import { detectPlanCommand, loadPlanMode, planModeContext, startPlanMode, startW
 import { cancelRalph, detectRalphCommand, loadRalph, startRalph, } from "../features/ralph.js";
 import { loadInjectedRules, sisyphusBootstrap, usingSuperpowersHint, } from "../features/rules.js";
 import { saveLastPrompt, skillGateContext } from "../features/last-prompt.js";
-import { detectAgentCommand, setSessionAgentRole, } from "../features/session-role.js";
+import { detectAgentCommand, loadSessionAgentRoleState, setSessionAgentRole, } from "../features/session-role.js";
 import { detectThinkMode, thinkModeBanner } from "../features/think-mode.js";
 import { loadSkillGateState, refreshCatalog, skillGateReminder, } from "../features/skill-gate.js";
 import { clearBoulder, isStopPaused, loadBoulder, setStopPaused, } from "../features/todo-boulder.js";
@@ -51,15 +51,23 @@ export function handleUserPrompt(input, cfg) {
     }
     const agentCmd = detectAgentCommand(prompt);
     if (agentCmd) {
-        // Explicit /agent wins over host agentName on the same prompt (e.g. clear oracle lock)
+        // Explicit /agent wins over host agentName (same prompt + rest of session)
         setSessionAgentRole(input, cfg, agentCmd.role, "slash-agent");
         parts.push(`<OMG_CTRL>Session agent role set to **${agentCmd.role}** (/agent). Agent Guard applies sticky role.</OMG_CTRL>`);
     }
     else if (input.agentName) {
-        // Only sticky host role when user did not override with /agent
-        const hostRole = String(input.agentName).trim().toLowerCase();
-        if (hostRole) {
-            setSessionAgentRole(input, cfg, hostRole, "host-agentName");
+        // Never clobber an active slash-agent sticky with host tags on later turns
+        // (subagent sessions often re-send agentName=oracle every UserPrompt).
+        const sticky = loadSessionAgentRoleState(input, cfg);
+        if (sticky?.source === "slash-agent" && sticky.role) {
+            // keep slash override; surface reminder
+            parts.push(`<OMG_CTRL>Keeping slash sticky role **${sticky.role}** (host agentName ignored until /agent changes it).</OMG_CTRL>`);
+        }
+        else {
+            const hostRole = String(input.agentName).trim().toLowerCase();
+            if (hostRole) {
+                setSessionAgentRole(input, cfg, hostRole, "host-agentName");
+            }
         }
     }
     const ralphCmd = detectRalphCommand(prompt);

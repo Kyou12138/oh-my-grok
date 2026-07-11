@@ -205,6 +205,43 @@ describe("session sticky agent role", () => {
     expect(JSON.stringify(rHost.output)).not.toMatch(/AGENT_GUARD/);
   });
 
+  it("multi-turn: /agent hephaestus then host-oracle UserPrompt keeps write allow", () => {
+    const ws = tmpWorkspace();
+    const data = path.join(ws, "pdata");
+    const c = cfg(data);
+    // Turn 1: user unlocks
+    handleUserPrompt(
+      base(ws, {
+        prompt: "/agent hephaestus",
+        agentName: "oracle",
+        raw: { agentName: "oracle" },
+      }),
+      c,
+    );
+    expect(getSessionAgentRole(base(ws), c)).toBe("hephaestus");
+    // Turn 2: non-slash prompt, host still tags oracle — must NOT overwrite slash sticky
+    handleUserPrompt(
+      base(ws, {
+        prompt: "continue implementing the feature",
+        agentName: "oracle",
+        raw: { agentName: "oracle" },
+      }),
+      c,
+    );
+    expect(getSessionAgentRole(base(ws), c)).toBe("hephaestus");
+    const r = handlePreToolUse(
+      base(ws, {
+        event: "pre-tool-use",
+        toolName: "Write",
+        agentName: "oracle",
+        raw: { agentName: "oracle" },
+        toolInput: { path: path.join(ws, "mt.ts"), contents: "export const m = 1;\n" },
+      }),
+      c,
+    );
+    expect(r.exitCode).toBe(0);
+  });
+
   it("clearSessionAgentRole restores fail-open", () => {
     const ws = tmpWorkspace();
     const data = path.join(ws, "pdata");
