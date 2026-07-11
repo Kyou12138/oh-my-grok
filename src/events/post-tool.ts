@@ -1,6 +1,7 @@
 import type { EnvConfig, HookInput, HookOutput } from "../protocol/types.js";
 import { markDirty, runDiagCommand } from "../features/diagnostics.js";
 import { recordRead } from "../features/hashline.js";
+import { noteUlwRead, noteUlwWrite } from "../features/ralph.js";
 import { markSkillLoaded } from "../features/skill-gate.js";
 import {
   extractTodosFromToolInput,
@@ -25,6 +26,7 @@ export function handlePostToolRead(input: HookInput, cfg: EnvConfig): HookOutput
       markSkillLoaded(input, cfg, file);
     }
     recordRead(input, cfg, file);
+    noteUlwRead(input, cfg, file);
   }
   return {};
 }
@@ -45,6 +47,7 @@ export function handlePostToolTodo(input: HookInput, cfg: EnvConfig): HookOutput
 export function handlePostToolWrite(input: HookInput, cfg: EnvConfig): HookOutput {
   const file = fileFromInput(input);
   markDirty(input, cfg, file || undefined);
+  noteUlwWrite(input, cfg, file || undefined);
   // Refresh hashline cache after successful write so next edit sees new content
   if (file) recordRead(input, cfg, file);
   if (cfg.diagCommand) {

@@ -1,5 +1,5 @@
 import { diagStopReason, isVerifiedMessage, loadDiag, markSoftPrompted, markVerified, } from "../features/diagnostics.js";
-import { bumpRalph, cancelRalph, isDoneMessage, loadRalph, ralphStopReason, } from "../features/ralph.js";
+import { loadRalph, processLoopStop } from "../features/ralph.js";
 import { boulderStopReason, hasOpenPlanCheckboxes, incompleteTodos, isStopPaused, loadBoulder, markTodoContinued, todoEnforcerAllows, todoStopReason, } from "../features/todo-boulder.js";
 export function handleStop(input, cfg) {
     if (isVerifiedMessage(input.lastAssistantMessage)) {
@@ -8,27 +8,14 @@ export function handleStop(input, cfg) {
     if (isStopPaused(input, cfg)) {
         return {};
     }
-    // 1. Ralph / ULW
+    // 1. Ralph / ULW v2
     const ralph = loadRalph(input, cfg);
     if (ralph) {
-        if (isDoneMessage(input.lastAssistantMessage)) {
-            cancelRalph(input, cfg);
+        const result = processLoopStop(input, cfg, ralph);
+        if (result.block) {
+            return { decision: "block", reason: result.reason };
         }
-        else if (ralph.iteration >= ralph.maxIterations) {
-            cancelRalph(input, cfg);
-            return {
-                decision: "block",
-                reason: [
-                    "RALPH/ULW max iterations reached — loop auto-cancelled.",
-                    `Task was: ${ralph.task}`,
-                    "Summarize progress for the user. Use /ralph-loop again if needed.",
-                ].join("\n"),
-            };
-        }
-        else {
-            bumpRalph(input, cfg, ralph);
-            return { decision: "block", reason: ralphStopReason(ralph) };
-        }
+        // loop ended cleanly — fall through other stop checks
     }
     // 2. Boulder
     const boulder = loadBoulder(input, cfg);

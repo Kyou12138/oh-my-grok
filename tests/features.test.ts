@@ -88,7 +88,20 @@ describe("stop chain", () => {
     expect(JSON.stringify(out)).toContain("RALPH");
   });
 
-  it("releases when DONE marker present", () => {
+  it("releases when DONE marker present (ralph mode)", () => {
+    const ws = tmpWorkspace();
+    const data = path.join(ws, "plugin-data");
+    const c = cfg(process.cwd(), data);
+    const input = baseInput(ws, {
+      event: "stop",
+      lastAssistantMessage: "all good <promise>DONE</promise>",
+    });
+    startRalph(input, c, "do work", "ralph");
+    const out = handleStop(input, c);
+    expect(out).toEqual({});
+  });
+
+  it("ULW rejects bare DONE without evidence", () => {
     const ws = tmpWorkspace();
     const data = path.join(ws, "plugin-data");
     const c = cfg(process.cwd(), data);
@@ -98,7 +111,8 @@ describe("stop chain", () => {
     });
     startRalph(input, c, "do work", "ulw");
     const out = handleStop(input, c);
-    expect(out).toEqual({});
+    expect(out).toMatchObject({ decision: "block" });
+    expect(JSON.stringify(out)).toMatch(/DONE REJECTED/);
   });
 });
 

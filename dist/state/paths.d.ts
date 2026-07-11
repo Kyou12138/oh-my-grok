@@ -10,6 +10,8 @@ export declare function pathsFor(workspaceRoot: string, sessionId: string, cfg: 
     stopContinuation: string;
     promptCount: string;
     ralph: string;
+    ulwDir: string;
+    ulwLogDir: string;
     boulder: string;
     todosDir: string;
     todosFile: string;

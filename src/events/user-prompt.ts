@@ -62,15 +62,27 @@ export function handleUserPrompt(input: HookInput, cfg: EnvConfig): HookOutput {
   }
 
   const ralphCmd = detectRalphCommand(prompt);
+  const existingLoop = loadRalph(input, cfg);
   if (ralphCmd.action === "cancel") {
     cancelRalph(input, cfg);
     parts.push("<OMG_CTRL>Ralph/ULW loop cancelled.</OMG_CTRL>");
   } else if (ralphCmd.action === "start-ralph") {
+    // slash always (re)starts; avoid clobbering active loop on accidental keyword
     startRalph(input, cfg, ralphCmd.task, "ralph");
     parts.push(`<OMG_CTRL>Ralph loop started: ${ralphCmd.task}</OMG_CTRL>`);
   } else if (ralphCmd.action === "start-ulw") {
-    startRalph(input, cfg, ralphCmd.task, "ulw");
-    parts.push(`<OMG_CTRL>ULW/ultrawork loop started: ${ralphCmd.task}</OMG_CTRL>`);
+    const isSlash = /^\/(ulw|ulw-loop|ultrawork)\b/i.test(prompt.trim());
+    if (isSlash || !existingLoop) {
+      startRalph(input, cfg, ralphCmd.task, "ulw");
+      parts.push(`<OMG_CTRL>ULW/ultrawork loop started: ${ralphCmd.task}</OMG_CTRL>`);
+    } else if (existingLoop.mode === "ulw") {
+      parts.push(
+        `<OMG_CTRL>ULW already active (phase=${existingLoop.phase}). Task: ${existingLoop.task}</OMG_CTRL>`,
+      );
+    } else {
+      startRalph(input, cfg, ralphCmd.task, "ulw");
+      parts.push(`<OMG_CTRL>ULW/ultrawork loop started (upgraded from ralph): ${ralphCmd.task}</OMG_CTRL>`);
+    }
   }
 
   const planCmd = detectPlanCommand(prompt);
@@ -109,7 +121,19 @@ export function handleUserPrompt(input: HookInput, cfg: EnvConfig): HookOutput {
   const ralph = loadRalph(input, cfg);
   if (ralph) {
     parts.push(
-      `<OMG_RALPH active="${ralph.mode}" iter="${ralph.iteration}/${ralph.maxIterations}">Task: ${ralph.task}</OMG_RALPH>`,
+      [
+        `<OMG_RALPH active="true" mode="${ralph.mode}" iter="${ralph.iteration}/${ralph.maxIterations}" phase="${ralph.phase}">`,
+        `Task: ${ralph.task}`,
+        ralph.mode === "ulw"
+          ? `ULW phases: explore=${ralph.phaseReached.explore} implement=${ralph.phaseReached.implement} verify=${ralph.phaseReached.verify} stall=${ralph.stallCount}`
+          : "",
+        ralph.mode === "ulw"
+          ? "Logs: .omg/ulw-loop/log/ — DONE needs VERIFIED + explore/implement evidence."
+          : "",
+        `</OMG_RALPH>`,
+      ]
+        .filter(Boolean)
+        .join("\n"),
     );
   }
 
