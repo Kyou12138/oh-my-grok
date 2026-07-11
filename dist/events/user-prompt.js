@@ -10,7 +10,7 @@ import { detectPlanCommand, loadPlanMode, planModeContext, startPlanMode, startW
 import { cancelRalph, detectRalphCommand, loadRalph, startRalph, } from "../features/ralph.js";
 import { loadInjectedRules, sisyphusBootstrap, usingSuperpowersHint, } from "../features/rules.js";
 import { loadSkillGateState, refreshCatalog, skillGateReminder, } from "../features/skill-gate.js";
-import { isStopPaused, loadBoulder, setStopPaused } from "../features/todo-boulder.js";
+import { clearBoulder, isStopPaused, loadBoulder, setStopPaused, } from "../features/todo-boulder.js";
 import { readJson, writeJsonAtomic } from "../state/fs.js";
 import { pathsFor } from "../state/paths.js";
 function detectContinuation(prompt) {
@@ -19,6 +19,9 @@ function detectContinuation(prompt) {
     if (/^\/resume-continuation\b/i.test(prompt.trim()))
         return "resume";
     return null;
+}
+function detectCancelBoulder(prompt) {
+    return /^\/cancel-boulder\b/i.test(prompt.trim());
 }
 export function handleUserPrompt(input, cfg) {
     const parts = [];
@@ -36,6 +39,10 @@ export function handleUserPrompt(input, cfg) {
     else if (cont === "resume") {
         setStopPaused(input, cfg, false);
         parts.push("<OMG_CTRL>Auto-continuation RESUMED.</OMG_CTRL>");
+    }
+    if (detectCancelBoulder(prompt)) {
+        clearBoulder(input, cfg);
+        parts.push("<OMG_CTRL>Boulder cleared (/cancel-boulder).</OMG_CTRL>");
     }
     const ralphCmd = detectRalphCommand(prompt);
     const existingLoop = loadRalph(input, cfg);

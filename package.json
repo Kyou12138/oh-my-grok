@@ -1,6 +1,6 @@
 {
   "name": "oh-my-grok",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "omo-style harness + Superpowers for Grok Build — ultrawork until done, Skill Gate, Hashline, Sisyphus team",
   "type": "module",
   "bin": {

@@ -170,23 +170,49 @@ export function hashlinePreToolDeny(input, cfg) {
             "");
         if (!oldRaw)
             return null;
-        // Validate LINE#ID tags if present
+        // Validate LINE#ID tags if present — never silently accept mismatched anchors
         const lines = oldRaw.split(/\r?\n/);
+        const fileLines = current ? current.split(/\r?\n/) : [];
         let hasTags = false;
         for (const line of lines) {
             const m = line.match(LINE_REF);
-            if (m && cached) {
-                hasTags = true;
-                const lineNo = Number(m[1]);
-                const tag = m[2];
-                const expected = cached.lineTags[lineNo];
-                if (expected && expected !== tag) {
-                    return [
-                        "[Hashline] LINE#ID mismatch — content moved or stale.",
-                        `line ${lineNo}: expected #${expected}, got #${tag}`,
-                        `Re-Read: ${file}`,
-                    ].join("\n");
-                }
+            if (!m)
+                continue;
+            hasTags = true;
+            if (!cached) {
+                return [
+                    "[Hashline] LINE#ID anchors require a fresh Read cache.",
+                    `Re-Read: ${file}`,
+                ].join("\n");
+            }
+            const lineNo = Number(m[1]);
+            const tag = m[2];
+            const body = m[3] ?? "";
+            const expected = cached.lineTags[lineNo];
+            if (!expected) {
+                return [
+                    "[Hashline] LINE#ID unknown line number (outside last Read).",
+                    `line ${lineNo} not in cache (file has ${cached.lineCount} lines).`,
+                    `Re-Read: ${file}`,
+                ].join("\n");
+            }
+            if (expected !== tag) {
+                return [
+                    "[Hashline] LINE#ID mismatch — content moved or stale.",
+                    `line ${lineNo}: expected #${expected}, got #${tag}`,
+                    `Re-Read: ${file}`,
+                ].join("\n");
+            }
+            // Body after tag must match the live file line (tag alone is not enough)
+            const liveLine = fileLines[lineNo - 1];
+            if (liveLine !== undefined && body !== liveLine) {
+                return [
+                    "[Hashline] LINE#ID body mismatch — tag ok but line text differs.",
+                    `line ${lineNo}: cache/tag #${tag}`,
+                    `expected body: ${JSON.stringify(liveLine)}`,
+                    `got body:      ${JSON.stringify(body)}`,
+                    `Re-Read: ${file}`,
+                ].join("\n");
             }
         }
         const oldPlain = stripHashlinePrefixes(oldRaw);

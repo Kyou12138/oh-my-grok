@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.0] — 2026-07-11
+
+### Functional harness upgrades (star-ready via capability)
+
+- **Hashline LINE#ID hardened** — tag mismatch, unknown line, **body mismatch** (tag OK but line text differs), stale `old_string`, write-without-Read all deny on PreTool
+- **Boulder lifecycle** — Stop blocks with plan checkbox context; DONE/VERIFIED clears boulder when checkboxes complete; **`/cancel-boulder`**
+- **Agent Guard fail-open** — no role → allow (main session); role present → hard deny for read-only agents
+- **Comment Checker** — soft PostTool warn + optional hard PreTool deny
+- **Functional gate suite** — `tests/functional-gates.test.ts` drives real handlers + `dist/cli.js` stdin path
+
 ## [0.4.0] — 2026-07-11
 
 ### Added

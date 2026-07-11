@@ -38,7 +38,12 @@ import {
   refreshCatalog,
   skillGateReminder,
 } from "../features/skill-gate.js";
-import { isStopPaused, loadBoulder, setStopPaused } from "../features/todo-boulder.js";
+import {
+  clearBoulder,
+  isStopPaused,
+  loadBoulder,
+  setStopPaused,
+} from "../features/todo-boulder.js";
 import { readJson, writeJsonAtomic } from "../state/fs.js";
 import { pathsFor } from "../state/paths.js";
 
@@ -46,6 +51,10 @@ function detectContinuation(prompt: string): "stop" | "resume" | null {
   if (/^\/stop-continuation\b/i.test(prompt.trim())) return "stop";
   if (/^\/resume-continuation\b/i.test(prompt.trim())) return "resume";
   return null;
+}
+
+function detectCancelBoulder(prompt: string): boolean {
+  return /^\/cancel-boulder\b/i.test(prompt.trim());
 }
 
 export function handleUserPrompt(input: HookInput, cfg: EnvConfig): HookOutput {
@@ -67,6 +76,11 @@ export function handleUserPrompt(input: HookInput, cfg: EnvConfig): HookOutput {
   } else if (cont === "resume") {
     setStopPaused(input, cfg, false);
     parts.push("<OMG_CTRL>Auto-continuation RESUMED.</OMG_CTRL>");
+  }
+
+  if (detectCancelBoulder(prompt)) {
+    clearBoulder(input, cfg);
+    parts.push("<OMG_CTRL>Boulder cleared (/cancel-boulder).</OMG_CTRL>");
   }
 
   const ralphCmd = detectRalphCommand(prompt);

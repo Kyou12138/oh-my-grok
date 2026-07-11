@@ -12,19 +12,19 @@ Events: `session-start` | `user-prompt` | `pre-tool-use` | `post-tool-read` | `p
 
 ## PreToolUse order
 
-1. Agent guard (read-only roles: oracle/explore/librarian/metis/momus)  
+1. Agent guard (read-only roles: oracle/explore/librarian/metis/momus; fail-open if no role)  
 2. Prometheus plan-mode path deny  
-3. Hashline (fresh Read + old_string match + LINE#ID)  
+3. Hashline (fresh Read + old_string match + LINE#ID tag **and** body)  
 4. Comment checker hard deny (when `commentCheckerDeny`)  
 5. Skill Gate  
 
 ## Stop order
 
 1. Ralph / ULW  
-2. Boulder  
+2. Boulder (blocks while active; open plan checkboxes called out; DONE/VERIFIED clears when checkboxes complete; `/cancel-boulder`)  
 3. Todo enforcer  
 4. Diagnostics (errors hard-block; soft verify once if no `diagCommand`)  
-5. Plan checkboxes
+5. Plan checkboxes (fallback when no boulder)
 
 ## Outputs
 

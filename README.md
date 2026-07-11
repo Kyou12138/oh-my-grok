@@ -103,7 +103,7 @@ Activates **boulder** execution (Atlas/Sisyphus). Optional review agents: **Meti
 
 | Layer | Ships today |
 |-------|-------------|
-| **Harness** | Ralph / **ULW v2**, Skill Gate, Hashline, Stop chain, Todo/Boulder, IntentGate, Prometheus, Comment Checker, Agent Guard, Categories, Diagnostics, Handoff, `/init-deep` |
+| **Harness** | Ralph / **ULW v2**, Skill Gate, **Hashline LINE#ID** (tag+body), Stop chain, Todo/**Boulder lifecycle**, IntentGate, Prometheus, Comment Checker, Agent Guard, Categories, Diagnostics, Handoff, `/init-deep` |
 | **Discipline agents** | Sisyphus · Hephaestus · Prometheus · Atlas · Oracle · Explore · Librarian · Metis · Momus |
 | **Superpowers** | Vendored MIT skills: brainstorming, writing-plans, TDD, verification-before-completion, … |
 
@@ -131,6 +131,7 @@ We **align on harness semantics** with omo; we do **not** claim Team Mode, multi
 | `/cancel-ralph` | Clear loop |
 | `/plan` · `/prometheus` | Plan mode (writes only `.omg/plans/`) |
 | `/start-work` | Boulder from plan |
+| `/cancel-boulder` | Clear active boulder |
 | `/handoff` | Session handoff under `.omg/handoffs/` |
 | `/init-deep` | Hierarchical `AGENTS.md` |
 | `/stop-continuation` · `/resume-continuation` | Pause / resume auto-continue |

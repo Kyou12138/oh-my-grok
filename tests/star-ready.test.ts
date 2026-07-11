@@ -68,9 +68,9 @@ describe("OSS hygiene artifacts", () => {
     expect(exists("CONTRIBUTING.md")).toBe(true);
     expect(exists("CHANGELOG.md")).toBe(true);
     const cl = read("CHANGELOG.md");
-    expect(cl).toMatch(/0\.4\.0/);
     const pj = JSON.parse(read("package.json"));
     expect(cl).toContain(pj.version);
+    expect(pj.version).toMatch(/^\d+\.\d+\.\d+/);
   });
 
   it("documented CI runs npm test (+ doctor/validate)", () => {
