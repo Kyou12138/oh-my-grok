@@ -1,0 +1,34 @@
+{
+  "name": "oh-my-grok",
+  "version": "0.1.0",
+  "description": "Grok Build productivity plugin — omo-style harness + Superpowers + Discipline Agents (Sisyphus team)",
+  "type": "module",
+  "bin": {
+    "omg-hook": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node node_modules/vitest/vitest.mjs run",
+    "test:watch": "node node_modules/vitest/vitest.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "vendor:superpowers": "node scripts/vendor-superpowers.mjs",
+    "validate": "node scripts/validate-plugin.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "keywords": [
+    "grok-build",
+    "grok-plugin",
+    "oh-my-grok",
+    "sisyphus",
+    "superpowers",
+    "agentic-workflow"
+  ],
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.1"
+  }
+}

@@ -1,0 +1,10 @@
+node_modules/
+# dist/ is committed so grok plugin install works without a local build
+.omg/
+.tmp-plugin-data/
+*.log
+.DS_Store
+coverage/
+.env
+*.tsbuildinfo
+vendor/superpowers/.git

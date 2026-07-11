@@ -1,0 +1,20 @@
+import type { EnvConfig } from "../protocol/types.js";
+export declare function workspaceStateRoot(workspaceRoot: string, cfg: EnvConfig): string;
+export declare function sessionStateRoot(cfg: EnvConfig): string;
+export declare function pathsFor(workspaceRoot: string, sessionId: string, cfg: EnvConfig): {
+    omg: string;
+    session: string;
+    fingerprint: string;
+    skillGate: string;
+    todoEnforcer: string;
+    stopContinuation: string;
+    promptCount: string;
+    ralph: string;
+    boulder: string;
+    todosDir: string;
+    todosFile: string;
+    plansDir: string;
+    handoffsDir: string;
+    planMode: string;
+    config: string;
+};

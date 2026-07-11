@@ -1,0 +1,82 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${GROK_PLUGIN_ROOT}/dist/cli.js\" session-start",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${GROK_PLUGIN_ROOT}/dist/cli.js\" user-prompt",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|StrReplace|EditNotebook|Delete|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${GROK_PLUGIN_ROOT}/dist/cli.js\" pre-tool-use",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${GROK_PLUGIN_ROOT}/dist/cli.js\" post-tool-read",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "TodoWrite|todo_write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${GROK_PLUGIN_ROOT}/dist/cli.js\" post-tool-todo",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${GROK_PLUGIN_ROOT}/dist/cli.js\" stop",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${GROK_PLUGIN_ROOT}/dist/cli.js\" session-end",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

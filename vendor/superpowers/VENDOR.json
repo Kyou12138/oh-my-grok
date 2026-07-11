@@ -1,0 +1,6 @@
+{
+  "repo": "https://github.com/obra/superpowers.git",
+  "ref": "main",
+  "vendoredAt": "2026-07-11T04:41:47.663Z",
+  "note": "MIT obra/superpowers — do not edit vendored skills by hand; re-run npm run vendor:superpowers"
+}
