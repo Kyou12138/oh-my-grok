@@ -60,8 +60,6 @@ grok plugin install "D:\path\to\oh-my-grok" --trust
 grok plugin enable oh-my-grok
 ```
 
-> **互斥：** 不要与 [mihazs/oh-my-grok](https://github.com/mihazs/oh-my-grok) **同时 enable**（同名 / 同 `.omg/` 会冲突）。
-
 ---
 
 ## 开箱 wow 路径（可复制）

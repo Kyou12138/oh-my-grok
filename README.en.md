@@ -60,8 +60,6 @@ grok plugin install "D:\path\to\oh-my-grok" --trust
 grok plugin enable oh-my-grok
 ```
 
-> **Do not dual-enable** [mihazs/oh-my-grok](https://github.com/mihazs/oh-my-grok) — same plugin name / `.omg/` state will conflict.
-
 ---
 
 ## Wow path (copy-paste)
