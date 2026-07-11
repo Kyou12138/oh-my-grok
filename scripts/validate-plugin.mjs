@@ -9,8 +9,17 @@ const required = [
   "hooks/hooks.json",
   "dist/cli.js",
   "agents/sisyphus.md",
+  "agents/metis.md",
+  "agents/momus.md",
   "skills/agent-skill-gate/SKILL.md",
+  "skills/init-deep/SKILL.md",
   "rules/00-sisyphus.md",
+  "scripts/doctor.mjs",
+  "LICENSE",
+  "CONTRIBUTING.md",
+  "CHANGELOG.md",
+  ".github/workflows/ci.yml",
+  "README.md",
 ];
 
 let ok = true;
@@ -27,6 +36,25 @@ for (const r of required) {
 const pj = JSON.parse(fs.readFileSync(path.join(root, "plugin.json"), "utf8"));
 if (pj.name !== "oh-my-grok") {
   console.error("plugin.json name must be oh-my-grok");
+  ok = false;
+}
+if (!String(pj.homepage || "").includes("Kyou12138/oh-my-grok")) {
+  console.error("plugin.json homepage must point at github.com/Kyou12138/oh-my-grok");
+  ok = false;
+}
+const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
+const repoUrl = typeof pkg.repository === "string" ? pkg.repository : pkg.repository?.url || "";
+if (!repoUrl.includes("Kyou12138/oh-my-grok")) {
+  console.error("package.json repository must be Kyou12138/oh-my-grok");
+  ok = false;
+}
+const readme = fs.readFileSync(path.join(root, "README.md"), "utf8");
+if (!readme.includes("grok plugin install github.com/Kyou12138/oh-my-grok --trust")) {
+  console.error("README missing documented GitHub install command");
+  ok = false;
+}
+if (!/ultrawork/i.test(readme)) {
+  console.error("README missing ultrawork wow path");
   ok = false;
 }
 

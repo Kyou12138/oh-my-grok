@@ -14,6 +14,9 @@ export interface OmgFileConfig {
     diagTimeoutMs?: number;
     hashlineTtlMs?: number;
     stateDir?: string;
+    commentChecker?: boolean;
+    commentCheckerDeny?: boolean;
+    agentGuard?: boolean;
 }
 /**
  * Base config from env, then overlay .omg/config.json (workspace wins for toggles).

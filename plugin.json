@@ -1,12 +1,13 @@
 {
   "name": "oh-my-grok",
-  "version": "0.3.0",
-  "description": "omo-style harness for Grok Build: ULW v2 phase machine, Sisyphus team, Superpowers, Hashline, diagnostics, hard orchestration",
+  "version": "0.4.0",
+  "description": "omo-style harness + Superpowers for Grok Build: ULW v2, Skill Gate, Hashline, Sisyphus team",
   "author": {
-    "name": "vibe-coding"
+    "name": "Kyou12138",
+    "url": "https://github.com/Kyou12138"
   },
-  "homepage": "https://github.com/vibe-coding/oh-my-grok",
-  "repository": "https://github.com/vibe-coding/oh-my-grok",
+  "homepage": "https://github.com/Kyou12138/oh-my-grok",
+  "repository": "https://github.com/Kyou12138/oh-my-grok",
   "license": "MIT",
   "skills": ["./skills", "./vendor/superpowers/skills"],
   "agents": "./agents",
@@ -18,6 +19,7 @@
     "superpowers",
     "ralph-loop",
     "ultrawork",
-    "skill-gate"
+    "skill-gate",
+    "harness"
   ]
 }

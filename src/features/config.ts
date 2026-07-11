@@ -18,6 +18,9 @@ export interface OmgFileConfig {
   diagTimeoutMs?: number;
   hashlineTtlMs?: number;
   stateDir?: string;
+  commentChecker?: boolean;
+  commentCheckerDeny?: boolean;
+  agentGuard?: boolean;
 }
 
 function envBool(name: string, defaultOn: boolean): boolean {
@@ -76,6 +79,12 @@ export function loadConfig(workspaceRoot?: string): EnvConfig {
     ).trim(),
     diagTimeoutMs: file.diagTimeoutMs ?? envNum("OMG_DIAG_TIMEOUT_MS", 60000),
     hashlineTtlMs: file.hashlineTtlMs ?? envNum("OMG_HASHLINE_TTL_MS", 30 * 60 * 1000),
+    commentChecker: file.commentChecker ?? envBool("OMG_COMMENT_CHECKER", true),
+    commentCheckerDeny:
+      file.commentCheckerDeny ??
+      (process.env.OMG_COMMENT_CHECKER === "deny" ||
+        envBool("OMG_COMMENT_CHECKER_DENY", false)),
+    agentGuard: file.agentGuard ?? envBool("OMG_AGENT_GUARD", true),
   };
 }
 

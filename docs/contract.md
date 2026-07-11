@@ -12,9 +12,11 @@ Events: `session-start` | `user-prompt` | `pre-tool-use` | `post-tool-read` | `p
 
 ## PreToolUse order
 
-1. Prometheus plan-mode path deny  
-2. Hashline (fresh Read + old_string match + LINE#ID)  
-3. Skill Gate  
+1. Agent guard (read-only roles: oracle/explore/librarian/metis/momus)  
+2. Prometheus plan-mode path deny  
+3. Hashline (fresh Read + old_string match + LINE#ID)  
+4. Comment checker hard deny (when `commentCheckerDeny`)  
+5. Skill Gate  
 
 ## Stop order
 
@@ -43,5 +45,14 @@ Fail-open: unexpected errors → allow/empty + exit 0.
 - `OMG_SKILL_GATE`, `OMG_INTENT_GATE`, `OMG_PLAN_MODE` (`0` to disable)
 - `OMG_MAX_RALPH_ITER`, `OMG_TODO_COOLDOWN_MS`
 - `OMG_HASHLINE`, `OMG_DIAG_ENFORCE`, `OMG_HARD_ORCH`, `OMG_DIAG_CMD`
+- `OMG_COMMENT_CHECKER` (`0` off, `1` soft warn, `deny` = hard via PreTool)
+- `OMG_COMMENT_CHECKER_DENY`, `OMG_AGENT_GUARD`
+- `GROK_AGENT_NAME` / `OMG_AGENT_ROLE` for agent-guard role detection
 
 Workspace file: `.omg/config.json` (see `docs/config.example.json`).
+
+## Doctor
+
+```bash
+npm run doctor
+```

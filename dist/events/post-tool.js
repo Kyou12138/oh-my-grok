@@ -1,3 +1,5 @@
+import { commentCheckerPostWarn } from "../features/comment-checker.js";
+import { collectDirectoryContext } from "../features/directory-inject.js";
 import { markDirty, runDiagCommand } from "../features/diagnostics.js";
 import { recordRead } from "../features/hashline.js";
 import { noteUlwRead, noteUlwWrite } from "../features/ralph.js";
@@ -10,16 +12,36 @@ function fileFromInput(input) {
         input.toolInput?.target_file ??
         "");
 }
+function mergeContext(...parts) {
+    const additionalContext = parts.filter(Boolean).join("\n\n");
+    return additionalContext ? { additionalContext } : {};
+}
 export function handlePostToolRead(input, cfg) {
     const file = fileFromInput(input);
+    const parts = [];
     if (file) {
         if (/skill\.md$/i.test(file)) {
             markSkillLoaded(input, cfg, file);
         }
-        recordRead(input, cfg, file);
+        const entry = recordRead(input, cfg, file);
         noteUlwRead(input, cfg, file);
+        if (entry?.annotatedPreview) {
+            parts.push([
+                "<HASHLINE_READ>",
+                `File: ${entry.path}`,
+                `hash=${entry.contentHash} lines=${entry.lineCount}`,
+                "LINE#ID anchors (use for precise edits; keep tags matching):",
+                "```",
+                entry.annotatedPreview,
+                "```",
+                "</HASHLINE_READ>",
+            ].join("\n"));
+        }
+        const dirCtx = collectDirectoryContext(input.workspaceRoot, file);
+        if (dirCtx)
+            parts.push(dirCtx);
     }
-    return {};
+    return mergeContext(...parts);
 }
 export function handlePostToolTodo(input, cfg) {
     const todos = extractTodosFromToolInput(input.toolInput);
@@ -44,6 +66,7 @@ export function handlePostToolWrite(input, cfg) {
     if (cfg.diagCommand) {
         runDiagCommand(input, cfg);
     }
-    return {};
+    const warn = commentCheckerPostWarn(input, cfg);
+    return mergeContext(warn);
 }
 //# sourceMappingURL=post-tool.js.map

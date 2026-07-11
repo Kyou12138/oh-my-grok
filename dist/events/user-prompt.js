@@ -1,6 +1,9 @@
+import { agentGuardBanner, resolveAgentRole } from "../features/agent-guard.js";
+import { categoryBanner, detectCategory } from "../features/category.js";
 import { diagUserContext } from "../features/diagnostics.js";
 import { detectHandoff, handoffContext, writeHandoffStub } from "../features/handoff.js";
 import { hashlineUserContext } from "../features/hashline.js";
+import { detectInitDeep, initDeepContext, parseInitDeepOpts, runInitDeep, } from "../features/init-deep.js";
 import { detectIntent, intentBanner } from "../features/intent-gate.js";
 import { commentCheckerHint, hardOrchestrationBanner, } from "../features/orchestration.js";
 import { detectPlanCommand, loadPlanMode, planModeContext, startPlanMode, startWorkFromPlan, } from "../features/prometheus.js";
@@ -72,6 +75,11 @@ export function handleUserPrompt(input, cfg) {
         const file = writeHandoffStub(input, cfg, prompt);
         parts.push(handoffContext(file));
     }
+    if (detectInitDeep(prompt)) {
+        const opts = parseInitDeepOpts(prompt);
+        const result = runInitDeep(input.workspaceRoot, opts);
+        parts.push(initDeepContext(result));
+    }
     if (isFirst) {
         parts.push(sisyphusBootstrap());
         parts.push(usingSuperpowersHint(cfg.pluginRoot));
@@ -104,6 +112,17 @@ export function handleUserPrompt(input, cfg) {
     }
     if (cfg.intentGate && prompt) {
         parts.push(intentBanner(detectIntent(prompt)));
+    }
+    if (prompt && !detectInitDeep(prompt)) {
+        const cat = detectCategory(prompt);
+        if (cat)
+            parts.push(categoryBanner(cat));
+    }
+    const agentRole = resolveAgentRole(input);
+    if (agentRole) {
+        const ag = agentGuardBanner(agentRole);
+        if (ag)
+            parts.push(ag);
     }
     const pm = loadPlanMode(input, cfg);
     if (pm.active && planCmd.action !== "plan")

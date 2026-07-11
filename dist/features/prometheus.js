@@ -86,6 +86,12 @@ export function planModeContext(pm) {
         "PLAN MODE active. Interview the user; refine scope; write ONLY to .omg/plans/*.md.",
         pm.topic ? `Topic: ${pm.topic}` : "",
         pm.planFile ? `Plan file: ${pm.planFile}` : "",
+        "",
+        "Review chain (before /start-work):",
+        "1) **Metis** (plan consultant) — spawn read-only: find hidden intent, ambiguities, AI failure points.",
+        "2) **Momus** (plan reviewer) — spawn read-only: validate clarity, verifiability, completeness.",
+        "3) Fold review feedback into the plan markdown checkboxes.",
+        "4) User runs /start-work → Atlas/boulder execution.",
         "When plan is approved, user runs /start-work to enter boulder execution.",
         "</OMG_PROMETHEUS>",
     ]

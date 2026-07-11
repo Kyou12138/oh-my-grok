@@ -66,6 +66,16 @@ export function parseHookInput(event: HookEvent, raw: Record<string, unknown>): 
         raw.message,
       ) || undefined,
     isFirstPrompt: Boolean(raw.isFirstPrompt ?? raw.is_first_prompt ?? raw.firstPrompt),
+    agentName:
+      firstString(
+        raw.agentName,
+        raw.agent_name,
+        raw.agent,
+        raw.subagent_type,
+        raw.subagentType,
+        process.env.GROK_AGENT_NAME,
+        process.env.OMG_AGENT_ROLE,
+      ) || undefined,
   };
 }
 

@@ -24,6 +24,8 @@ export interface HookInput {
   stopReason?: string;
   lastAssistantMessage?: string;
   isFirstPrompt?: boolean;
+  /** Active agent / subagent role when provided by host */
+  agentName?: string;
 }
 
 export type HookOutput =
@@ -51,4 +53,10 @@ export interface EnvConfig {
   diagCommand: string;
   diagTimeoutMs: number;
   hashlineTtlMs: number;
+  /** Soft-warn AI-slop comments after writes */
+  commentChecker: boolean;
+  /** Hard-deny writes that contain AI-slop comments */
+  commentCheckerDeny: boolean;
+  /** Enforce read-only agent permissions */
+  agentGuard: boolean;
 }

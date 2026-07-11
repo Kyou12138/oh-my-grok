@@ -1,4 +1,6 @@
 import type { EnvConfig, HookInput, HookOutput } from "../protocol/types.js";
+import { agentGuardDeny } from "../features/agent-guard.js";
+import { commentCheckerPreDeny } from "../features/comment-checker.js";
 import { hashlinePreToolDeny } from "../features/hashline.js";
 import { planModeDeny } from "../features/prometheus.js";
 import {
@@ -15,6 +17,12 @@ export function handlePreToolUse(
   output: HookOutput;
   exitCode: number;
 } {
+  // 0) Agent role guard (even before mutating-tool short-circuit helpers)
+  const agentDeny = agentGuardDeny(input, cfg);
+  if (agentDeny) {
+    return { output: { decision: "deny", reason: agentDeny }, exitCode: 2 };
+  }
+
   if (!isMutatingTool(input.toolName)) {
     return { output: { decision: "allow" }, exitCode: 0 };
   }
@@ -25,13 +33,19 @@ export function handlePreToolUse(
     return { output: { decision: "deny", reason: planDeny }, exitCode: 2 };
   }
 
-  // 2) Hashline stale-edit guard
+  // 2) Hashline stale-edit guard (+ write-before-read)
   const hl = hashlinePreToolDeny(input, cfg);
   if (hl) {
     return { output: { decision: "deny", reason: hl }, exitCode: 2 };
   }
 
-  // 3) Skill gate
+  // 3) Comment checker hard deny
+  const cc = commentCheckerPreDeny(input, cfg);
+  if (cc) {
+    return { output: { decision: "deny", reason: cc }, exitCode: 2 };
+  }
+
+  // 4) Skill gate
   if (cfg.skillGate) {
     let state = loadSkillGateState(input, cfg);
     if (!state.catalog.length) state = refreshCatalog(input, cfg);

@@ -17,9 +17,10 @@ rules/   — always injected on UserPrompt
 
 1. One hook registration per event; merge UserPrompt in `user-prompt.ts`.
 2. Stop chain order only in `events/stop.ts`: Ralph → Boulder → Todo → plan checkboxes.
-3. Fail-open in `cli.ts` catch.
-4. No bash launcher — Windows uses `node dist/cli.js`.
-5. Do not dual-enable mihazs oh-my-grok.
+3. PreTool order: Agent Guard → plan-mode → Hashline → CommentChecker → Skill Gate.
+4. Fail-open in `cli.ts` catch.
+5. No bash launcher — Windows uses `node dist/cli.js`.
+6. Do not dual-enable mihazs oh-my-grok.
 
 ## Dev
 
@@ -27,6 +28,7 @@ rules/   — always injected on UserPrompt
 npm install
 npm run build
 npm test
+npm run doctor
 npm run vendor:superpowers
 npm run validate
 ```

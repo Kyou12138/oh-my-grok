@@ -1,7 +1,7 @@
 {
   "name": "oh-my-grok",
-  "version": "0.3.0",
-  "description": "Grok Build productivity plugin — omo-style harness + Superpowers + Discipline Agents (Sisyphus team)",
+  "version": "0.4.0",
+  "description": "omo-style harness + Superpowers for Grok Build — ultrawork until done, Skill Gate, Hashline, Sisyphus team",
   "type": "module",
   "bin": {
     "omg-hook": "./dist/cli.js"
@@ -12,19 +12,33 @@
     "test:watch": "node node_modules/vitest/vitest.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "vendor:superpowers": "node scripts/vendor-superpowers.mjs",
-    "validate": "node scripts/validate-plugin.mjs"
+    "validate": "node scripts/validate-plugin.mjs",
+    "doctor": "node scripts/doctor.mjs"
   },
   "engines": {
     "node": ">=20"
   },
   "license": "MIT",
+  "homepage": "https://github.com/Kyou12138/oh-my-grok",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kyou12138/oh-my-grok.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Kyou12138/oh-my-grok/issues"
+  },
   "keywords": [
     "grok-build",
     "grok-plugin",
     "oh-my-grok",
     "sisyphus",
     "superpowers",
-    "agentic-workflow"
+    "agentic-workflow",
+    "ultrawork",
+    "ralph-loop",
+    "skill-gate",
+    "harness",
+    "xai"
   ],
   "devDependencies": {
     "@types/node": "^22.15.0",

@@ -1,231 +1,183 @@
 # oh-my-grok
 
+[![CI](https://github.com/Kyou12138/oh-my-grok/actions/workflows/ci.yml/badge.svg)](https://github.com/Kyou12138/oh-my-grok/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Grok Build](https://img.shields.io/badge/Grok%20Build-plugin-111827)](https://x.ai)
 [![Node](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
+[![Grok Build](https://img.shields.io/badge/Grok%20Build-plugin-111827)](https://x.ai)
 
-**Grok Build** 生产力插件：对标 [oh-my-openagent](https://github.com/code-yeongyu/oh-my-openagent)（omo / oh-my-opencode）的 harness 能力，内置 **Sisyphus 纪律 Agent 团队**，并深度结合 [obra/superpowers](https://github.com/obra/superpowers)。
+**omo-style agent harness + Superpowers methodology for [Grok Build](https://x.ai).**
+
+Install once. Type `ultrawork`. Hooks force the agent to explore → implement → verify until the work is actually done.
 
 > **Repo:** https://github.com/Kyou12138/oh-my-grok  
-> **Requires:** [Grok Build CLI](https://x.ai) + Node.js 20+
+> **Requires:** Grok Build CLI + Node.js 20+  
+> Community plugin — **not** an xAI product. “Grok” is a trademark of xAI.
+
+**中文简介：** Vanilla Grok 很强，但长任务容易半途停、不读 skill、stale 编辑。oh-my-grok 用 hooks **强制** Ralph/ULW 循环、Skill Gate、Hashline 与 Stop 续跑，并内置 [obra/superpowers](https://github.com/obra/superpowers) 工程方法论。
 
 ---
 
-## 为什么需要它
+## The problem
 
-Vanilla Grok Build 很强，但长任务容易半途停、改文件不读 skill、编辑 stale、缺少 omo 式「纪律」。
+Vanilla Grok Build is a strong coding agent. On long tasks it still drifts:
 
-**oh-my-grok** 用 hooks 强制：
+| Failure mode | What happens without a harness |
+|--------------|--------------------------------|
+| Stops early | Declares “done” with open todos |
+| Edits blind | Mutates files without reading skills or current content |
+| Skips process | No brainstorm → plan → TDD → verify |
+| Soft stops | Idle when the boulder is only half up the hill |
 
-- 工作循环（Ralph / Ultrawork）
-- Skill Gate（改代码前先 Read `SKILL.md`）
-- Hashline（先 Read 再改，拒绝 stale edit）
-- Stop 续跑（todo / boulder / 诊断提醒）
-- Sisyphus 编排协议 + Superpowers 方法论
-
----
-
-## 三层架构（v0.3）
-
-| 层 | 内容 |
-|----|------|
-| **Harness** | Skill Gate · Ralph/**ULW v2** · Stop 链 · Todo/Boulder · Handoff · IntentGate · Prometheus · Hashline · Diagnostics · Hard Orchestration |
-| **Discipline Agents** | Sisyphus · Hephaestus · Prometheus · Atlas · Oracle · Explore · Librarian |
-| **Superpowers** | `vendor/superpowers/skills`（brainstorming / TDD / writing-plans / …） |
-
-### ULW v2（相对 omo 的关键对齐）
-
-| 能力 | 说明 |
-|------|------|
-| 句中触发 | `ulw 重构…` / `ultrawork …` 即可开环（不限行首） |
-| 阶段机 | `explore → implement → verify`（由 Read/Write 活动推进） |
-| DONE 门禁 | 需 explore+implement 证据 + VERIFIED + 无残 todo 才接受 DONE |
-| 进度审计 | `.omg/ulw-loop/state.json` + `log/iter-NNN-*.md` |
-| 防空转 | 无 Read/Write 的轮次触发 STALL 策略升级 |
+**oh-my-grok** is the harness: hooks that **enforce** discipline (loops, gates, stop continuation) plus **Superpowers** skills that teach how to ship correctly.
 
 ---
 
-## 安装
-
-### 从 GitHub（推荐）
+## 30-second install
 
 ```bash
 grok plugin install github.com/Kyou12138/oh-my-grok --trust
 grok plugin enable oh-my-grok
 ```
 
-或：
+Open a **new** Grok session (or reload Hooks). You should see Sisyphus / Superpowers context inject.
 
-```bash
-grok plugin install https://github.com/Kyou12138/oh-my-grok --trust
-grok plugin enable oh-my-grok
-```
-
-### 从本地克隆
+**Local path (Windows):**
 
 ```bash
 git clone https://github.com/Kyou12138/oh-my-grok.git
 cd oh-my-grok
-# dist/ 已提交；若改了源码再 build：
-# npm install && npm run build
-
-grok plugin install "$(pwd)" --trust   # Windows: 用绝对路径
+# dist/ is committed; rebuild only if you change source: npm install && npm run build
+grok plugin install "D:\path\to\oh-my-grok" --trust
 grok plugin enable oh-my-grok
 ```
 
-### 验证
-
-```bash
-grok plugin validate .
-grok inspect    # 应能看到 hooks / skills / agents
-```
-
-**新开一个 Grok session**（或 TUI 里 reload Hooks），应看到 Sisyphus / Superpowers 注入。
-
-> **互斥：** 不要与 [mihazs/oh-my-grok](https://github.com/mihazs/oh-my-grok) **同时 enable**（同名/同 `.omg/` 会冲突）。
+> **Do not dual-enable** [mihazs/oh-my-grok](https://github.com/mihazs/oh-my-grok) — same plugin name / `.omg/` state will conflict.
 
 ---
 
-## 快速上手
+## Wow path (copy-paste)
+
+### 1) Ultrawork — work until verified
+
+In a Grok chat:
 
 ```text
-ultrawork
-/ralph-loop "修掉失败的测试"
-/plan "给登录加 OAuth"
-/start-work
-/handoff
+ultrawork fix the failing tests and don't stop until green
 ```
 
-| 完成标记 | 含义 |
-|----------|------|
-| `<promise>VERIFIED</promise>` | 验证通过（诊断/测试）— **ULW 建议先写这个** |
-| `<promise>DONE</promise>` | 任务完成（ULW 需先过证据门禁） |
+**What the harness does (real behavior, covered by tests):**
+
+1. Starts a **ULW loop** (phase machine: `explore → implement → verify`)
+2. On **Stop**, if work is incomplete → **blocks** and continues the agent
+3. Rejects bare `<promise>DONE</promise>` without explore/implement evidence + verification
+4. Prefer: `<promise>VERIFIED</promise>` then `<promise>DONE</promise>`
+
+Also works mid-sentence: `please ulw refactor the auth module`.
+
+### 2) Ralph — named task loop
+
+```text
+/ralph-loop "ship the login bugfix with tests"
+```
+
+Cancel with `/cancel-ralph`. Pause all auto-continuation: `/stop-continuation`.
+
+### 3) Plan then execute
+
+```text
+/plan "add OAuth to login"
+```
+
+Agent may only write under `.omg/plans/` (Prometheus plan-mode). Then:
+
+```text
+/start-work
+```
+
+Activates **boulder** execution (Atlas/Sisyphus). Optional review agents: **Metis** (gaps), **Momus** (plan quality) — both read-only.
 
 ---
 
-## Slash 命令
+## What you get
 
-| 命令 | 作用 |
-|------|------|
-| `/ralph-loop "…"` | 工作直到完成 |
-| `/ulw-loop` · `/ultrawork` · `ulw` | Ultrawork 循环（探索→实现→验证） |
-| `/cancel-ralph` | 取消循环 |
-| `/plan` · `/prometheus` | Prometheus 规划模式（只写 `.omg/plans/`） |
-| `/start-work` | 进入 boulder 执行（Atlas） |
-| `/handoff` | 写会话交接摘要 |
-| `/stop-continuation` · `/resume-continuation` | 暂停 / 恢复自动续跑 |
+| Layer | Ships today |
+|-------|-------------|
+| **Harness** | Ralph / **ULW v2**, Skill Gate, Hashline, Stop chain, Todo/Boulder, IntentGate, Prometheus, Comment Checker, Agent Guard, Categories, Diagnostics, Handoff, `/init-deep` |
+| **Discipline agents** | Sisyphus · Hephaestus · Prometheus · Atlas · Oracle · Explore · Librarian · Metis · Momus |
+| **Superpowers** | Vendored MIT skills: brainstorming, writing-plans, TDD, verification-before-completion, … |
 
----
+### Honest comparison
 
-## Agents（Sisyphus 团队）
+| | Vanilla Grok | oh-my-grok | oh-my-openagent (omo) |
+|--|--------------|------------|------------------------|
+| Host | Grok Build | **Grok Build** | OpenCode (+ Codex Light) |
+| Long-task loops / stop yank | Soft | **Hard hooks** | Hard |
+| Superpowers methodology | Optional | **Bundled + Skill Gate** | Separate / partial |
+| Multi-model routing | Host | Thin categories + spawn | Full matrix + fallbacks |
+| Team Mode / tmux panes | — | **No** (platform limit) | Yes (Ultimate) |
+| LSP / AST / 50+ hooks | Host tools | No in-plugin LSP/AST suite | Yes |
 
-| Agent | 职责 |
-|-------|------|
-| **sisyphus** | 主 orchestrator：规划、委派、盯到做完 |
-| **hephaestus** | 深度自治实现 |
-| **prometheus** | 访谈式规划 |
-| **atlas** | 按 plan 执行 |
-| **oracle** | 只读架构 / 疑难会诊 |
-| **explore** | 快速扫库 |
-| **librarian** | 文档与外部调研 |
-
-主会话默认注入 **Sisyphus** 纪律；复杂任务用 `spawn_subagent` 委派。
+We **align on harness semantics** with omo; we do **not** claim Team Mode, multi-provider model routing, or full tool OS parity.
 
 ---
 
-## Hook 行为摘要
+## Commands
 
-### PreToolUse（写文件前）
+| Command | Effect |
+|---------|--------|
+| `ultrawork` / `ulw` / `/ulw-loop` | ULW loop (explore → implement → verify) |
+| `/ralph-loop "…"` | Work-until-done loop |
+| `/cancel-ralph` | Clear loop |
+| `/plan` · `/prometheus` | Plan mode (writes only `.omg/plans/`) |
+| `/start-work` | Boulder from plan |
+| `/handoff` | Session handoff under `.omg/handoffs/` |
+| `/init-deep` | Hierarchical `AGENTS.md` |
+| `/stop-continuation` · `/resume-continuation` | Pause / resume auto-continue |
 
-1. Prometheus plan-mode 路径限制  
-2. **Hashline** — 需先 Read；拒绝 stale `old_string`  
-3. **Skill Gate** — catalog 非空时需已 Read 过 skill  
-
-### Stop（续跑链，先命中先返回）
-
-1. Ralph / ULW  
-2. Boulder  
-3. 未完成 Todo  
-4. Diagnostics（有 `diagCommand` 错误硬拦；否则软提醒一次）  
-5. plan 未勾 checkbox  
-
-契约细节：[`docs/contract.md`](./docs/contract.md)
+| Marker | Meaning |
+|--------|---------|
+| `<promise>VERIFIED</promise>` | Verification passed — preferred before DONE on ULW |
+| `<promise>DONE</promise>` | Task complete (ULW requires evidence gate) |
 
 ---
 
-## 配置
+## Trust & health
 
-### 工作区 `.omg/config.json`
+```bash
+npm install
+npm test              # unit + harness golden paths
+npm run doctor        # hooks / agents / skills healthy
+npm run validate      # plugin layout
+```
 
-复制示例：
+- [CONTRIBUTING.md](./CONTRIBUTING.md) — how to help  
+- [CHANGELOG.md](./CHANGELOG.md) — versioned release notes  
+- [docs/contract.md](./docs/contract.md) — hook I/O contract  
+- CI runs `npm test`, `doctor`, and `validate` on every push/PR
+
+---
+
+## Configuration (optional)
 
 ```bash
 mkdir -p .omg
 cp docs/config.example.json .omg/config.json
 ```
 
-```json
-{
-  "schemaVersion": 1,
-  "hashline": true,
-  "diagEnforce": true,
-  "hardOrchestration": true,
-  "diagCommand": "npm test",
-  "maxRalphIter": 50
-}
-```
-
-### 环境变量
-
-| 变量 | 默认 | 含义 |
-|------|------|------|
-| `OMG_STATE_DIR` | `.omg` | 工作区状态目录 |
-| `OMG_SKILL_GATE` | `1` | Skill Gate |
-| `OMG_HASHLINE` | `1` | Hashline 护栏 |
-| `OMG_DIAG_ENFORCE` | `1` | 诊断 / 验证提醒 |
-| `OMG_HARD_ORCH` | `1` | 硬编排协议注入 |
-| `OMG_INTENT_GATE` | `1` | Intent 横幅 |
-| `OMG_PLAN_MODE` | `1` | Prometheus 写限制 |
-| `OMG_DIAG_CMD` | _空_ | 写后自动诊断命令 |
-| `OMG_MAX_RALPH_ITER` | `50` | Ralph 最大轮次 |
+Key flags: `hashline`, `skillGate`, `agentGuard`, `commentChecker`, `diagCommand`, `maxRalphIter`.  
+Env overrides: `OMG_SKILL_GATE`, `OMG_HASHLINE`, `OMG_AGENT_GUARD`, `OMG_COMMENT_CHECKER`, `OMG_DIAG_CMD`, …
 
 ---
 
-## 与 omo 的关系
+## Architecture (short)
 
-| | oh-my-openagent (omo) | oh-my-grok |
-|--|----------------------|------------|
-| 宿主 | OpenCode / 多 harness | **Grok Build** |
-| 编排 | 进程内多 agent / 多模型 | hooks + agents 定义 + spawn |
-| 循环 / Gate | ✅ | ✅ |
-| Hashline | ✅ | ✅（v0.2） |
-| Team Mode / 跨厂路由 | ✅ | ❌（平台限制） |
-
-思想对齐 omo，**干净实现**；不 fork omo 源码。Superpowers skills 以 MIT 上游 vendor。
-
----
-
-## 开发
-
-```bash
-git clone https://github.com/Kyou12138/oh-my-grok.git
-cd oh-my-grok
-npm install          # 或 bun install
-npm run build
-npm test
-npm run validate
-npm run vendor:superpowers   # 刷新 vendor/superpowers
+```
+hooks/hooks.json → node dist/cli.js <event>
+  → protocol → events → features (ralph, skill-gate, hashline, …)
+  → .omg/ workspace state + session skill catalog
 ```
 
-| 路径 | 说明 |
-|------|------|
-| `src/` | TypeScript hook runtime |
-| `hooks/hooks.json` | Grok hook 清单 |
-| `agents/` | Sisyphus 团队定义 |
-| `skills/` | 插件自有 skills |
-| `vendor/superpowers/` | 上游 Superpowers |
-| `docs/contract.md` | Hook IO 契约 |
-| `docs/superpowers/specs/` | 设计文档 |
+Hard rules for contributors: one registration per hook event; fail-open on unexpected errors; Windows uses `node dist/cli.js` (no bash launcher).
 
 ---
 
@@ -233,5 +185,5 @@ npm run vendor:superpowers   # 刷新 vendor/superpowers
 
 [MIT](./LICENSE)
 
-- Superpowers skills：上游 [obra/superpowers](https://github.com/obra/superpowers) MIT  
-- 「Grok」为 xAI 商标；本项目为社区插件，**非 xAI 官方产品**
+- Superpowers skills: [obra/superpowers](https://github.com/obra/superpowers) MIT  
+- Not affiliated with xAI

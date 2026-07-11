@@ -1,7 +1,15 @@
 import type { EnvConfig, HookInput, HookOutput } from "../protocol/types.js";
+import { agentGuardBanner, resolveAgentRole } from "../features/agent-guard.js";
+import { categoryBanner, detectCategory } from "../features/category.js";
 import { diagUserContext } from "../features/diagnostics.js";
 import { detectHandoff, handoffContext, writeHandoffStub } from "../features/handoff.js";
 import { hashlineUserContext } from "../features/hashline.js";
+import {
+  detectInitDeep,
+  initDeepContext,
+  parseInitDeepOpts,
+  runInitDeep,
+} from "../features/init-deep.js";
 import { detectIntent, intentBanner } from "../features/intent-gate.js";
 import {
   commentCheckerHint,
@@ -101,6 +109,12 @@ export function handleUserPrompt(input: HookInput, cfg: EnvConfig): HookOutput {
     parts.push(handoffContext(file));
   }
 
+  if (detectInitDeep(prompt)) {
+    const opts = parseInitDeepOpts(prompt);
+    const result = runInitDeep(input.workspaceRoot, opts);
+    parts.push(initDeepContext(result));
+  }
+
   if (isFirst) {
     parts.push(sisyphusBootstrap());
     parts.push(usingSuperpowersHint(cfg.pluginRoot));
@@ -139,6 +153,17 @@ export function handleUserPrompt(input: HookInput, cfg: EnvConfig): HookOutput {
 
   if (cfg.intentGate && prompt) {
     parts.push(intentBanner(detectIntent(prompt)));
+  }
+
+  if (prompt && !detectInitDeep(prompt)) {
+    const cat = detectCategory(prompt);
+    if (cat) parts.push(categoryBanner(cat));
+  }
+
+  const agentRole = resolveAgentRole(input);
+  if (agentRole) {
+    const ag = agentGuardBanner(agentRole);
+    if (ag) parts.push(ag);
   }
 
   const pm = loadPlanMode(input, cfg);

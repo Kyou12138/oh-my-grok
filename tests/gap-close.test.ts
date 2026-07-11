@@ -42,6 +42,9 @@ function cfg(pluginRoot: string, pluginData: string, over: Partial<EnvConfig> = 
     diagCommand: "",
     diagTimeoutMs: 5000,
     hashlineTtlMs: 30 * 60 * 1000,
+    commentChecker: false,
+    commentCheckerDeny: false,
+    agentGuard: false,
     ...over,
   };
 }

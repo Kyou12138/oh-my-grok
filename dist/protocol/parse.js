@@ -41,6 +41,7 @@ export function parseHookInput(event, raw) {
         stopReason: firstString(raw.stopReason, raw.stop_reason, raw.reason) || undefined,
         lastAssistantMessage: firstString(raw.last_assistant_message, raw.lastAssistantMessage, raw.assistantMessage, raw.message) || undefined,
         isFirstPrompt: Boolean(raw.isFirstPrompt ?? raw.is_first_prompt ?? raw.firstPrompt),
+        agentName: firstString(raw.agentName, raw.agent_name, raw.agent, raw.subagent_type, raw.subagentType, process.env.GROK_AGENT_NAME, process.env.OMG_AGENT_ROLE) || undefined,
     };
 }
 export async function readStdinJson() {
