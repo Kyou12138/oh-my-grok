@@ -36,7 +36,15 @@ Vanilla Grok Build is a strong coding agent. On long tasks it still drifts:
 ## 30-second install
 
 ```bash
-grok plugin install github.com/Kyou12138/oh-my-grok --trust
+# Recommended: GitHub shorthand (user/repo)
+grok plugin install Kyou12138/oh-my-grok --trust
+grok plugin enable oh-my-grok
+```
+
+Or full git URL:
+
+```bash
+grok plugin install https://github.com/Kyou12138/oh-my-grok --trust
 grok plugin enable oh-my-grok
 ```
 

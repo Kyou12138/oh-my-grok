@@ -44,7 +44,10 @@ describe("README top-of-funnel (star-ready)", () => {
   });
 
   it("has a single copy-paste GitHub install path", () => {
-    expect(top).toMatch(/grok plugin install github\.com\/Kyou12138\/oh-my-grok --trust/);
+    // Official grok CLI: GitHub shorthand (user/repo) or full git URL
+    expect(top).toMatch(
+      /grok plugin install (Kyou12138\/oh-my-grok|https:\/\/github\.com\/Kyou12138\/oh-my-grok) --trust/,
+    );
     expect(top).toMatch(/grok plugin enable oh-my-grok/);
   });
 

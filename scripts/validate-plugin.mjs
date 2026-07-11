@@ -51,8 +51,11 @@ if (!repoUrl.includes("Kyou12138/oh-my-grok")) {
   ok = false;
 }
 const readme = fs.readFileSync(path.join(root, "README.md"), "utf8");
-if (!readme.includes("grok plugin install github.com/Kyou12138/oh-my-grok --trust")) {
-  console.error("README missing documented GitHub install command");
+if (
+  !readme.includes("grok plugin install Kyou12138/oh-my-grok --trust") &&
+  !readme.includes("grok plugin install https://github.com/Kyou12138/oh-my-grok --trust")
+) {
+  console.error("README missing documented GitHub install command (user/repo or full URL)");
   ok = false;
 }
 if (!/ultrawork/i.test(readme)) {

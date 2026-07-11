@@ -36,7 +36,15 @@ Vanilla Grok Build 很强，但长任务仍容易跑偏：
 ## 30 秒安装
 
 ```bash
-grok plugin install github.com/Kyou12138/oh-my-grok --trust
+# 推荐：GitHub shorthand（user/repo）
+grok plugin install Kyou12138/oh-my-grok --trust
+grok plugin enable oh-my-grok
+```
+
+也可用完整 git URL：
+
+```bash
+grok plugin install https://github.com/Kyou12138/oh-my-grok --trust
 grok plugin enable oh-my-grok
 ```
 
