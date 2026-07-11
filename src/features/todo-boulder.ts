@@ -107,6 +107,15 @@ export function setStopPaused(input: HookInput, cfg: EnvConfig, paused: boolean)
   } satisfies StopPauseState);
 }
 
+/** Abort-like stop reasons re-open yank within todoAbortWindowMs (omo-style). */
+export function isAbortLikeStopReason(stopReason?: string): boolean {
+  if (!stopReason) return false;
+  const s = stopReason.toLowerCase();
+  return /abort|error|interrupt|tool_error|tool-error|timeout|max_token|rate.?limit|failed|cancel/.test(
+    s,
+  );
+}
+
 export function todoEnforcerAllows(
   input: HookInput,
   cfg: EnvConfig,
@@ -118,7 +127,18 @@ export function todoEnforcerAllows(
     lastContinueAt: 0,
     consecutiveContinues: 0,
   });
-  if (st.lastContinueAt && now - st.lastContinueAt < cfg.todoCooldownMs) {
+  const since = st.lastContinueAt ? now - st.lastContinueAt : Number.POSITIVE_INFINITY;
+
+  // Abort window: if agent aborted/errored soon after a continue, re-yank despite cooldown
+  if (
+    isAbortLikeStopReason(input.stopReason) &&
+    st.lastContinueAt > 0 &&
+    since < cfg.todoAbortWindowMs
+  ) {
+    return { allow: true, reason: "todo-enforcer-abort-window" };
+  }
+
+  if (st.lastContinueAt && since < cfg.todoCooldownMs) {
     return { allow: false, reason: "todo-enforcer-cooldown" };
   }
   if (st.consecutiveContinues >= 20) {

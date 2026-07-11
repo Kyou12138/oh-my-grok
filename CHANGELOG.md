@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.8.0] — 2026-07-11
+
+### Functional (omo-gap remaining)
+
+- **Multi-goal ULW** — parse goals from `a; b; c` / `a | b` / numbered lists; Stop shows checklist; `GOAL_DONE: …` marks complete; DONE gate requires all goals done
+- **Todo Enforcer abort-window** — `OMG_TODO_ABORT_WINDOW_MS` now wired: abort/error stop reasons re-yank despite cooldown
+- Inventory `docs/omo-gap.md` updated (remaining: category→model, native Hashline tool, …)
+
 ## [0.7.0] — 2026-07-11
 
 ### Functional (omo-gap close)

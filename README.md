@@ -110,7 +110,7 @@ Plan-mode 下只允许写 `.omg/plans/`。然后：
 
 | 层 | 已交付 |
 |----|--------|
-| **Harness** | Ralph / **ULW v2**（shell→verify）、**think-mode**、**意图 Skill Gate**、**Hashline**、Stop 链、Todo/**Boulder**、**idle-turn**、**粘性 agent role**、IntentGate、Prometheus、Comment Checker、Agent Guard、Category、Diagnostics、Handoff、`/init-deep` |
+| **Harness** | Ralph / **ULW v3 multi-goal**（shell→verify）、**think-mode**、**意图 Skill Gate**、**Hashline**、Stop 链、Todo abort-window/**Boulder**、**idle-turn**、**粘性 agent role**、IntentGate、Prometheus、Comment Checker、Agent Guard、Category、Diagnostics、Handoff、`/init-deep` |
 | **纪律 Agents** | Sisyphus · Hephaestus · Prometheus · Atlas · Oracle · Explore · Librarian · Metis · Momus |
 | **Superpowers** | Vendor MIT skills：brainstorming、writing-plans、TDD、verification-before-completion … |
 
@@ -147,7 +147,8 @@ Plan-mode 下只允许写 `.omg/plans/`。然后：
 | 完成标记 | 含义 |
 |----------|------|
 | `<promise>VERIFIED</promise>` | 验证通过 — ULW 建议在 DONE 前先写 |
-| `<promise>DONE</promise>` | 任务完成（ULW 需过证据门禁） |
+| `<promise>DONE</promise>` | 任务完成（ULW 需过证据门禁 + 多目标 `GOAL_DONE`） |
+| `GOAL_DONE: <text>` | 标记 ULW 多目标清单中的一项完成 |
 
 ---
 

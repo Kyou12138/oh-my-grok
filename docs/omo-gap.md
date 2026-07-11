@@ -1,8 +1,8 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-11 · **omg version:** 0.7.x  
+**Date:** 2026-07-11 · **omg version:** 0.8.x  
 **Purpose:** Honest map of omo-defining harness capabilities → what Grok can ship.  
-**Stars (~1k) are a community outcome**; this doc tracks **functional** gaps only.
+**Stars are a community outcome**; this doc tracks **functional** gaps only.
 
 ## Legend
 
@@ -16,8 +16,8 @@
 
 | omo capability | oh-my-grok | Status |
 |----------------|------------|--------|
-| Ralph / ultrawork / ULW loop | ULW v2 phase machine, DONE gate, shell→verify, stall | **shipped** |
-| Todo continuation enforcer | Mirror + Stop yank + cooldown | **shipped** (partial vs omo depth) |
+| Ralph / ultrawork / ULW loop | ULW v3 phase machine, DONE gate, shell→verify, stall, **multi-goal** | **shipped** |
+| Todo continuation enforcer | Mirror + Stop yank + cooldown + **abort-window** | **shipped** (partial vs omo depth) |
 | Prometheus plan-mode | `/plan` write lock + Metis/Momus copy | **shipped** (partial) |
 | IntentGate keyword modes | search/analyze/debug/ulw/team/hyperplan | **shipped** |
 | Think / ultrathink effort | think-mode injection (v0.7) | **shipped** |
@@ -32,17 +32,24 @@
 | Multi-provider model routing / fallback | — | **blocked** |
 | In-plugin LSP / AST-grep suite | — | **blocked** |
 | Built-in Exa / Context7 / grep_app MCP | — | **blocked** (use host MCP) |
-| 54+ lifecycle hooks | ~6 events, merged logic | **partial** |
+| 54+ lifecycle hooks | ~6–8 events, merged logic | **partial** |
 | Claude Code compat layer | — | **blocked** / N/A |
 
-## Grok-feasible gaps (named — remaining or just closed)
+## Grok-feasible gaps (remaining after v0.8)
 
-1. **Think-mode / ultrathink** — inject extended-effort protocol on keywords *(v0.7)*  
-2. **Sticky session agent role** — persist role for Agent Guard when host omits `agentName` on later tools *(v0.7)*  
-3. **Idle / empty assistant turn yank** — Stop blocks fluff/empty when todos/plan/loop still open *(v0.7)*  
-4. **Stronger Todo Enforcer** — still thinner than omo (cooldown/max only); future: abort-window parity  
-5. **Category → model routing** — only prompt categories; host cannot multi-model route  
-6. **Hashline as real edit tool** — needs custom tool registration (host limit)
+1. **Category → model routing** — only prompt categories; host cannot multi-model route  
+2. **Hashline as real edit tool** — needs custom tool registration (host limit)  
+3. **Stronger comment-checker** — optional external binary / AST-aware scan  
+4. **Background agent manager** — depends on host spawn/notification APIs  
+5. **Todo abort-window** — *(v0.8 shipped: re-yank on abort-like stopReason within window)*  
+6. **Multi-goal ULW** — *(v0.8 shipped: parse `;`/`|`/numbered goals, GOAL_DONE, DONE gate)*  
+
+## Closed recently
+
+| Version | Gaps closed |
+|---------|-------------|
+| v0.7 | Think-mode, sticky agent role, idle-turn |
+| v0.8 | Multi-goal ULW, Todo abort-window |
 
 ## Explicit non-goals (do not promise)
 

@@ -35,6 +35,8 @@ export declare function setBoulder(input: HookInput, cfg: EnvConfig, state: Boul
 export declare function clearBoulder(input: HookInput, cfg: EnvConfig): void;
 export declare function isStopPaused(input: HookInput, cfg: EnvConfig): boolean;
 export declare function setStopPaused(input: HookInput, cfg: EnvConfig, paused: boolean): void;
+/** Abort-like stop reasons re-open yank within todoAbortWindowMs (omo-style). */
+export declare function isAbortLikeStopReason(stopReason?: string): boolean;
 export declare function todoEnforcerAllows(input: HookInput, cfg: EnvConfig, now?: number): {
     allow: boolean;
     reason?: string;

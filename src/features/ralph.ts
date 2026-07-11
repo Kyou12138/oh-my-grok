@@ -15,11 +15,19 @@ const DONE_MARKERS = [
 
 export type LoopPhase = "explore" | "implement" | "verify";
 
+export interface UlwGoal {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 export interface RalphState {
-  schemaVersion: 2;
+  schemaVersion: 3;
   active: boolean;
   mode: "ralph" | "ulw";
   task: string;
+  /** Multi-goal ULW checklist (parsed from task) */
+  goals: UlwGoal[];
   iteration: number;
   maxIterations: number;
   createdAt: string;
@@ -49,12 +57,84 @@ export interface UlwActivity {
 
 const DEFAULT_PHASE: LoopPhase = "explore";
 
-function emptyState(partial: Partial<RalphState> & Pick<RalphState, "mode" | "task" | "maxIterations">): RalphState {
+/** Parse multi-goal task strings: "a; b; c" | "a | b" | "1) a 2) b" */
+export function parseGoalsFromTask(task: string): string[] {
+  const t = (task || "").trim();
+  if (!t) return ["continue work"];
+  if (t.includes(";")) {
+    const parts = t
+      .split(";")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (parts.length >= 2) return parts;
+  }
+  if (t.includes("|")) {
+    const parts = t
+      .split("|")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (parts.length >= 2) return parts;
+  }
+  const numbered = [
+    ...t.matchAll(/(?:^|[\s,])\d+[.)]\s*([^\d].+?)(?=(?:[\s,]\d+[.)])|$)/g),
+  ].map((m) => m[1].trim());
+  if (numbered.length >= 2) return numbered;
+  return [t];
+}
+
+export function goalsFromTask(task: string): UlwGoal[] {
+  return parseGoalsFromTask(task).map((text, i) => ({
+    id: `g${i + 1}`,
+    text,
+    done: false,
+  }));
+}
+
+export function openGoals(state: RalphState): UlwGoal[] {
+  return (state.goals || []).filter((g) => !g.done);
+}
+
+/** Mark goals done from assistant message: GOAL_DONE: text or <promise>GOAL:text</promise> */
+export function applyGoalDoneMarkers(state: RalphState, msg?: string): RalphState {
+  if (!msg || !state.goals?.length) return state;
+  const markers: string[] = [];
+  for (const m of msg.matchAll(/GOAL_DONE:\s*(.+)$/gim)) {
+    markers.push(m[1].trim());
+  }
+  for (const m of msg.matchAll(/<promise>\s*GOAL:\s*(.+?)\s*<\/promise>/gi)) {
+    markers.push(m[1].trim());
+  }
+  if (!markers.length) return state;
+  for (const g of state.goals) {
+    if (g.done) continue;
+    for (const mk of markers) {
+      if (
+        g.text.toLowerCase() === mk.toLowerCase() ||
+        g.text.toLowerCase().includes(mk.toLowerCase()) ||
+        mk.toLowerCase().includes(g.text.toLowerCase())
+      ) {
+        g.done = true;
+        break;
+      }
+    }
+  }
+  return state;
+}
+
+function emptyState(
+  partial: Partial<RalphState> & Pick<RalphState, "mode" | "task" | "maxIterations">,
+): RalphState {
+  const task = partial.task || "continue work";
+  const goals =
+    partial.goals && partial.goals.length
+      ? partial.goals
+      : goalsFromTask(task);
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     active: true,
     mode: partial.mode,
-    task: partial.task,
+    task,
+    goals,
     iteration: partial.iteration ?? 0,
     maxIterations: partial.maxIterations,
     createdAt: partial.createdAt ?? new Date().toISOString(),
@@ -96,8 +176,11 @@ function parseLegacyMd(text: string): RalphState | null {
 }
 
 export function serializeRalphMd(state: RalphState): string {
+  const goalLines = (state.goals || []).map(
+    (g) => `- [${g.done ? "x" : " "}] ${g.id}: ${g.text}`,
+  );
   return [
-    "# oh-my-grok ralph / ulw loop (v2)",
+    "# oh-my-grok ralph / ulw loop (v3 multi-goal)",
     `mode: ${state.mode}`,
     `task: ${state.task}`,
     `iteration: ${state.iteration}`,
@@ -106,9 +189,13 @@ export function serializeRalphMd(state: RalphState): string {
     `stall_count: ${state.stallCount}`,
     `created_at: ${state.createdAt}`,
     "",
+    "Goals:",
+    ...goalLines,
+    "",
     state.mode === "ulw"
-      ? "ULW: explore → implement → verify. DONE only after verify evidence."
+      ? "ULW: explore → implement → verify. DONE only after verify evidence + all goals done."
       : "Ralph: make concrete progress each iteration.",
+    "Mark goal: GOAL_DONE: <goal text>",
     "Completion: <promise>DONE</promise>",
     "Verify: <promise>VERIFIED</promise> or diagnostics clean / tests passed",
     "",
@@ -121,10 +208,12 @@ export function loadRalph(input: HookInput, cfg: EnvConfig): RalphState | null {
   if (fs.existsSync(jsonPath)) {
     const j = readJson<RalphState | null>(jsonPath, null);
     if (j?.active) {
+      const task = j.task || "continue work";
       return emptyState({
         ...j,
         mode: j.mode === "ulw" ? "ulw" : "ralph",
-        task: j.task || "continue work",
+        task,
+        goals: j.goals?.length ? j.goals : goalsFromTask(task),
         maxIterations: j.maxIterations || cfg.maxRalphIter,
       });
     }
@@ -381,6 +470,14 @@ export function ulwDoneGate(
   if (!state.phaseReached.explore) {
     problems.push("- Explore phase incomplete — Read/search codebase (spawn explore if useful).");
   }
+  // Multi-goal only: single-goal loops still complete via VERIFIED+DONE alone
+  const open = openGoals(state);
+  if (state.goals.length > 1 && open.length > 0) {
+    problems.push(
+      `- ${open.length} open goal(s) remain — mark each with GOAL_DONE: <text> before DONE:`,
+      ...open.slice(0, 8).map((g) => `  - [ ] ${g.text}`),
+    );
+  }
 
   if (problems.length) {
     return {
@@ -397,6 +494,11 @@ export function ulwDoneGate(
     };
   }
   return { ok: true, reason: "" };
+}
+
+/** @deprecated use applyGoalDoneMarkers */
+export function markGoalDone(state: RalphState, text: string): RalphState {
+  return applyGoalDoneMarkers(state, `GOAL_DONE: ${text}`);
 }
 
 // ─── Progress log + stop reason ──────────────────────────────────────
@@ -452,9 +554,22 @@ export function ralphStopReason(state: RalphState, opts?: { stall?: boolean }): 
       "PHASE verify: Run tests/typecheck/lint. Fix failures. Then <promise>VERIFIED</promise> and only then <promise>DONE</promise>.",
   };
 
+  const open = openGoals(state);
+  const goalBlock =
+    state.goals?.length > 1
+      ? [
+          "Goals checklist:",
+          ...state.goals.map((g) => `- [${g.done ? "x" : " "}] ${g.text}`),
+          open.length
+            ? `Open: ${open.length}. Mark done: GOAL_DONE: <goal text>`
+            : "All goals marked done.",
+          "",
+        ]
+      : [];
+
   return [
     "══════════════════════════════════════",
-    "ULTRAWORK / ULW LOOP v2 — maximum intensity",
+    "ULTRAWORK / ULW LOOP v3 — maximum intensity",
     "══════════════════════════════════════",
     `Task: ${state.task}`,
     `Iteration: ${state.iteration + 1}/${state.maxIterations}`,
@@ -462,6 +577,7 @@ export function ralphStopReason(state: RalphState, opts?: { stall?: boolean }): 
     `Progress: explore=${state.phaseReached.explore} implement=${state.phaseReached.implement} verify=${state.phaseReached.verify}`,
     `Stall count: ${state.stallCount}`,
     "",
+    ...goalBlock,
     phaseHelp[state.phase],
     "",
     "MANDATORY each iteration:",
@@ -472,6 +588,7 @@ export function ralphStopReason(state: RalphState, opts?: { stall?: boolean }): 
     "DONE gate (hard):",
     "- Must complete explore + implement evidence",
     "- Must VERIFIED (or diagnostics clean / tests passed)",
+    "- All multi-goals marked GOAL_DONE",
     "- Incomplete todos block DONE",
     "- Then output: <promise>DONE</promise>",
     opts?.stall
@@ -498,6 +615,13 @@ export function processLoopStop(
     if (isVerifiedMessage(msg) || (loadDiag(input, cfg).verifiedAt && !loadDiag(input, cfg).lastErrors)) {
       markVerifyReached(state);
     }
+  }
+
+  // Apply GOAL_DONE markers every stop
+  applyGoalDoneMarkers(state, msg);
+  // Single-goal: DONE claim implies that one goal is complete
+  if (isDoneMessage(msg) && state.goals.length === 1) {
+    state.goals[0].done = true;
   }
 
   // DONE claim

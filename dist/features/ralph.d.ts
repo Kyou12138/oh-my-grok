@@ -1,10 +1,17 @@
 import type { EnvConfig, HookInput } from "../protocol/types.js";
 export type LoopPhase = "explore" | "implement" | "verify";
+export interface UlwGoal {
+    id: string;
+    text: string;
+    done: boolean;
+}
 export interface RalphState {
-    schemaVersion: 2;
+    schemaVersion: 3;
     active: boolean;
     mode: "ralph" | "ulw";
     task: string;
+    /** Multi-goal ULW checklist (parsed from task) */
+    goals: UlwGoal[];
     iteration: number;
     maxIterations: number;
     createdAt: string;
@@ -30,6 +37,12 @@ export interface UlwActivity {
     lastPaths: string[];
     updatedAt: string;
 }
+/** Parse multi-goal task strings: "a; b; c" | "a | b" | "1) a 2) b" */
+export declare function parseGoalsFromTask(task: string): string[];
+export declare function goalsFromTask(task: string): UlwGoal[];
+export declare function openGoals(state: RalphState): UlwGoal[];
+/** Mark goals done from assistant message: GOAL_DONE: text or <promise>GOAL:text</promise> */
+export declare function applyGoalDoneMarkers(state: RalphState, msg?: string): RalphState;
 export declare function serializeRalphMd(state: RalphState): string;
 export declare function loadRalph(input: HookInput, cfg: EnvConfig): RalphState | null;
 export declare function startRalph(input: HookInput, cfg: EnvConfig, task: string, mode: "ralph" | "ulw"): RalphState;
@@ -62,6 +75,8 @@ export declare function ulwDoneGate(input: HookInput, cfg: EnvConfig, state: Ral
     ok: boolean;
     reason: string;
 };
+/** @deprecated use applyGoalDoneMarkers */
+export declare function markGoalDone(state: RalphState, text: string): RalphState;
 export declare function writeProgressLog(input: HookInput, cfg: EnvConfig, state: RalphState, kind: string, note: string): void;
 export declare function ralphStopReason(state: RalphState, opts?: {
     stall?: boolean;

@@ -77,21 +77,23 @@ export function handleStop(input: HookInput, cfg: EnvConfig): HookOutput {
     }
   }
 
-  // 3. Todos (+ idle-turn yank when fluff reply left work unfinished)
+  // 3. Todos (+ idle-turn / abort-window yank when work unfinished)
   const todos = incompleteTodos(input, cfg);
   if (todos.length > 0) {
     const gate = todoEnforcerAllows(input, cfg);
     if (gate.allow || idle) {
-      // Idle fluff bypasses cooldown once so the agent cannot soft-stop on open todos
-      if (gate.allow) markTodoContinued(input, cfg);
-      const reason = idle
-        ? [
-            idleTurnStopReason("Incomplete todos remain."),
-            "",
-            todoStopReason(todos),
-          ].join("\n")
-        : todoStopReason(todos);
-      return { decision: "block", reason };
+      // Idle fluff bypasses cooldown; abort-window already sets allow=true
+      if (gate.allow || idle) markTodoContinued(input, cfg);
+      const parts: string[] = [];
+      if (idle) parts.push(idleTurnStopReason("Incomplete todos remain."), "");
+      if (gate.reason === "todo-enforcer-abort-window") {
+        parts.push(
+          "TODO ABORT-WINDOW — previous stop looked aborted/errored; re-yanking despite cooldown.",
+          "",
+        );
+      }
+      parts.push(todoStopReason(todos));
+      return { decision: "block", reason: parts.join("\n") };
     }
   }
 

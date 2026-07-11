@@ -1,7 +1,7 @@
 {
   "name": "oh-my-grok",
-  "version": "0.7.0",
-  "description": "omo-style harness for Grok Build — ULW, think-mode, sticky agent role, idle-turn yank, Superpowers",
+  "version": "0.8.0",
+  "description": "omo-style harness for Grok Build — multi-goal ULW, todo abort-window, think-mode, Superpowers",
   "type": "module",
   "bin": {
     "omg-hook": "./dist/cli.js"
