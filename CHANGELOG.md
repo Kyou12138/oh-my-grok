@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [0.7.0] — 2026-07-11
+
+### Functional (omo-gap close)
+
+- **Think-mode** — `ultrathink` / `think deeply` / `仔细想` injects extended-effort protocol on UserPrompt
+- **Sticky session agent role** — `/agent <role>`, spawn_subagent/Task PostTool, host agentName → session role; Agent Guard uses sticky role when later tools omit agentName
+- **Idle-turn Stop yank** — empty/fluff assistant replies cannot soft-stop open todos / ULW; reason includes `IDLE TURN DETECTED`
+- **Inventory** — `docs/omo-gap.md` (shipped / partial / blocked vs omo)
+
 ## [0.6.0] — 2026-07-11
 
 ### Functional (ULW + Skill Gate)

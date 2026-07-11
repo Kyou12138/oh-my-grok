@@ -104,7 +104,7 @@ Plan-mode 下只允许写 `.omg/plans/`。然后：
 
 | 层 | 已交付 |
 |----|--------|
-| **Harness** | Ralph / **ULW v2**（shell→verify）、**意图 Skill Gate**、**Hashline LINE#ID**、Stop 链、Todo/**Boulder**、IntentGate、Prometheus、Comment Checker、Agent Guard、Category、Diagnostics、Handoff、`/init-deep` |
+| **Harness** | Ralph / **ULW v2**（shell→verify）、**think-mode**、**意图 Skill Gate**、**Hashline**、Stop 链、Todo/**Boulder**、**idle-turn**、**粘性 agent role**、IntentGate、Prometheus、Comment Checker、Agent Guard、Category、Diagnostics、Handoff、`/init-deep` |
 | **纪律 Agents** | Sisyphus · Hephaestus · Prometheus · Atlas · Oracle · Explore · Librarian · Metis · Momus |
 | **Superpowers** | Vendor MIT skills：brainstorming、writing-plans、TDD、verification-before-completion … |
 
@@ -133,6 +133,7 @@ Plan-mode 下只允许写 `.omg/plans/`。然后：
 | `/plan` · `/prometheus` | 规划模式（只写 `.omg/plans/`） |
 | `/start-work` | 从 plan 进入 boulder |
 | `/cancel-boulder` | 清除 boulder |
+| `/agent <role>` · `/as <role>` | 粘性会话角色（Agent Guard） |
 | `/handoff` | 会话交接 → `.omg/handoffs/` |
 | `/init-deep` | 生成层级 `AGENTS.md` |
 | `/stop-continuation` · `/resume-continuation` | 暂停 / 恢复自动续跑 |
@@ -158,6 +159,7 @@ npm run validate
 - [CONTRIBUTING.md](./CONTRIBUTING.md) — 如何贡献  
 - [CHANGELOG.md](./CHANGELOG.md) — 版本说明  
 - [docs/contract.md](./docs/contract.md) — Hook I/O 契约  
+- [docs/omo-gap.md](./docs/omo-gap.md) — 与 omo 能力对照（可做 / 阻塞）  
 - **CI：** `npm run ci`（[`scripts/ci.mjs`](./scripts/ci.mjs)）。GitHub Actions 模板：[`docs/ci.workflow.yml`](./docs/ci.workflow.yml)
 
 ---

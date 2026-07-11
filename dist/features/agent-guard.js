@@ -1,3 +1,4 @@
+import { getSessionAgentRole } from "./session-role.js";
 import { isMutatingTool } from "./skill-gate.js";
 /** Agents that must not write/edit/delete. */
 export const READ_ONLY_AGENTS = new Set([
@@ -30,11 +31,15 @@ function firstString(...vals) {
     }
     return "";
 }
-export function resolveAgentRole(input) {
+export function resolveAgentRole(input, cfg) {
     const raw = input.raw || {};
     const fromEnv = firstString(process.env.GROK_AGENT_NAME, process.env.OMG_AGENT_ROLE, process.env.GROK_SUBAGENT_TYPE);
     const fromInput = firstString(input.agentName, raw.agentName, raw.agent_name, raw.agent, raw.subagent_type, raw.subagentType, raw.agentType, raw.agent_type);
     let role = (fromInput || fromEnv).toLowerCase();
+    // Sticky session role when host omits agentName on subsequent tools
+    if (!role && cfg) {
+        role = getSessionAgentRole(input, cfg);
+    }
     if (ROLE_ALIASES[role])
         role = ROLE_ALIASES[role];
     // strip plugin prefix
@@ -52,7 +57,7 @@ export function agentGuardDeny(input, cfg) {
         return null;
     if (!isMutatingTool(input.toolName))
         return null;
-    const role = resolveAgentRole(input);
+    const role = resolveAgentRole(input, cfg);
     if (!role)
         return null;
     if (!isReadOnlyAgent(role))
@@ -62,6 +67,7 @@ export function agentGuardDeny(input, cfg) {
         "Blocked: Write / StrReplace / Edit / Delete.",
         "Use explore/oracle/librarian/metis/momus for research and review only.",
         "Implementation: spawn hephaestus or stay on sisyphus/atlas main session.",
+        "Clear sticky role: /agent hephaestus  (or /agent sisyphus)",
     ].join("\n");
 }
 export function agentGuardBanner(role) {

@@ -3,6 +3,7 @@ import { collectDirectoryContext } from "../features/directory-inject.js";
 import { markDirty, runDiagCommand } from "../features/diagnostics.js";
 import { recordRead } from "../features/hashline.js";
 import { isVerifyShellCommand, noteUlwRead, noteUlwShell, noteUlwWrite, } from "../features/ralph.js";
+import { extractSpawnRole, isSpawnTool, setSessionAgentRole, } from "../features/session-role.js";
 import { markSkillLoaded } from "../features/skill-gate.js";
 import { extractTodosFromToolInput, mirrorTodos, resetTodoEnforcer, } from "../features/todo-boulder.js";
 function fileFromInput(input) {
@@ -90,5 +91,18 @@ export function handlePostToolShell(input, cfg) {
         ].join("\n"));
     }
     return {};
+}
+/** PostTool spawn/task — sticky session role for Agent Guard. */
+export function handlePostToolSpawn(input, cfg) {
+    if (!isSpawnTool(input.toolName) && !extractSpawnRole(input.toolInput)) {
+        // still try extract if tool name is spawn-like
+        if (!isSpawnTool(input.toolName))
+            return {};
+    }
+    const role = extractSpawnRole(input.toolInput);
+    if (!role)
+        return {};
+    setSessionAgentRole(input, cfg, role, `spawn:${input.toolName || "task"}`);
+    return mergeContext(`<OMG_AGENT_ROLE sticky="${role}">Session agent role → **${role}**. Read-only roles cannot mutate files.</OMG_AGENT_ROLE>`);
 }
 //# sourceMappingURL=post-tool.js.map

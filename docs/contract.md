@@ -8,7 +8,7 @@ Authoritative I/O for Grok Build hooks (aligned with production behavior used by
 node "${GROK_PLUGIN_ROOT}/dist/cli.js" <event>
 ```
 
-Events: `session-start` | `user-prompt` | `pre-tool-use` | `post-tool-read` | `post-tool-todo` | `post-tool-write` | `post-tool-shell` | `stop` | `session-end`
+Events: `session-start` | `user-prompt` | `pre-tool-use` | `post-tool-read` | `post-tool-todo` | `post-tool-write` | `post-tool-shell` | `post-tool-spawn` | `stop` | `session-end`
 
 ## PreToolUse order
 
@@ -20,9 +20,9 @@ Events: `session-start` | `user-prompt` | `pre-tool-use` | `post-tool-read` | `p
 
 ## Stop order
 
-1. Ralph / ULW  
+1. Ralph / ULW (+ idle fluff note when loop active)  
 2. Boulder (blocks while active; open plan checkboxes called out; DONE/VERIFIED clears when checkboxes complete; `/cancel-boulder`)  
-3. Todo enforcer  
+3. Todo enforcer (+ **idle-turn** bypasses cooldown when reply is fluff/empty)  
 4. Diagnostics (errors hard-block; soft verify once if no `diagCommand`)  
 5. Plan checkboxes (fallback when no boulder)
 

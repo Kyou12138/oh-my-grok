@@ -10,6 +10,8 @@ import { detectPlanCommand, loadPlanMode, planModeContext, startPlanMode, startW
 import { cancelRalph, detectRalphCommand, loadRalph, startRalph, } from "../features/ralph.js";
 import { loadInjectedRules, sisyphusBootstrap, usingSuperpowersHint, } from "../features/rules.js";
 import { saveLastPrompt, skillGateContext } from "../features/last-prompt.js";
+import { detectAgentCommand, setSessionAgentRole, } from "../features/session-role.js";
+import { detectThinkMode, thinkModeBanner } from "../features/think-mode.js";
 import { loadSkillGateState, refreshCatalog, skillGateReminder, } from "../features/skill-gate.js";
 import { clearBoulder, isStopPaused, loadBoulder, setStopPaused, } from "../features/todo-boulder.js";
 import { readJson, writeJsonAtomic } from "../state/fs.js";
@@ -46,6 +48,16 @@ export function handleUserPrompt(input, cfg) {
     if (detectCancelBoulder(prompt)) {
         clearBoulder(input, cfg);
         parts.push("<OMG_CTRL>Boulder cleared (/cancel-boulder).</OMG_CTRL>");
+    }
+    const agentCmd = detectAgentCommand(prompt);
+    if (agentCmd) {
+        setSessionAgentRole(input, cfg, agentCmd.role, "slash-agent");
+        parts.push(`<OMG_CTRL>Session agent role set to **${agentCmd.role}** (/agent). Agent Guard applies sticky role.</OMG_CTRL>`);
+    }
+    // Persist host-provided role at session start of prompt stream
+    const hostRole = resolveAgentRole(input, cfg);
+    if (hostRole && input.agentName) {
+        setSessionAgentRole(input, cfg, hostRole, "host-agentName");
     }
     const ralphCmd = detectRalphCommand(prompt);
     const existingLoop = loadRalph(input, cfg);
@@ -123,12 +135,15 @@ export function handleUserPrompt(input, cfg) {
     if (cfg.intentGate && prompt) {
         parts.push(intentBanner(detectIntent(prompt)));
     }
+    if (prompt && detectThinkMode(prompt)) {
+        parts.push(thinkModeBanner(true));
+    }
     if (prompt && !detectInitDeep(prompt)) {
         const cat = detectCategory(prompt);
         if (cat)
             parts.push(categoryBanner(cat));
     }
-    const agentRole = resolveAgentRole(input);
+    const agentRole = resolveAgentRole(input, cfg);
     if (agentRole) {
         const ag = agentGuardBanner(agentRole);
         if (ag)

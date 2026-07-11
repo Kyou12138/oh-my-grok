@@ -20,6 +20,7 @@ const required = [
   "CONTRIBUTING.md",
   "CHANGELOG.md",
   "docs/ci.workflow.yml",
+  "docs/omo-gap.md",
   "README.md",
 ];
 

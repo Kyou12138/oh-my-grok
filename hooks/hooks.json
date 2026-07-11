@@ -74,6 +74,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "spawn_subagent|Task|task|call_omo_agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${GROK_PLUGIN_ROOT}/dist/cli.js\" post-tool-spawn",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Stop": [

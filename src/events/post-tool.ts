@@ -9,6 +9,11 @@ import {
   noteUlwShell,
   noteUlwWrite,
 } from "../features/ralph.js";
+import {
+  extractSpawnRole,
+  isSpawnTool,
+  setSessionAgentRole,
+} from "../features/session-role.js";
 import { markSkillLoaded } from "../features/skill-gate.js";
 import {
   extractTodosFromToolInput,
@@ -112,4 +117,18 @@ export function handlePostToolShell(input: HookInput, cfg: EnvConfig): HookOutpu
     );
   }
   return {};
+}
+
+/** PostTool spawn/task — sticky session role for Agent Guard. */
+export function handlePostToolSpawn(input: HookInput, cfg: EnvConfig): HookOutput {
+  if (!isSpawnTool(input.toolName) && !extractSpawnRole(input.toolInput)) {
+    // still try extract if tool name is spawn-like
+    if (!isSpawnTool(input.toolName)) return {};
+  }
+  const role = extractSpawnRole(input.toolInput);
+  if (!role) return {};
+  setSessionAgentRole(input, cfg, role, `spawn:${input.toolName || "task"}`);
+  return mergeContext(
+    `<OMG_AGENT_ROLE sticky="${role}">Session agent role → **${role}**. Read-only roles cannot mutate files.</OMG_AGENT_ROLE>`,
+  );
 }

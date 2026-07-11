@@ -8,6 +8,7 @@ export type HookEvent =
   | "post-tool-todo"
   | "post-tool-write"
   | "post-tool-shell"
+  | "post-tool-spawn"
   | "stop"
   | "session-end";
 

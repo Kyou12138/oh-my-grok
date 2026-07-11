@@ -1,8 +1,9 @@
 /**
  * Agent role hard permissions — read-only specialists cannot mutate files.
- * Role sources: HookInput.agentName, env GROK_AGENT_NAME / OMG_AGENT_ROLE, raw payload.
+ * Role sources: HookInput.agentName, env, raw payload, sticky session role.
  */
 import type { EnvConfig, HookInput } from "../protocol/types.js";
+import { getSessionAgentRole } from "./session-role.js";
 import { isMutatingTool } from "./skill-gate.js";
 
 /** Agents that must not write/edit/delete. */
@@ -39,7 +40,7 @@ function firstString(...vals: unknown[]): string {
   return "";
 }
 
-export function resolveAgentRole(input: HookInput): string {
+export function resolveAgentRole(input: HookInput, cfg?: EnvConfig): string {
   const raw = input.raw || {};
   const fromEnv = firstString(
     process.env.GROK_AGENT_NAME,
@@ -57,6 +58,10 @@ export function resolveAgentRole(input: HookInput): string {
     raw.agent_type,
   );
   let role = (fromInput || fromEnv).toLowerCase();
+  // Sticky session role when host omits agentName on subsequent tools
+  if (!role && cfg) {
+    role = getSessionAgentRole(input, cfg);
+  }
   if (ROLE_ALIASES[role]) role = ROLE_ALIASES[role];
   // strip plugin prefix
   if (role.includes(":")) role = role.split(":").pop() || role;
@@ -71,7 +76,7 @@ export function isReadOnlyAgent(role: string): boolean {
 export function agentGuardDeny(input: HookInput, cfg: EnvConfig): string | null {
   if (!cfg.agentGuard) return null;
   if (!isMutatingTool(input.toolName)) return null;
-  const role = resolveAgentRole(input);
+  const role = resolveAgentRole(input, cfg);
   if (!role) return null;
   if (!isReadOnlyAgent(role)) return null;
   return [
@@ -79,6 +84,7 @@ export function agentGuardDeny(input: HookInput, cfg: EnvConfig): string | null 
     "Blocked: Write / StrReplace / Edit / Delete.",
     "Use explore/oracle/librarian/metis/momus for research and review only.",
     "Implementation: spawn hephaestus or stay on sisyphus/atlas main session.",
+    "Clear sticky role: /agent hephaestus  (or /agent sisyphus)",
   ].join("\n");
 }
 

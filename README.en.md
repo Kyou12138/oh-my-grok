@@ -102,7 +102,7 @@ Activates **boulder** execution (Atlas/Sisyphus). Optional review agents: **Meti
 
 | Layer | Ships today |
 |-------|-------------|
-| **Harness** | Ralph / **ULW v2** (shell→verify), **intent Skill Gate**, **Hashline LINE#ID**, Stop chain, Todo/**Boulder**, IntentGate, Prometheus, Comment Checker, Agent Guard, Categories, Diagnostics, Handoff, `/init-deep` |
+| **Harness** | Ralph / **ULW v2** (shell→verify), **think-mode**, **intent Skill Gate**, **Hashline**, Stop chain, Todo/**Boulder**, **idle-turn**, **sticky agent role**, IntentGate, Prometheus, Comment Checker, Agent Guard, Categories, Diagnostics, Handoff, `/init-deep` |
 | **Discipline agents** | Sisyphus · Hephaestus · Prometheus · Atlas · Oracle · Explore · Librarian · Metis · Momus |
 | **Superpowers** | Vendored MIT skills: brainstorming, writing-plans, TDD, verification-before-completion, … |
 
@@ -131,6 +131,7 @@ We **align on harness semantics** with omo; we do **not** claim Team Mode, multi
 | `/plan` · `/prometheus` | Plan mode (writes only `.omg/plans/`) |
 | `/start-work` | Boulder from plan |
 | `/cancel-boulder` | Clear active boulder |
+| `/agent <role>` · `/as <role>` | Sticky session role (Agent Guard) |
 | `/handoff` | Session handoff under `.omg/handoffs/` |
 | `/init-deep` | Hierarchical `AGENTS.md` |
 | `/stop-continuation` · `/resume-continuation` | Pause / resume auto-continue |
@@ -155,6 +156,7 @@ npm run validate
 - [CONTRIBUTING.md](./CONTRIBUTING.md)  
 - [CHANGELOG.md](./CHANGELOG.md)  
 - [docs/contract.md](./docs/contract.md)  
+- [docs/omo-gap.md](./docs/omo-gap.md) — omo capability map (shipped / blocked)  
 - **CI:** `npm run ci` ([`scripts/ci.mjs`](./scripts/ci.mjs)). Actions template: [`docs/ci.workflow.yml`](./docs/ci.workflow.yml)
 
 ---

@@ -4,7 +4,7 @@
  * Usage: node dist/cli.js <event>
  */
 import { emit, parseHookInput, readEnvConfig, readStdinJson, } from "./protocol/parse.js";
-import { handlePostToolRead, handlePostToolShell, handlePostToolTodo, handlePostToolWrite, } from "./events/post-tool.js";
+import { handlePostToolRead, handlePostToolShell, handlePostToolSpawn, handlePostToolTodo, handlePostToolWrite, } from "./events/post-tool.js";
 import { handlePreToolUse } from "./events/pre-tool-use.js";
 import { handleSessionEnd } from "./events/session-end.js";
 import { handleSessionStart } from "./events/session-start.js";
@@ -18,6 +18,7 @@ const EVENTS = new Set([
     "post-tool-todo",
     "post-tool-write",
     "post-tool-shell",
+    "post-tool-spawn",
     "stop",
     "session-end",
 ]);
@@ -55,6 +56,9 @@ async function main() {
                 break;
             case "post-tool-shell":
                 emit(handlePostToolShell(input, cfg), 0);
+                break;
+            case "post-tool-spawn":
+                emit(handlePostToolSpawn(input, cfg), 0);
                 break;
             case "stop":
                 emit(handleStop(input, cfg), 0);
