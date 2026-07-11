@@ -102,7 +102,7 @@ Plan-mode 下只允许写 `.omg/plans/`。然后：
 /start-work
 ```
 
-进入 **boulder** 执行（Atlas/Sisyphus）。可选只读评审：**Metis**（找缺口）、**Momus**（计划质量）。
+进入 **boulder** 执行（Atlas/Sisyphus）。**须先完成计划评审**：在 plan 的 `## Review` 勾选 Metis/Momus，或写入 `VERDICT: PASS`，否则 `/start-work` 会被拦。
 
 ---
 

@@ -248,6 +248,14 @@ describe("plan-mode + boulder Stop", () => {
     const data = path.join(ws, "pdata");
     const c = cfg(data, { hashline: false });
     handleUserPrompt(base(ws, { event: "user-prompt", prompt: '/plan "ship api"' }), c);
+    // plan-review gate: stamp review evidence
+    const plans = path.join(ws, ".omg", "plans");
+    const f = fs.readdirSync(plans).find((n) => n.endsWith(".md"))!;
+    fs.appendFileSync(
+      path.join(plans, f),
+      "\n## Review\n- [x] Metis gap check done\n- [x] Momus VERDICT: PASS\n",
+      "utf8",
+    );
     handleUserPrompt(base(ws, { event: "user-prompt", prompt: "/start-work" }), c);
     const b = loadBoulder(base(ws), c);
     expect(b?.active).toBe(true);
@@ -278,11 +286,23 @@ describe("plan-mode + boulder Stop", () => {
     const data = path.join(ws, "pdata");
     const c = cfg(data, { hashline: false });
     handleUserPrompt(base(ws, { event: "user-prompt", prompt: '/plan "feat"' }), c);
+    const plans = path.join(ws, ".omg", "plans");
+    const f = fs.readdirSync(plans).find((n) => n.endsWith(".md"))!;
+    const planPath = path.join(plans, f);
+    fs.appendFileSync(
+      planPath,
+      "\n## Review\n- [x] Metis done\n- [x] Momus VERDICT: PASS\n",
+      "utf8",
+    );
     handleUserPrompt(base(ws, { event: "user-prompt", prompt: "/start-work" }), c);
     const b = loadBoulder(base(ws), c);
-    // ensure open checkbox remains in plans
+    // ensure open checkbox remains in plans (keep review markers so boulder stays meaningful)
     if (b?.planPath && fs.existsSync(b.planPath)) {
-      fs.writeFileSync(b.planPath, "# Plan\n\n- [ ] remaining\n", "utf8");
+      fs.writeFileSync(
+        b.planPath,
+        "# Plan\n\n- [ ] remaining\n\n## Review\n- [x] Metis done\n- [x] Momus VERDICT: PASS\n",
+        "utf8",
+      );
     }
     const stop = handleStop(base(ws, { event: "stop" }), c);
     expect(stop).toMatchObject({ decision: "block" });
@@ -294,6 +314,13 @@ describe("plan-mode + boulder Stop", () => {
     const data = path.join(ws, "pdata");
     const c = cfg(data, { hashline: false });
     handleUserPrompt(base(ws, { event: "user-prompt", prompt: '/plan "x"' }), c);
+    const plans = path.join(ws, ".omg", "plans");
+    const f = fs.readdirSync(plans).find((n) => n.endsWith(".md"))!;
+    fs.appendFileSync(
+      path.join(plans, f),
+      "\n## Review\n- [x] Metis done\n- [x] Momus VERDICT: PASS\n",
+      "utf8",
+    );
     handleUserPrompt(base(ws, { event: "user-prompt", prompt: "/start-work" }), c);
     expect(loadBoulder(base(ws), c)?.active).toBe(true);
     handleUserPrompt(base(ws, { event: "user-prompt", prompt: "/cancel-boulder" }), c);

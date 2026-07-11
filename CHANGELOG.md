@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.9.0] — 2026-07-11
+
+### MAGI spiral (审视→执行→提升)
+
+- **Plan-review gate** — `/start-work` requires ## Review checked item or Metis/Momus `VERDICT: PASS` in plan markdown
+- **Comment aggregate** — stronger slop patterns (Implements/Handles/中文重述); session hit count ≥3 → one Stop `COMMENT_AGGREGATE`
+- **Next spiral focus:** Category spawn discipline on Stop when deep/visual work never spawned specialists
+
 ## [0.8.0] — 2026-07-11
 
 ### Functional (omo-gap remaining)

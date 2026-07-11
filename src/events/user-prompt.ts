@@ -145,10 +145,14 @@ export function handleUserPrompt(input: HookInput, cfg: EnvConfig): HookOutput {
     const pm = startPlanMode(input, cfg, planCmd.topic);
     parts.push(planModeContext(pm));
   } else if (planCmd.action === "start-work") {
-    const planPath = startWorkFromPlan(input, cfg);
-    parts.push(
-      `<OMG_CTRL>start-work: boulder active for plan ${planPath}. Execute as Atlas/Sisyphus.</OMG_CTRL>`,
-    );
+    const sw = startWorkFromPlan(input, cfg);
+    if (!sw.ok) {
+      parts.push(sw.reason || "[PLAN_REVIEW] start-work blocked.");
+    } else {
+      parts.push(
+        `<OMG_CTRL>start-work: boulder active for plan ${sw.planPath}. Execute as Atlas/Sisyphus.</OMG_CTRL>`,
+      );
+    }
   }
 
   if (detectHandoff(prompt)) {

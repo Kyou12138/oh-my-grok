@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import type { EnvConfig, HookInput } from "../protocol/types.js";
 import { ensureDir, readJson, removeFile, writeJsonAtomic, writeTextAtomic } from "../state/fs.js";
@@ -28,7 +29,33 @@ export function startPlanMode(input: HookInput, cfg: EnvConfig, topic: string): 
   const planFile = path.join(p.plansDir, `${Date.now()}-${safe}.md`);
   writeTextAtomic(
     planFile,
-    `# Plan: ${topic}\n\n## Goal\n\n${topic}\n\n## Open questions\n\n- [ ] \n\n## Steps\n\n- [ ] \n\n## Success criteria\n\n- [ ] \n`,
+    [
+      `# Plan: ${topic}`,
+      "",
+      "## Goal",
+      "",
+      topic,
+      "",
+      "## Open questions",
+      "",
+      "- [ ] ",
+      "",
+      "## Steps",
+      "",
+      "- [ ] ",
+      "",
+      "## Success criteria",
+      "",
+      "- [ ] ",
+      "",
+      "## Review",
+      "",
+      "Required before `/start-work` (check at least one):",
+      "",
+      "- [ ] Metis gap analysis completed",
+      "- [ ] Momus VERDICT: PASS (or note residual blockers)",
+      "",
+    ].join("\n"),
   );
   const state: PlanModeState = {
     schemaVersion: 1,
@@ -46,19 +73,66 @@ export function endPlanMode(input: HookInput, cfg: EnvConfig): void {
   removeFile(p.planMode);
 }
 
-export function startWorkFromPlan(input: HookInput, cfg: EnvConfig): string {
+/**
+ * Plan must show Metis/Momus/review evidence before boulder execution.
+ * Accepts ## Review with a checked item, or explicit Metis/Momus/VERDICT markers.
+ */
+export function planFileHasReview(planPath?: string): boolean {
+  if (!planPath || !fs.existsSync(planPath)) return false;
+  let text = "";
+  try {
+    text = fs.readFileSync(planPath, "utf8");
+  } catch {
+    return false;
+  }
+  if (/VERDICT:\s*PASS/i.test(text)) return true;
+  if (/Momus.*PASS|PASS.*Momus/i.test(text)) return true;
+  // Checked review bullets under Review or anywhere
+  if (/##\s*Review[\s\S]*?- \[x\]/i.test(text)) return true;
+  if (/- \[x\].*(Metis|Momus|review)/i.test(text)) return true;
+  if (/\bMetis\b[\s\S]{0,200}\b(done|completed|完成|已)/i.test(text)) return true;
+  return false;
+}
+
+export function planReviewDenyReason(planPath?: string): string {
+  return [
+    "[PLAN_REVIEW] /start-work blocked — plan lacks review evidence.",
+    planPath ? `Plan: ${planPath}` : "No active plan file.",
+    "",
+    "Before executing, complete the review chain:",
+    "1) Spawn **metis** (read-only) — gaps / ambiguities",
+    "2) Spawn **momus** (read-only) — VERDICT: PASS|FAIL",
+    "3) In the plan markdown under ## Review, check items or write VERDICT: PASS",
+    "4) Re-run /start-work",
+  ].join("\n");
+}
+
+export function startWorkFromPlan(
+  input: HookInput,
+  cfg: EnvConfig,
+): { ok: boolean; planPath: string; reason?: string } {
   const pm = loadPlanMode(input, cfg);
-  const planPath = pm.planFile;
+  const planPath = pm.planFile || "";
+  if (!planPath) {
+    return {
+      ok: false,
+      planPath: "",
+      reason: "[PLAN_REVIEW] No active plan. Run /plan first.",
+    };
+  }
+  if (!planFileHasReview(planPath)) {
+    return { ok: false, planPath, reason: planReviewDenyReason(planPath) };
+  }
   setBoulder(input, cfg, {
     schemaVersion: 1,
     active: true,
     planPath,
     title: pm.topic || "start-work",
-    notes: "Activated via /start-work (Atlas/Sisyphus execution).",
+    notes: "Activated via /start-work (Atlas/Sisyphus execution) after plan review.",
     updatedAt: new Date().toISOString(),
   });
   endPlanMode(input, cfg);
-  return planPath || "(no plan file)";
+  return { ok: true, planPath };
 }
 
 export function detectPlanCommand(prompt: string): {

@@ -1,8 +1,7 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-11 · **omg version:** 0.8.x  
-**Purpose:** Honest map of omo-defining harness capabilities → what Grok can ship.  
-**Stars are a community outcome**; this doc tracks **functional** gaps only.
+**Date:** 2026-07-11 · **omg version:** 0.9.x  
+**MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
 
@@ -16,48 +15,45 @@
 
 | omo capability | oh-my-grok | Status |
 |----------------|------------|--------|
-| Ralph / ultrawork / ULW loop | ULW v3 phase machine, DONE gate, shell→verify, stall, **multi-goal** | **shipped** |
-| Todo continuation enforcer | Mirror + Stop yank + cooldown + **abort-window** | **shipped** (partial vs omo depth) |
-| Prometheus plan-mode | `/plan` write lock + Metis/Momus copy | **shipped** (partial) |
-| IntentGate keyword modes | search/analyze/debug/ulw/team/hyperplan | **shipped** |
-| Think / ultrathink effort | think-mode injection (v0.7) | **shipped** |
-| Hashline LINE#ID edits | PreTool tag+body guard + Read inject | **partial** (no native edit tool) |
-| Skill force-use | Intent Skill Gate + catalog | **shipped** |
-| Comment checker | Soft warn + optional hard deny | **partial** (no separate binary) |
-| Discipline agents | 9 thin agents + Agent Guard | **partial** (no model matrix) |
-| Background / parallel agents | Host `spawn_subagent` only | **partial** |
-| Session agent role lock | Sticky session role + spawn track (v0.7) | **shipped** |
-| Idle / empty-turn yank | Stop idle-turn detection (v0.7) | **shipped** |
-| Team Mode + tmux | — | **blocked** |
-| Multi-provider model routing / fallback | — | **blocked** |
-| In-plugin LSP / AST-grep suite | — | **blocked** |
-| Built-in Exa / Context7 / grep_app MCP | — | **blocked** (use host MCP) |
-| 54+ lifecycle hooks | ~6–8 events, merged logic | **partial** |
-| Claude Code compat layer | — | **blocked** / N/A |
+| Ralph / ultrawork / ULW loop | ULW v3 multi-goal, shell→verify, stall | **shipped** |
+| Todo continuation enforcer | cooldown + **abort-window** | **shipped** (partial) |
+| Prometheus plan-mode | write lock + **plan-review gate** before start-work | **shipped** |
+| IntentGate / think-mode | keywords + ultrathink | **shipped** |
+| Hashline LINE#ID | PreTool tag+body + Read inject | **partial** |
+| Skill force-use | Intent Skill Gate | **shipped** |
+| Comment checker | patterns + **session aggregate Stop** | **shipped** (partial vs binary) |
+| Discipline agents + role lock | sticky /agent + spawn | **shipped** (partial models) |
+| Idle-turn yank | fluff empty Stop | **shipped** |
+| Team Mode / tmux | — | **blocked** |
+| Multi-provider model matrix | — | **blocked** |
+| In-plugin LSP / AST | — | **blocked** |
+| Built-in Exa/Context7 MCP | — | **blocked** |
 
-## Grok-feasible gaps (remaining after v0.8)
+## Grok-feasible gaps still open (after v0.9)
 
-1. **Category → model routing** — only prompt categories; host cannot multi-model route  
-2. **Hashline as real edit tool** — needs custom tool registration (host limit)  
-3. **Stronger comment-checker** — optional external binary / AST-aware scan  
-4. **Background agent manager** — depends on host spawn/notification APIs  
-5. **Todo abort-window** — *(v0.8 shipped: re-yank on abort-like stopReason within window)*  
-6. **Multi-goal ULW** — *(v0.8 shipped: parse `;`/`|`/numbered goals, GOAL_DONE, DONE gate)*  
+1. **Category spawn discipline** — banners only; no Stop force when deep/visual work never spawned specialists  
+2. **Background agent babysitter** — host spawn APIs incomplete  
+3. **Hashline native edit tool** — host tool registration limit  
+4. **Stronger AST-aware comment rewrite** — optional external binary  
 
-## Closed recently
+## Closed this spiral (v0.9)
 
-| Version | Gaps closed |
-|---------|-------------|
-| v0.7 | Think-mode, sticky agent role, idle-turn |
-| v0.8 | Multi-goal ULW, Todo abort-window |
+| Item | Behavior |
+|------|----------|
+| Plan-review gate | `/start-work` blocked unless plan has ## Review checked / Metis / Momus VERDICT: PASS |
+| Comment aggregate | ≥3 slop hits → one Stop `COMMENT_AGGREGATE` yank |
 
-## Explicit non-goals (do not promise)
+## Next spiral focus (提升)
 
-- Team Mode / tmux multi-pane  
-- Multi-provider model matrix + runtime fallback  
-- Full in-plugin LSP/AST product suite  
+**Priority:** Category execution discipline — when IntentGate/category is `deep` / `visual-engineering` / `ultrabrain` and session has zero spawn_subagent activity, Stop once with CATEGORY_DISCIPLINE reason listing recommended subagents. Keep Team Mode / multi-model as non-goals.
+
+## Explicit non-goals
+
+- Team Mode / tmux  
+- Multi-provider model routing  
+- Full in-plugin LSP/AST suite  
 - Forking omo source  
 
 ## Product thesis
 
-On Grok Build, “must-install” means **hard discipline** (loops, gates, stop yank), not cloning OpenCode’s multi-model OS. Ship the spine; document the ceiling.
+Grok “must-install” = hard discipline hooks, not OpenCode multi-model OS clone. Spiral: critique real gaps → ship gates → elevate next focus.

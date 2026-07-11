@@ -6,6 +6,10 @@ import {
   markSoftPrompted,
   markVerified,
 } from "../features/diagnostics.js";
+import {
+  commentAggregateStopReason,
+  markCommentSoftPrompted,
+} from "../features/comment-checker.js";
 import { idleTurnStopReason, isIdleAssistantMessage } from "../features/idle-turn.js";
 import { loadRalph, processLoopStop } from "../features/ralph.js";
 import { isDoneMessage } from "../features/ralph.js";
@@ -114,6 +118,13 @@ export function handleStop(input: HookInput, cfg: EnvConfig): HookOutput {
   const planMsg = hasOpenPlanCheckboxes(input, cfg);
   if (planMsg) {
     return { decision: "block", reason: planMsg };
+  }
+
+  // 6. Comment slop aggregate (soft once)
+  const commentAgg = commentAggregateStopReason(input, cfg);
+  if (commentAgg) {
+    markCommentSoftPrompted(input, cfg);
+    return { decision: "block", reason: commentAgg };
   }
 
   return {};
