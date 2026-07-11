@@ -64,6 +64,16 @@
             "timeout": 60
           }
         ]
+      },
+      {
+        "matcher": "Bash|Shell|run_terminal_command|run_terminal|Execute|LocalShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${GROK_PLUGIN_ROOT}/dist/cli.js\" post-tool-shell",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Stop": [

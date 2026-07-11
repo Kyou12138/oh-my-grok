@@ -8,7 +8,7 @@ Authoritative I/O for Grok Build hooks (aligned with production behavior used by
 node "${GROK_PLUGIN_ROOT}/dist/cli.js" <event>
 ```
 
-Events: `session-start` | `user-prompt` | `pre-tool-use` | `post-tool-read` | `post-tool-todo` | `post-tool-write` | `stop` | `session-end`
+Events: `session-start` | `user-prompt` | `pre-tool-use` | `post-tool-read` | `post-tool-todo` | `post-tool-write` | `post-tool-shell` | `stop` | `session-end`
 
 ## PreToolUse order
 

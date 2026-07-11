@@ -21,6 +21,7 @@ export function pathsFor(workspaceRoot: string, sessionId: string, cfg: EnvConfi
     todoEnforcer: path.join(sess, "todo-enforcer.json"),
     stopContinuation: path.join(sess, "stop-continuation.json"),
     promptCount: path.join(sess, "prompt-count.json"),
+    lastPrompt: path.join(sess, "last-prompt.json"),
     ralph: path.join(omg, "ralph-loop.local.md"),
     ulwDir: path.join(omg, "ulw-loop"),
     ulwLogDir: path.join(omg, "ulw-loop", "log"),

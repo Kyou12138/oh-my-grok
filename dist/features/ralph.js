@@ -203,6 +203,33 @@ export function noteUlwWrite(input, cfg, filePath) {
     a.updatedAt = new Date().toISOString();
     writeJsonAtomic(activityPath(input, cfg), a);
 }
+/** Commands that count as verification evidence for ULW. */
+export const VERIFY_SHELL_RE = /\b(npm\s+(test|run\s+test|run\s+ci)|pnpm\s+(test|run\s+test)|yarn\s+test|vitest|jest|pytest|cargo\s+test|go\s+test|dotnet\s+test|mvn\s+test|gradlew?\s+test|typecheck|tsc\s+--noEmit|eslint|lint|npm\s+run\s+doctor|npm\s+run\s+validate)\b/i;
+export function isVerifyShellCommand(command) {
+    if (!command)
+        return false;
+    return VERIFY_SHELL_RE.test(command);
+}
+/**
+ * Record shell/terminal activity for ULW.
+ * Test/lint/typecheck commands auto-mark verify phase when a ULW loop is active.
+ */
+export function noteUlwShell(input, cfg, command) {
+    const a = loadUlwActivity(input, cfg);
+    a.shells += 1;
+    if (command) {
+        a.lastPaths = [...new Set([`shell:${command.slice(0, 80)}`, ...a.lastPaths])].slice(0, 12);
+    }
+    a.updatedAt = new Date().toISOString();
+    writeJsonAtomic(activityPath(input, cfg), a);
+    if (isVerifyShellCommand(command)) {
+        const loop = loadRalph(input, cfg);
+        if (loop?.active && loop.mode === "ulw") {
+            markVerifyReached(loop);
+            saveRalph(input, cfg, loop);
+        }
+    }
+}
 export function activityFingerprint(a) {
     return `r${a.reads}:w${a.writes}:s${a.shells}`;
 }
@@ -218,6 +245,11 @@ export function advancePhaseFromActivity(state, activity) {
         if (state.phase === "explore" || state.phase === "implement") {
             state.phase = "verify";
         }
+    }
+    if (activity.shells > 0 && state.phaseReached.implement) {
+        // shell after implement can mean verify in progress
+        if (state.phase === "implement")
+            state.phase = "verify";
     }
     return state;
 }

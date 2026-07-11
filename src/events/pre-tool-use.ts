@@ -3,6 +3,7 @@ import { agentGuardDeny } from "../features/agent-guard.js";
 import { commentCheckerPreDeny } from "../features/comment-checker.js";
 import { hashlinePreToolDeny } from "../features/hashline.js";
 import { planModeDeny } from "../features/prometheus.js";
+import { skillGateContext } from "../features/last-prompt.js";
 import {
   isMutatingTool,
   loadSkillGateState,
@@ -45,11 +46,12 @@ export function handlePreToolUse(
     return { output: { decision: "deny", reason: cc }, exitCode: 2 };
   }
 
-  // 4) Skill gate
+  // 4) Skill gate (intent-aware when last prompt/task matches known skills)
   if (cfg.skillGate) {
     let state = loadSkillGateState(input, cfg);
     if (!state.catalog.length) state = refreshCatalog(input, cfg);
-    const reason = skillGateDenyReason(state);
+    const ctx = skillGateContext(input, cfg);
+    const reason = skillGateDenyReason(state, ctx);
     if (reason) {
       return { output: { decision: "deny", reason }, exitCode: 2 };
     }

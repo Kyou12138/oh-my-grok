@@ -12,6 +12,7 @@ import {
 import type { HookEvent, HookOutput } from "./protocol/types.js";
 import {
   handlePostToolRead,
+  handlePostToolShell,
   handlePostToolTodo,
   handlePostToolWrite,
 } from "./events/post-tool.js";
@@ -28,6 +29,7 @@ const EVENTS = new Set<string>([
   "post-tool-read",
   "post-tool-todo",
   "post-tool-write",
+  "post-tool-shell",
   "stop",
   "session-end",
 ]);
@@ -65,6 +67,9 @@ async function main(): Promise<void> {
         break;
       case "post-tool-write":
         emit(handlePostToolWrite(input, cfg) as HookOutput, 0);
+        break;
+      case "post-tool-shell":
+        emit(handlePostToolShell(input, cfg) as HookOutput, 0);
         break;
       case "stop":
         emit(handleStop(input, cfg), 0);

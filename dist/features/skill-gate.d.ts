@@ -17,5 +17,6 @@ export declare function loadSkillGateState(input: HookInput, cfg: EnvConfig): Sk
 export declare function saveSkillGateState(input: HookInput, cfg: EnvConfig, state: SkillGateState): void;
 export declare function refreshCatalog(input: HookInput, cfg: EnvConfig): SkillGateState;
 export declare function markSkillLoaded(input: HookInput, cfg: EnvConfig, filePath: string): SkillGateState;
-export declare function skillGateDenyReason(state: SkillGateState): string | null;
-export declare function skillGateReminder(state: SkillGateState): string;
+export declare function suggestedSkillsForContext(catalog: SkillMeta[], context: string): SkillMeta[];
+export declare function skillGateDenyReason(state: SkillGateState, context?: string): string | null;
+export declare function skillGateReminder(state: SkillGateState, context?: string): string;

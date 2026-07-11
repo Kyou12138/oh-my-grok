@@ -10,7 +10,7 @@ export function handleSessionStart(input, cfg) {
     writeJsonAtomic(p.fingerprint, {
         schemaVersion: 1,
         plugin: "oh-my-grok",
-        version: "0.5.0",
+        version: "0.6.0",
         sessionId: input.sessionId,
         workspaceRoot: input.workspaceRoot,
         pid: process.pid,

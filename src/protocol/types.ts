@@ -7,6 +7,7 @@ export type HookEvent =
   | "post-tool-read"
   | "post-tool-todo"
   | "post-tool-write"
+  | "post-tool-shell"
   | "stop"
   | "session-end";
 

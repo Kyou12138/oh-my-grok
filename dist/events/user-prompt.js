@@ -9,6 +9,7 @@ import { commentCheckerHint, hardOrchestrationBanner, } from "../features/orches
 import { detectPlanCommand, loadPlanMode, planModeContext, startPlanMode, startWorkFromPlan, } from "../features/prometheus.js";
 import { cancelRalph, detectRalphCommand, loadRalph, startRalph, } from "../features/ralph.js";
 import { loadInjectedRules, sisyphusBootstrap, usingSuperpowersHint, } from "../features/rules.js";
+import { saveLastPrompt, skillGateContext } from "../features/last-prompt.js";
 import { loadSkillGateState, refreshCatalog, skillGateReminder, } from "../features/skill-gate.js";
 import { clearBoulder, isStopPaused, loadBoulder, setStopPaused, } from "../features/todo-boulder.js";
 import { readJson, writeJsonAtomic } from "../state/fs.js";
@@ -27,6 +28,8 @@ export function handleUserPrompt(input, cfg) {
     const parts = [];
     const prompt = input.prompt || "";
     const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
+    if (prompt)
+        saveLastPrompt(input, cfg, prompt);
     const countState = readJson(p.promptCount, { n: 0 });
     const isFirst = countState.n === 0 || input.isFirstPrompt;
     countState.n += 1;
@@ -99,7 +102,7 @@ export function handleUserPrompt(input, cfg) {
     let gate = loadSkillGateState(input, cfg);
     if (!gate.catalog.length)
         gate = refreshCatalog(input, cfg);
-    parts.push(skillGateReminder(gate));
+    parts.push(skillGateReminder(gate, skillGateContext(input, cfg)));
     parts.push(loadInjectedRules(input.workspaceRoot, cfg));
     const ralph = loadRalph(input, cfg);
     if (ralph) {

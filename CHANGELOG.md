@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.6.0] — 2026-07-11
+
+### Functional (ULW + Skill Gate)
+
+- **ULW shell activity** — PostTool `Bash|Shell|run_terminal_command|…` via `post-tool-shell`; `noteUlwShell` increments activity; **test/lint/typecheck** commands auto-mark ULW **verify** phase
+- **Intent-aware Skill Gate** — matches last prompt + loop task + file path to suggested skills (TDD, debug, plan, ulw, …); mutation denied until a **relevant** skill is Read (not any random skill)
+- Last prompt persisted for gate context (`last-prompt.json`)
+
 ## [0.5.0] — 2026-07-11
 
 ### Functional harness upgrades (star-ready via capability)

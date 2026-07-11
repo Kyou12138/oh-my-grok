@@ -124,8 +124,91 @@ export function markSkillLoaded(
   return state;
 }
 
-export function skillGateDenyReason(state: SkillGateState): string | null {
+/**
+ * Map task/file context → suggested skill ids (plugin + superpowers).
+ * Used so Skill Gate is not satisfied by reading an unrelated skill.
+ */
+const INTENT_SKILL_RULES: { re: RegExp; skills: string[] }[] = [
+  {
+    re: /\b(tdd|unit\s*test|tests?|spec|vitest|jest|pytest)\b|\.test\.|\.spec\./i,
+    skills: ["test-driven-development", "verification-before-completion"],
+  },
+  {
+    re: /\b(debug|bug|failing|regression|stack\s*trace)\b/i,
+    skills: ["systematic-debugging"],
+  },
+  {
+    re: /\b(brainstorm|design|architect|ambiguous)\b/i,
+    skills: ["brainstorming", "using-superpowers"],
+  },
+  {
+    re: /\b(plan|roadmap|prometheus)\b/i,
+    skills: ["writing-plans", "prometheus-plan"],
+  },
+  {
+    re: /\b(ulw|ultrawork|ralph|loop)\b/i,
+    skills: ["ulw-loop", "ralph-loop"],
+  },
+  {
+    re: /\b(review|pr\b|code\s*review)\b/i,
+    skills: ["requesting-code-review", "receiving-code-review"],
+  },
+  {
+    re: /\b(hashline|stale\s*edit|LINE#)\b/i,
+    skills: ["hashline-edit"],
+  },
+  {
+    re: /\b(handoff|session\s*summary)\b/i,
+    skills: ["handoff"],
+  },
+];
+
+export function suggestedSkillsForContext(
+  catalog: SkillMeta[],
+  context: string,
+): SkillMeta[] {
+  if (!context?.trim() || !catalog.length) return [];
+  const want = new Set<string>();
+  for (const rule of INTENT_SKILL_RULES) {
+    if (rule.re.test(context)) {
+      for (const id of rule.skills) want.add(id.toLowerCase());
+    }
+  }
+  if (!want.size) return [];
+  return catalog.filter(
+    (c) => want.has(c.id.toLowerCase()) || want.has(c.name.toLowerCase()),
+  );
+}
+
+export function skillGateDenyReason(
+  state: SkillGateState,
+  context?: string,
+): string | null {
   if (state.catalog.length === 0) return null;
+
+  const suggested = context
+    ? suggestedSkillsForContext(state.catalog, context)
+    : [];
+
+  // Intent-aware: when we can match skills, require at least one of those loaded
+  if (suggested.length > 0) {
+    const ok = suggested.some(
+      (s) => state.loaded.includes(s.id) || state.loaded.includes(s.name),
+    );
+    if (ok) return null;
+    const list = suggested
+      .slice(0, 6)
+      .map((s) => `- ${s.name}: ${s.path}`)
+      .join("\n");
+    return [
+      "[oh-my-grok Skill Gate] Mutating tools blocked — load a **relevant** skill first.",
+      "Context matched these skills; Read one SKILL.md before editing:",
+      list,
+      "Workflow: Read SKILL.md → announce \"Using <name> to <purpose>\" → then edit.",
+    ].join("\n");
+  }
+
+  // Fallback: any skill unlocks (fail-open for unknown intents once one skill is loaded)
   if (state.loaded.length > 0) return null;
   const sample = state.catalog
     .slice(0, 8)
@@ -142,20 +225,31 @@ export function skillGateDenyReason(state: SkillGateState): string | null {
     .join("\n");
 }
 
-export function skillGateReminder(state: SkillGateState): string {
+export function skillGateReminder(
+  state: SkillGateState,
+  context?: string,
+): string {
   if (state.catalog.length === 0) return "";
+  const suggested = context
+    ? suggestedSkillsForContext(state.catalog, context)
+    : [];
   const unloaded = state.catalog.filter((c) => !state.loaded.includes(c.id));
-  if (unloaded.length === 0) {
+  if (unloaded.length === 0 && !suggested.length) {
     return `<OMG_SKILL_GATE>Loaded skills: ${state.loaded.join(", ") || "(none)"}</OMG_SKILL_GATE>`;
   }
   return [
     "<OMG_SKILL_GATE>",
     "Before mutating files, Read a relevant SKILL.md (superpowers or oh-my-grok).",
     `Loaded: ${state.loaded.join(", ") || "(none)"}`,
+    suggested.length
+      ? `Suggested for this task: ${suggested.map((s) => s.name).join(", ")}`
+      : "",
     `Unloaded examples: ${unloaded
       .slice(0, 6)
       .map((u) => u.name)
       .join(", ")}`,
     "</OMG_SKILL_GATE>",
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 }

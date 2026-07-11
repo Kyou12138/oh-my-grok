@@ -46,6 +46,14 @@ export declare function loadUlwActivity(input: HookInput, cfg: EnvConfig): UlwAc
 export declare function resetUlwActivity(input: HookInput, cfg: EnvConfig): void;
 export declare function noteUlwRead(input: HookInput, cfg: EnvConfig, filePath?: string): void;
 export declare function noteUlwWrite(input: HookInput, cfg: EnvConfig, filePath?: string): void;
+/** Commands that count as verification evidence for ULW. */
+export declare const VERIFY_SHELL_RE: RegExp;
+export declare function isVerifyShellCommand(command?: string): boolean;
+/**
+ * Record shell/terminal activity for ULW.
+ * Test/lint/typecheck commands auto-mark verify phase when a ULW loop is active.
+ */
+export declare function noteUlwShell(input: HookInput, cfg: EnvConfig, command?: string): void;
 export declare function activityFingerprint(a: UlwActivity): string;
 /** Advance phase from observed activity since last stop. */
 export declare function advancePhaseFromActivity(state: RalphState, activity: UlwActivity): RalphState;

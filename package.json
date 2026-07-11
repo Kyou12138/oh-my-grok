@@ -1,7 +1,7 @@
 {
   "name": "oh-my-grok",
-  "version": "0.5.0",
-  "description": "omo-style harness + Superpowers for Grok Build — ultrawork until done, Skill Gate, Hashline, Sisyphus team",
+  "version": "0.6.0",
+  "description": "omo-style harness + Superpowers for Grok Build — ULW shell verify, intent Skill Gate, Hashline, Sisyphus",
   "type": "module",
   "bin": {
     "omg-hook": "./dist/cli.js"

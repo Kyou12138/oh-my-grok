@@ -33,6 +33,7 @@ import {
   sisyphusBootstrap,
   usingSuperpowersHint,
 } from "../features/rules.js";
+import { saveLastPrompt, skillGateContext } from "../features/last-prompt.js";
 import {
   loadSkillGateState,
   refreshCatalog,
@@ -61,6 +62,8 @@ export function handleUserPrompt(input: HookInput, cfg: EnvConfig): HookOutput {
   const parts: string[] = [];
   const prompt = input.prompt || "";
   const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
+
+  if (prompt) saveLastPrompt(input, cfg, prompt);
 
   const countState = readJson<{ n: number }>(p.promptCount, { n: 0 });
   const isFirst = countState.n === 0 || input.isFirstPrompt;
@@ -142,7 +145,7 @@ export function handleUserPrompt(input: HookInput, cfg: EnvConfig): HookOutput {
 
   let gate = loadSkillGateState(input, cfg);
   if (!gate.catalog.length) gate = refreshCatalog(input, cfg);
-  parts.push(skillGateReminder(gate));
+  parts.push(skillGateReminder(gate, skillGateContext(input, cfg)));
 
   parts.push(loadInjectedRules(input.workspaceRoot, cfg));
 

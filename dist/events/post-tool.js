@@ -2,7 +2,7 @@ import { commentCheckerPostWarn } from "../features/comment-checker.js";
 import { collectDirectoryContext } from "../features/directory-inject.js";
 import { markDirty, runDiagCommand } from "../features/diagnostics.js";
 import { recordRead } from "../features/hashline.js";
-import { noteUlwRead, noteUlwWrite } from "../features/ralph.js";
+import { isVerifyShellCommand, noteUlwRead, noteUlwShell, noteUlwWrite, } from "../features/ralph.js";
 import { markSkillLoaded } from "../features/skill-gate.js";
 import { extractTodosFromToolInput, mirrorTodos, resetTodoEnforcer, } from "../features/todo-boulder.js";
 function fileFromInput(input) {
@@ -68,5 +68,27 @@ export function handlePostToolWrite(input, cfg) {
     }
     const warn = commentCheckerPostWarn(input, cfg);
     return mergeContext(warn);
+}
+function commandFromInput(input) {
+    return String(input.toolInput?.command ??
+        input.toolInput?.cmd ??
+        input.toolInput?.script ??
+        input.toolInput?.bash ??
+        "");
+}
+/** PostTool for Bash/Shell/run_terminal_command — ULW shell + verify evidence. */
+export function handlePostToolShell(input, cfg) {
+    const command = commandFromInput(input);
+    noteUlwShell(input, cfg, command || undefined);
+    if (isVerifyShellCommand(command)) {
+        return mergeContext([
+            "<OMG_ULW_SHELL>",
+            "Verification-style shell observed — ULW verify phase credited if a loop is active.",
+            `command: ${command.slice(0, 200)}`,
+            "When checks are clean, emit <promise>VERIFIED</promise> then <promise>DONE</promise>.",
+            "</OMG_ULW_SHELL>",
+        ].join("\n"));
+    }
+    return {};
 }
 //# sourceMappingURL=post-tool.js.map

@@ -103,7 +103,7 @@ Activates **boulder** execution (Atlas/Sisyphus). Optional review agents: **Meti
 
 | Layer | Ships today |
 |-------|-------------|
-| **Harness** | Ralph / **ULW v2**, Skill Gate, **Hashline LINE#ID** (tag+body), Stop chain, Todo/**Boulder lifecycle**, IntentGate, Prometheus, Comment Checker, Agent Guard, Categories, Diagnostics, Handoff, `/init-deep` |
+| **Harness** | Ralph / **ULW v2** (shell→verify), **intent Skill Gate**, **Hashline LINE#ID**, Stop chain, Todo/**Boulder**, IntentGate, Prometheus, Comment Checker, Agent Guard, Categories, Diagnostics, Handoff, `/init-deep` |
 | **Discipline agents** | Sisyphus · Hephaestus · Prometheus · Atlas · Oracle · Explore · Librarian · Metis · Momus |
 | **Superpowers** | Vendored MIT skills: brainstorming, writing-plans, TDD, verification-before-completion, … |
 

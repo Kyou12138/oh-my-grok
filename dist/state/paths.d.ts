@@ -9,6 +9,7 @@ export declare function pathsFor(workspaceRoot: string, sessionId: string, cfg: 
     todoEnforcer: string;
     stopContinuation: string;
     promptCount: string;
+    lastPrompt: string;
     ralph: string;
     ulwDir: string;
     ulwLogDir: string;

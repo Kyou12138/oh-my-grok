@@ -1,5 +1,5 @@
 /** Normalized hook I/O — Grok Build contract (mihazs-aligned). */
-export type HookEvent = "session-start" | "user-prompt" | "pre-tool-use" | "post-tool-read" | "post-tool-todo" | "post-tool-write" | "stop" | "session-end";
+export type HookEvent = "session-start" | "user-prompt" | "pre-tool-use" | "post-tool-read" | "post-tool-todo" | "post-tool-write" | "post-tool-shell" | "stop" | "session-end";
 export interface HookInput {
     raw: Record<string, unknown>;
     event: HookEvent;
