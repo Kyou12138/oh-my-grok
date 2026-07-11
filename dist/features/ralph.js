@@ -319,7 +319,7 @@ export function writeProgressLog(input, cfg, state, kind, note) {
         `- task: ${state.task}`,
         `- phase: ${state.phase}`,
         `- stall: ${state.stallCount}`,
-        `- activity: reads=${act.reads} writes=${act.writes}`,
+        `- activity: reads=${act.reads} writes=${act.writes} shells=${act.shells}`,
         `- paths: ${act.lastPaths.slice(0, 8).join(", ") || "(none)"}`,
         "",
         note,
@@ -366,7 +366,7 @@ export function ralphStopReason(state, opts) {
         "- Incomplete todos block DONE",
         "- Then output: <promise>DONE</promise>",
         opts?.stall
-            ? "\n⚠ STALL DETECTED: no Read/Write progress last round. Change strategy — spawn oracle/explore, narrow scope, or try a different approach."
+            ? "\n⚠ STALL DETECTED: no Read/Write/Shell progress last round. Change strategy — spawn oracle/explore, run tests, narrow scope, or try a different approach."
             : "",
         "══════════════════════════════════════",
     ]
@@ -413,20 +413,22 @@ export function processLoopStop(input, cfg, state) {
             state,
         };
     }
-    // Stall detection (ULW)
+    // Stall detection (ULW) — Read, Write, OR Shell counts as progress
     const fp = activityFingerprint(activity);
+    const noRwShell = activity.reads === 0 && activity.writes === 0 && activity.shells === 0;
     let stall = false;
     if (state.mode === "ulw") {
-        if (state.lastActivityFingerprint && fp === state.lastActivityFingerprint && activity.reads === 0 && activity.writes === 0) {
+        if (state.lastActivityFingerprint && fp === state.lastActivityFingerprint && noRwShell) {
             // compared to previous end-of-iter snapshot stored as last fingerprint with zero delta
             state.stallCount += 1;
             stall = state.stallCount >= 1;
         }
-        else if (activity.reads === 0 && activity.writes === 0 && state.iteration > 0) {
+        else if (noRwShell && state.iteration > 0) {
             state.stallCount += 1;
             stall = true;
         }
         else {
+            // shells>0 (e.g. npm test) is real progress for shell→verify
             state.stallCount = 0;
         }
         state.lastActivityFingerprint = fp;

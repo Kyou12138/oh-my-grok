@@ -207,4 +207,29 @@ describe("ULW still blocks Stop without DONE after shell", () => {
     );
     expect(stop).toMatchObject({ decision: "block" });
   });
+
+  it("shell-only activity on iter>0 is NOT treated as STALL", () => {
+    const ws = tmpWorkspace();
+    const data = path.join(ws, "pdata");
+    const c = cfg(data, { skillGate: false });
+    const input = base(ws);
+    startRalph(input, c, "verify suite", "ulw");
+    // First stop: advance iteration to > 0 (empty activity may stall once — discard)
+    handleStop(base(ws, { event: "stop", lastAssistantMessage: "starting" }), c);
+    expect(loadRalph(input, c)?.iteration).toBeGreaterThan(0);
+    // Second round: only shell progress (no Read/Write)
+    noteUlwShell(input, c, "npm test");
+    const stop = handleStop(
+      base(ws, { event: "stop", lastAssistantMessage: "ran npm test" }),
+      c,
+    );
+    expect(stop).toMatchObject({ decision: "block" });
+    expect(JSON.stringify(stop)).not.toMatch(/STALL DETECTED/);
+    // progress log should record shells=
+    const logDir = path.join(ws, ".omg", "ulw-loop", "log");
+    const logs = fs.readdirSync(logDir).map((f) =>
+      fs.readFileSync(path.join(logDir, f), "utf8"),
+    );
+    expect(logs.some((t) => /shells=\d+/.test(t))).toBe(true);
+  });
 });
