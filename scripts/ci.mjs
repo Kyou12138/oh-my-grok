@@ -12,12 +12,13 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-function run(label, command, args) {
+const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
+
+function run(label, args) {
   console.log(`\n==> ${label}`);
-  const r = spawnSync(command, args, {
+  const r = spawnSync(npmCmd, args, {
     cwd: root,
     stdio: "inherit",
-    shell: process.platform === "win32",
     env: process.env,
   });
   if (r.status !== 0) {
@@ -26,8 +27,8 @@ function run(label, command, args) {
   }
 }
 
-run("build", "npm", ["run", "build"]);
-run("test", "npm", ["test"]);
-run("doctor", "npm", ["run", "doctor"]);
-run("validate", "npm", ["run", "validate"]);
+run("build", ["run", "build"]);
+run("test", ["test"]);
+run("doctor", ["run", "doctor"]);
+run("validate", ["run", "validate"]);
 console.log("\nCI OK — build + test + doctor + validate");
