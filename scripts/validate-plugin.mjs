@@ -58,6 +58,17 @@ if (!/ultrawork/i.test(readme)) {
   console.error("README missing ultrawork wow path");
   ok = false;
 }
+if (!fs.existsSync(path.join(root, "README.en.md"))) {
+  console.error("README.en.md missing (English edition)");
+  ok = false;
+} else {
+  console.log("OK", "README.en.md");
+}
+if (/tests-vitest-0A7-blue/.test(readme)) {
+  console.error("README has broken shields color tests-vitest-0A7-blue");
+  ok = false;
+}
+
 
 const hooks = JSON.parse(fs.readFileSync(path.join(root, "hooks/hooks.json"), "utf8"));
 const events = Object.keys(hooks.hooks || {});

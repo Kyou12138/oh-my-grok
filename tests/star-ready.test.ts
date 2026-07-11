@@ -25,9 +25,16 @@ describe("README top-of-funnel (star-ready)", () => {
   const readme = read("README.md");
   const top = readme.slice(0, 3500);
 
+  it("defaults to Chinese and links English README", () => {
+    expect(readme).toMatch(/中文|解决什么问题|30 秒安装/);
+    expect(exists("README.en.md")).toBe(true);
+    expect(readme).toMatch(/README\.en\.md/);
+    expect(read("README.en.md")).toMatch(/English|The problem|30-second install/i);
+  });
+
   it("states the problem (vanilla Grok long-task discipline)", () => {
-    expect(top).toMatch(/problem|Vanilla Grok|long task|半途|discipline|harness/i);
-    expect(top).toMatch(/stop|todo|skill|stale|drift/i);
+    expect(top).toMatch(/problem|Vanilla Grok|long task|半途|discipline|harness|解决什么问题/i);
+    expect(top).toMatch(/stop|todo|skill|stale|drift|盲改|半途/i);
   });
 
   it("states one-liner value: harness + Superpowers on Grok Build", () => {
@@ -47,14 +54,21 @@ describe("README top-of-funnel (star-ready)", () => {
 
   it("honest non-claims: Team Mode / multi-model limits", () => {
     expect(readme).toMatch(/Team Mode/i);
-    expect(readme).toMatch(/platform limit|No|❌|not claim/i);
-    expect(readme).toMatch(/multi-model|model routing|Multi-model/i);
+    expect(readme).toMatch(/platform limit|平台限制|not claim|不宣称/i);
+    expect(readme).toMatch(/multi-model|model routing|多模型/i);
   });
 
   it("links CI signal and CONTRIBUTING/CHANGELOG", () => {
     expect(readme).toMatch(/npm run ci|scripts\/ci\.mjs|ci\.workflow/i);
     expect(readme).toMatch(/CONTRIBUTING\.md/);
     expect(readme).toMatch(/CHANGELOG\.md/);
+  });
+
+  it("uses a valid shields.io tests badge (no broken 0A7-blue color)", () => {
+    expect(readme).not.toMatch(/tests-vitest-0A7-blue/);
+    expect(readme).toMatch(
+      /img\.shields\.io\/badge\/tests-vitest-(blue|brightgreen|success|informational|[0-9a-fA-F]{3,8})/,
+    );
   });
 });
 
