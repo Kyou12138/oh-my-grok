@@ -8,3 +8,7 @@ coverage/
 .env
 *.tsbuildinfo
 vendor/superpowers/.git
+
+# local MCP tool dumps / cache
+mcps/
+
