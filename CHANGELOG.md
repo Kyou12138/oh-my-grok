@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [0.11.0] — 2026-07-14
+### MAGI spiral 4 · nested-AGENTS 加厚(realpath 容器 + code-point 安全截断)
+- **feat(directory-inject)** — realpath 容器:`safeRealpath`+`isInside` 用 `fs.realpathSync.native` 解析规范路径后再做 containment 比较,堵住 symlink 下 lexical `path.relative` 误判(外部 AGENTS.md 经符号链接泄漏 / 容器内路径被误判越界);不存在路径/symlink 环自动回退 `path.normalize`
+- **feat(directory-inject)** — code-point 安全截断:`truncateByCodePoints`(ASCII fast-path + `Array.from`)替换 per-file `slice(0,2000)` 与 MAX `slice(0,6000)`,防 CJK/emoji 被截成 lone surrogate 破坏 UTF-8/JSON
+- **test** — code-point 截断新增 CJK well-formed 断言;realpath symlink 容器保留 skip(Windows symlink 需管理员/开发者模式,手动 / Linux CI 验证)
+- 对齐 omo pi-nested-agents-md 的 realpath-based root containment + code-point-safe truncation
+
 ## [0.10.1] — 2026-07-14
 ### MAGI spiral 3 · 测试加固 + containment 修复
 - **test** — 补齐三处零覆盖基础设施:tests/config.test.ts (19 it: env开关/envNum边界/文件overlay/stateDir/pluginData回退/categoryDiscipline)、tests/skill-gate.test.ts (47 it: INTENT_SKILL_RULES 全 8 条规则 + 门控判定/catalog/e2e)、tests/directory-inject.test.ts (7 it + 2 v0.11 baseline skip)

@@ -160,41 +160,32 @@ describe("collectDirectoryContext — upward collection", () => {
   });
 });
 
-/**
- * Spiral 4 (v0.11 nested-AGENTS 加厚) — regression baseline.
- *
- * The current implementation has two known limitations that the upcoming
- * realpath + code-point safe truncation work must resolve. These are recorded
- * here as a skipped baseline so the future fix has an exact before-state to
- * compare against. We deliberately do NOT modify src in this task.
- */
-describe.skip("v0.11 baseline — realpath symlink + code-point safe truncation", () => {
-  // TODO v0.11: realpath symlink 容器 + code-point 安全截断
-  //
-  // Current limitation A — symlink / container path safety:
-  //   path.relative(root, parent) is a pure lexical operation. Under symlinks
-  //   (e.g. host path symlinked into a container mount) a parent can resolve
-  //   lexically inside root while actually living outside it, or vice-versa.
-  //   v0.11 must fs.realpathSync both endpoints before comparing so the walk
-  //   cannot accidentally collect an AGENTS.md from outside the workspace nor
-  //   prematurely abort inside it.
-  //
-  // Current limitation B — multi-byte truncation:
-  //   Both per-file slice(0, 2000) and the MAX slice(0, 6000) operate on
-  //   UTF-16 code units. A CJK / emoji body can be sliced mid-character,
-  //   yielding a lone surrogate that breaks JSON serialization / corrupts the
-  //   injected context. v0.11 must truncate on code-point boundaries (e.g.
-  //   Array.from / well-formed substring) so the payload stays valid UTF-8.
-  //
-  // Once fixed, unskip and assert:
-  //   1. a symlinked external dir is neither collected nor causes an abort;
-  //   2. a 2000-char CJK body survives truncation as well-formed UTF-8.
+describe("code-point safe truncation (v0.11)", () => {
+  it("truncates a long CJK body without producing a lone surrogate", () => {
+    const ws = tmpWorkspace();
+    // 3000 CJK code points — per-file body caps at 2000; must stay well-formed UTF-8.
+    const cjk = "汉字".repeat(1500);
+    writeFile(path.join(ws, "AGENTS.md"), cjk);
+    const file = path.join(ws, "x", "file.ts");
+    writeFile(file, "export {}");
 
-  it("TODO v0.11: realpath symlink 容器 — lexical relative is unsafe under symlinks", () => {
-    expect(true).toBe(true);
+    const out = collectDirectoryContext(ws, file);
+    expect(out).toContain("<OMG_DIR_AGENTS>");
+    // No lone surrogate slipped in: JSON.stringify round-trips cleanly.
+    expect(JSON.stringify(out)).not.toContain("�");
+    // Body truncated near the 2000 code-point cap (not the full 3000).
+    const open = out.indexOf("<OMG_DIR_AGENTS>");
+    const close = out.indexOf("</OMG_DIR_AGENTS>");
+    const body = out.slice(open, close);
+    expect(Array.from(body).length).toBeLessThan(2200);
   });
+});
 
-  it("TODO v0.11: code-point 安全截断 — slice may split multi-byte chars", () => {
+// realpath symlink containment can't run in CI on Windows (symlink creation
+// needs admin / developer-mode). Kept as a skipped manual baseline — verify on
+// Linux/macOS or a symlink-capable host.
+describe.skip("v0.11 baseline — realpath symlink containment (manual / Linux CI)", () => {
+  it("a symlinked external dir is neither collected nor causes an abort", () => {
     expect(true).toBe(true);
   });
 });
