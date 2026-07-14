@@ -19,6 +19,7 @@ export function pathsFor(workspaceRoot, sessionId, cfg) {
         stopContinuation: path.join(sess, "stop-continuation.json"),
         promptCount: path.join(sess, "prompt-count.json"),
         lastPrompt: path.join(sess, "last-prompt.json"),
+        categoryDiscipline: path.join(sess, "category-discipline.json"),
         ralph: path.join(omg, "ralph-loop.local.md"),
         ulwDir: path.join(omg, "ulw-loop"),
         ulwLogDir: path.join(omg, "ulw-loop", "log"),

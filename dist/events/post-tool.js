@@ -5,6 +5,7 @@ import { recordRead } from "../features/hashline.js";
 import { isVerifyShellCommand, noteUlwRead, noteUlwShell, noteUlwWrite, } from "../features/ralph.js";
 import { extractSpawnRole, isSpawnTool, setSessionAgentRole, } from "../features/session-role.js";
 import { markSkillLoaded } from "../features/skill-gate.js";
+import { markSpawnActivity } from "../features/category-discipline.js";
 import { extractTodosFromToolInput, mirrorTodos, resetTodoEnforcer, } from "../features/todo-boulder.js";
 function fileFromInput(input) {
     return String(input.toolInput?.file_path ??
@@ -94,11 +95,10 @@ export function handlePostToolShell(input, cfg) {
 }
 /** PostTool spawn/task — sticky session role for Agent Guard. */
 export function handlePostToolSpawn(input, cfg) {
-    if (!isSpawnTool(input.toolName) && !extractSpawnRole(input.toolInput)) {
-        // still try extract if tool name is spawn-like
-        if (!isSpawnTool(input.toolName))
-            return {};
-    }
+    const isSpawn = isSpawnTool(input.toolName) || !!extractSpawnRole(input.toolInput);
+    if (!isSpawn)
+        return {};
+    markSpawnActivity(input, cfg);
     const role = extractSpawnRole(input.toolInput);
     if (!role)
         return {};

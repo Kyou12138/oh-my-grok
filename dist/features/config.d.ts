@@ -17,6 +17,7 @@ export interface OmgFileConfig {
     commentChecker?: boolean;
     commentCheckerDeny?: boolean;
     agentGuard?: boolean;
+    categoryDiscipline?: boolean;
 }
 /**
  * Base config from env, then overlay .omg/config.json (workspace wins for toggles).

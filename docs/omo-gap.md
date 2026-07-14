@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-14 · **omg version:** 0.9.x  
+**Date:** 2026-07-14 · **omg version:** 0.10.x  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -42,10 +42,15 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 
 ## Grok-feasible gaps still open (after v0.9)
 
-1. **Category spawn discipline** — banners only; no Stop force when deep/visual work never spawned specialists  
-2. **Background agent babysitter** — path open (spawn_subagent + post-tool-spawn matcher + agent-guard role parse), only the Stop gate is missing; folded into v0.10 CATEGORY_DISCIPLINE design  
-3. **Hashline native edit tool** — host tool registration limit  
-4. **Stronger AST-aware comment rewrite** — optional external binary  
+1. **Background agent babysitter** — path open (spawn_subagent + post-tool-spawn matcher + agent-guard role parse), only the Stop gate is missing; folded into v0.10 CATEGORY_DISCIPLINE design  
+2. **Hashline native edit tool** — host tool registration limit  
+3. **Stronger AST-aware comment rewrite** — optional external binary  
+
+## Closed this spiral (v0.10)
+
+| Item | Behavior |
+|------|----------|
+| Category discipline gate | deep/visual-engineering/ultrabrain 工作且本会话零 spawn_subagent 时 Stop block 一次列出推荐 subagent;首次 spawn 后 markSpawnActivity 清除;每会话至多一次 |
 
 ## Closed this spiral (v0.9)
 
@@ -56,7 +61,12 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 
 ## Next spiral focus (提升)
 
-**Priority:** Category execution discipline — when IntentGate/category is `deep` / `visual-engineering` / `ultrabrain` and session has zero spawn_subagent activity, Stop once with CATEGORY_DISCIPLINE reason listing recommended subagents. Keep Team Mode / multi-model as non-goals.
+v0.11 二选一候选:
+
+- **候选A — nested-AGENTS.md 上下文注入加厚**:对齐 omo `pi-nested-agents-md` 的 realpath 容器 + code-point 安全截断。理由:当前 Hashline 的目录 AGENTS.md 注入偏浅,大量"盲改代码"根因是上下文容器漏抓嵌套层级;加厚后能在 PreTool 前补足结构化目录约束,直接抑制越权改写。
+- **候选B — project memory 持久层**:在 handoff 之外记住跨会话决策(如已选定的 subagent 偏好、已废弃方案)。理由:每会话重置决策上下文导致重复返工,持久层可让 CATEGORY_DISCIPLINE 这类门禁携带历史语义,提升拦截命中率。
+
+**推荐 v0.11 = 候选A**(nested-AGENTS.md)。盲改代码是当前最高频返工源,上下文加厚直接切该根因,且复用已有 Hashline realpath 管道;project memory 受益面更窄、需新状态格式,性价比低于 A。
 
 ## Explicit non-goals
 

@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.10.0] — 2026-07-14
+### MAGI spiral 2 · CATEGORY_DISCIPLINE 门禁
+- **feat(stop)** — 新增 src/features/category-discipline.ts:deep/visual-engineering/ultrabrain 工作且本会话零 spawn_subagent 时 Stop block 一次,reason 列出推荐 subagent(explore/hephaestus/oracle);首次 spawn 后清除标记;每会话至多一次。
+- **feat(config)** — OMG_CATEGORY_DISCIPLINE 开关(默认开);新状态文件 category-discipline.json(session 级)。
+- **wire** — stop.ts 插入第 2.5 gate(Boulder 后 Todos 前);post-tool.ts handlePostToolSpawn 接 markSpawnActivity。
+- **test** — tests/category-discipline.test.ts 覆盖 8 场景。
+- **docs** — contract Stop order +2.5;omo-gap 关闭 Category spawn discipline gap。
+
 ## [0.9.1] — 2026-07-14
 
 ### MAGI spiral 1 · 审视 → 执行 → 提升（自主螺旋）

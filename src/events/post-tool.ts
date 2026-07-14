@@ -15,6 +15,7 @@ import {
   setSessionAgentRole,
 } from "../features/session-role.js";
 import { markSkillLoaded } from "../features/skill-gate.js";
+import { markSpawnActivity } from "../features/category-discipline.js";
 import {
   extractTodosFromToolInput,
   mirrorTodos,
@@ -121,10 +122,9 @@ export function handlePostToolShell(input: HookInput, cfg: EnvConfig): HookOutpu
 
 /** PostTool spawn/task — sticky session role for Agent Guard. */
 export function handlePostToolSpawn(input: HookInput, cfg: EnvConfig): HookOutput {
-  if (!isSpawnTool(input.toolName) && !extractSpawnRole(input.toolInput)) {
-    // still try extract if tool name is spawn-like
-    if (!isSpawnTool(input.toolName)) return {};
-  }
+  const isSpawn = isSpawnTool(input.toolName) || !!extractSpawnRole(input.toolInput);
+  if (!isSpawn) return {};
+  markSpawnActivity(input, cfg);
   const role = extractSpawnRole(input.toolInput);
   if (!role) return {};
   setSessionAgentRole(input, cfg, role, `spawn:${input.toolName || "task"}`);

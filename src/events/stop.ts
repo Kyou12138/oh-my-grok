@@ -11,6 +11,7 @@ import {
   markCommentSoftPrompted,
 } from "../features/comment-checker.js";
 import { idleTurnStopReason, isIdleAssistantMessage } from "../features/idle-turn.js";
+import { categoryDisciplineStopReason } from "../features/category-discipline.js";
 import { loadRalph, processLoopStop } from "../features/ralph.js";
 import { isDoneMessage } from "../features/ralph.js";
 import {
@@ -79,6 +80,12 @@ export function handleStop(input: HookInput, cfg: EnvConfig): HookOutput {
         ].join("\n"),
       };
     }
+  }
+
+  // 2.5 Category discipline — specialist work + zero spawns (once per session)
+  const catDisc = categoryDisciplineStopReason(input, cfg);
+  if (catDisc) {
+    return { decision: "block", reason: catDisc };
   }
 
   // 3. Todos (+ idle-turn / abort-window yank when work unfinished)

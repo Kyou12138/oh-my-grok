@@ -55,6 +55,7 @@ export function loadConfig(workspaceRoot) {
             (process.env.OMG_COMMENT_CHECKER === "deny" ||
                 envBool("OMG_COMMENT_CHECKER_DENY", false)),
         agentGuard: file.agentGuard ?? envBool("OMG_AGENT_GUARD", true),
+        categoryDiscipline: file.categoryDiscipline ?? envBool("OMG_CATEGORY_DISCIPLINE", true),
     };
 }
 /** @deprecated use loadConfig */

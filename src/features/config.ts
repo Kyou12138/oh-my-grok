@@ -21,6 +21,7 @@ export interface OmgFileConfig {
   commentChecker?: boolean;
   commentCheckerDeny?: boolean;
   agentGuard?: boolean;
+  categoryDiscipline?: boolean;
 }
 
 function envBool(name: string, defaultOn: boolean): boolean {
@@ -85,6 +86,7 @@ export function loadConfig(workspaceRoot?: string): EnvConfig {
       (process.env.OMG_COMMENT_CHECKER === "deny" ||
         envBool("OMG_COMMENT_CHECKER_DENY", false)),
     agentGuard: file.agentGuard ?? envBool("OMG_AGENT_GUARD", true),
+    categoryDiscipline: file.categoryDiscipline ?? envBool("OMG_CATEGORY_DISCIPLINE", true),
   };
 }
 

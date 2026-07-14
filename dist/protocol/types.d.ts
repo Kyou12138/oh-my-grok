@@ -52,4 +52,6 @@ export interface EnvConfig {
     commentCheckerDeny: boolean;
     /** Enforce read-only agent permissions */
     agentGuard: boolean;
+    /** Block Stop once when specialist-category work has zero subagent spawns */
+    categoryDiscipline: boolean;
 }

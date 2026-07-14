@@ -10,6 +10,7 @@ export declare function pathsFor(workspaceRoot: string, sessionId: string, cfg: 
     stopContinuation: string;
     promptCount: string;
     lastPrompt: string;
+    categoryDiscipline: string;
     ralph: string;
     ulwDir: string;
     ulwLogDir: string;
