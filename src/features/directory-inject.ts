@@ -19,6 +19,10 @@ export function collectDirectoryContext(
   const chunks: string[] = [];
   let guard = 0;
   while (guard++ < 32) {
+    // Containment: never read AGENTS.md from outside the workspace root.
+    // (Lexical check — v0.11 will harden to realpath for symlink safety.)
+    const dirRel = path.relative(root, dir);
+    if (dirRel.startsWith("..")) break;
     for (const name of ["AGENTS.md", "agents.md"]) {
       const f = path.join(dir, name);
       if (fs.existsSync(f)) {

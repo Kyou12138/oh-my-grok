@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [0.10.1] — 2026-07-14
+### MAGI spiral 3 · 测试加固 + containment 修复
+- **test** — 补齐三处零覆盖基础设施:tests/config.test.ts (19 it: env开关/envNum边界/文件overlay/stateDir/pluginData回退/categoryDiscipline)、tests/skill-gate.test.ts (47 it: INTENT_SKILL_RULES 全 8 条规则 + 门控判定/catalog/e2e)、tests/directory-inject.test.ts (7 it + 2 v0.11 baseline skip)
+- **fix(directory-inject)** — root containment 检查前移到 AGENTS.md 读取之前,堵住"filePath 逃逸 workspace 时仍读外部 AGENTS.md"的泄漏缺陷(测试驱动发现);realpath/symlink 安全仍留 v0.11
+- 累计 195 测试(192 pass + 2 v0.11 baseline skip)
+
 ## [0.10.0] — 2026-07-14
 ### MAGI spiral 2 · CATEGORY_DISCIPLINE 门禁
 - **feat(stop)** — 新增 src/features/category-discipline.ts:deep/visual-engineering/ultrabrain 工作且本会话零 spawn_subagent 时 Stop block 一次,reason 列出推荐 subagent(explore/hephaestus/oracle);首次 spawn 后清除标记;每会话至多一次。
