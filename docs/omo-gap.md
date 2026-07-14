@@ -59,14 +59,21 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | Plan-review gate | `/start-work` blocked unless plan has ## Review checked / Metis / Momus VERDICT: PASS |
 | Comment aggregate | ≥3 slop hits → one Stop `COMMENT_AGGREGATE` yank |
 
+## Closed this spiral (v0.11)
+
+| Item | Behavior |
+|------|----------|
+| nested-AGENTS.md 加厚 | `directory-inject.ts` realpath 容器(safeRealpath+isInside via `fs.realpathSync.native`,堵 symlink 泄漏)+ code-point 安全截断(truncateByCodePoints,防 CJK/emoji lone surrogate);对齐 omo pi-nested-agents-md。realpath symlink 容器测试保留 skip(Windows symlink 权限,手动 / Linux CI 验证) |
+
 ## Next spiral focus (提升)
 
-v0.11 二选一候选:
+v0.12 候选(nested-AGENTS 加厚已于 v0.11 落地):
 
-- **候选A — nested-AGENTS.md 上下文注入加厚**:对齐 omo `pi-nested-agents-md` 的 realpath 容器 + code-point 安全截断。理由:当前 Hashline 的目录 AGENTS.md 注入偏浅,大量"盲改代码"根因是上下文容器漏抓嵌套层级;加厚后能在 PreTool 前补足结构化目录约束,直接抑制越权改写。
-- **候选B — project memory 持久层**:在 handoff 之外记住跨会话决策(如已选定的 subagent 偏好、已废弃方案)。理由:每会话重置决策上下文导致重复返工,持久层可让 CATEGORY_DISCIPLINE 这类门禁携带历史语义,提升拦截命中率。
+- **候选A — README 官方 marketplace 分发 + MCP 推荐**:在 README/README.en 加官方 plugin marketplace(github.com/xai-org/plugin-marketplace)安装入口与推荐 MCP(context7 / omo 作者 lsp-tools-mcp / pi-ast-grep)。理由:分发是 star 增长与 "must-install" 定位的关键缺口,成本极低。
+- **候选B — project memory 持久层**:跨会话记住决策(选定 subagent 偏好、已废弃方案),让 CATEGORY_DISCIPLINE 门禁携带历史语义。理由:每会话重置决策导致重复返工。
+- **候选C — hashline Windows 路径规范化**:用 `path.resolve` 替代 replace+toLowerCase 建缓存 key(早期审视 Top5)。理由:Windows 开发者占比高,路径处理可能导致状态丢失 / 缓存失效。
 
-**推荐 v0.11 = 候选A**(nested-AGENTS.md)。盲改代码是当前最高频返工源,上下文加厚直接切该根因,且复用已有 Hashline realpath 管道;project memory 受益面更窄、需新状态格式,性价比低于 A。
+**推荐 v0.12 = 候选A**(README marketplace)。分发缺口是当前最高杠杆、最低成本项;B/C 可作为后续螺旋。
 
 ## Explicit non-goals
 
