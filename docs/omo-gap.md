@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-11 · **omg version:** 0.9.x  
+**Date:** 2026-07-14 · **omg version:** 0.9.x  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -26,13 +26,24 @@
 | Idle-turn yank | fluff empty Stop | **shipped** |
 | Team Mode / tmux | — | **blocked** |
 | Multi-provider model matrix | — | **blocked** |
-| In-plugin LSP / AST | — | **blocked** |
-| Built-in Exa/Context7 MCP | — | **blocked** |
+| In-plugin LSP / AST | — | **partial** |
+| Built-in Exa/Context7 MCP | — | **partial** |
+
+## Reassessed this spiral (v0.9.1)
+
+Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up to 8 concurrent, each with independent context window), and an official plugin marketplace (github.com/xai-org/plugin-marketplace). omo author code-yeongyu has split LSP/AST into reusable stdio MCP servers: code-yeongyu/lsp-tools-mcp and code-yeongyu/pi-ast-grep.
+
+| Item | Old tag | New tag | Basis |
+|------|---------|---------|-------|
+| Built-in Exa/Context7 MCP | blocked | **partial** | Platform supports native MCP; `.mcp.json` already carries a context7 entry (enabling it flips `disabled:false`) |
+| In-plugin LSP / AST | blocked | **partial** | Full in-plugin suite remains non-goal; can opt-in to omo author's external stdio servers (lsp-tools-mcp / pi-ast-grep) as optional enhancement |
+| Background agent babysitter | blocked | **partial** | Grok Build `spawn_subagent` (8 concurrent) shipped; hooks.json registers post-tool-spawn matcher; agent-guard parses subagent roles; path is open, only the Stop gate is missing (deferred to v0.10 CATEGORY_DISCIPLINE) |
+| Multi-provider model matrix | blocked | **blocked** | Still non-goal (single-host Grok) |
 
 ## Grok-feasible gaps still open (after v0.9)
 
 1. **Category spawn discipline** — banners only; no Stop force when deep/visual work never spawned specialists  
-2. **Background agent babysitter** — host spawn APIs incomplete  
+2. **Background agent babysitter** — path open (spawn_subagent + post-tool-spawn matcher + agent-guard role parse), only the Stop gate is missing; folded into v0.10 CATEGORY_DISCIPLINE design  
 3. **Hashline native edit tool** — host tool registration limit  
 4. **Stronger AST-aware comment rewrite** — optional external binary  
 
@@ -51,8 +62,10 @@
 
 - Team Mode / tmux  
 - Multi-provider model routing  
-- Full in-plugin LSP/AST suite  
+- Full in-plugin LSP/AST suite — **放弃** (distinct from adopting an existing external MCP server, which is an optional enhancement, not a non-goal)
 - Forking omo source  
+
+> 注："Full in-plugin LSP/AST suite"(自己从零内建 LSP/AST 工具链,放弃)≠ "接入既有外部 MCP server"(按需挂载 lsp-tools-mcp / pi-ast-grep,属可选增强)。两者明确区分,不混为一谈。
 
 ## Product thesis
 

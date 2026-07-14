@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here.
 
+## [0.9.1] — 2026-07-14
+
+### MAGI spiral 1 · 审视 → 执行 → 提升（自主螺旋）
+
+- **fix(security)** — `hooks/hooks.json` PreToolUse + PostToolWrite matcher 补 `Create|Apply_patch|Multiedit`，与 `skill-gate.ts` 的 MUTATING 集合对齐；堵住这三个变异工具静默绕过 PreTool 全部门禁（Agent Guard / plan-mode / Hashline / Comment Checker / Skill Gate）及 PostTool-write 后处理（markDirty / noteUlwWrite / Hashline 缓存 / commentCheckerPostWarn）的安全缺口
+- **docs(omo-gap)** — 基于 Grok Build 2026 平台事实重判三项 `blocked → partial`：In-plugin LSP/AST（可接入 omo 作者 `lsp-tools-mcp` / `pi-ast-grep` stdio server）、Built-in Exa/Context7 MCP（平台原生 MCP）、Background agent babysitter（`spawn_subagent` 已支持 8 并发，matcher 已注册，仅缺 Stop 门禁 → 并入 v0.10）。区分 "Full suite（放弃）" 与 "接入既有 MCP server（可选增强）"
+- **docs(contract)** — Stop order 补第 6 步 `Comment slop aggregate (soft, once per session)`，对齐 `stop.ts` 的 `commentAggregateStopReason` 实现
+- **chore(mcp)** — `.mcp.json` 启用 context7（`disabled: false`）
+- **test** — `tests/handoff.test.ts` 新增 4 describe / 10 it（原零覆盖）：detect / writeStub / context / dir 隔离
+- **audit** — 审视脑 fan-out 46 条发现 → Metis 去重 35 条，锁定 matcher 漏洞为最高危；识别 3 处文档自相矛盾（non-goal vs blocked 语义重叠）
+
+### Next spiral (v0.10) focus
+
+**CATEGORY_DISCIPLINE 门禁** — `deep / visual-engineering / ultrabrain` 任务且 spawn 活动为零时 Stop block 一次，列出推荐 subagent。插入点 `stop.ts` Boulder 与 Todos 之间（审视脑已确认）。
+
 ## [0.9.0] — 2026-07-11
 
 ### MAGI spiral (审视→执行→提升)

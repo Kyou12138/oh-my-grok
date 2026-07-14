@@ -25,6 +25,7 @@ Events: `session-start` | `user-prompt` | `pre-tool-use` | `post-tool-read` | `p
 3. Todo enforcer (+ **idle-turn** bypasses cooldown when reply is fluff/empty)  
 4. Diagnostics (errors hard-block; soft verify once if no `diagCommand`)  
 5. Plan checkboxes (fallback when no boulder)
+6. Comment slop aggregate (soft, once per session) — aligns `commentAggregateStopReason` in `src/events/stop.ts`
 
 ## Outputs
 
