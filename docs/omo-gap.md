@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-14 · **omg version:** 0.12.x
+**Date:** 2026-07-14 · **omg version:** 0.16.x  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -101,16 +101,23 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | ralph.ts 专属测试 | 新增 tests/ralph.test.ts(63 it,10 describe):isDoneMessage 真值表/parseGoals/applyGoalDoneMarkers/isVerifyShellCommand/phase 谓词/detectRalphCommand/processLoopStop 四分支/ulwDoneGate/multi-goal/noteUlwShell 联动。695 行最大模块此前零专属测试 |
 | 契约锁定(未修 src) | parseGoalsFromTask 尾分号/数字单字符吞并、detectRalph 连字符、isVerifyShellCommand echo 边界 |
 
+## Closed this spiral (v0.16)
+
+| Item | Behavior |
+|------|----------|
+| todo-boulder 专属测试 | `tests/todo-boulder.test.ts`（13 it）：extractTodos / incompleteTodos 双拼写 / abort-window+cooldown+max / boulder+pause / checkbox 变体 / Stop 路径 |
+| isAbortLikeStopReason 收紧 | 排除 end_turn/stop/completed/done；abort 家族词边界匹配，避免误把正常结束当 abort-window |
+| hasOpenPlanCheckboxes 加固 | 支持 `*`/`+` 列表符、缩进、`- [ ]` 变体（`^\s*[-*+]\s*\[\s\]`） |
+
 ## Next spiral focus (提升)
 
-v0.16 候选(v0.15 已落地:isDoneMessage/applyGoalDoneMarkers 修复 + ralph 63it 专属测试):
+v0.17 候选:
 
-- **候选B — project memory 持久层(仍 defer)**:硬信号未变(真实触发≥3次 / ≥1次误报复现路径 / 回归投诉,三者任一)。
-- **todo-boulder.ts 专属测试**:217 行核心门禁,abort-window/cooldown 边界 + isAbortLikeStopReason 否定集 + incompleteTodos cancelled/canceled 双拼写,纯间接覆盖。
-- **prometheus.ts plan-review 深化**:detectPlanCommand / startWorkFromPlan 失败分支 / unchecked-prose 反例。
-- **契约锁定缺陷修复**:parseGoalsFromTask 尾分号/数字吞并、detectRalph 连字符、isVerifyShellCommand echo 锚定(v0.15 锁定的契约)。
+- **prometheus.ts plan-review 深化**: detectPlanCommand / startWorkFromPlan 失败分支 / unchecked-prose 反例专属测试
+- **契约锁定缺陷修复**: parseGoalsFromTask 尾分号/数字吞并、detectRalph 连字符、isVerifyShellCommand echo 锚定(v0.15 锁定)
+- **候选B — project memory 持久层(仍 defer)**: 硬信号未变
 
-**推荐 v0.16 = todo-boulder.ts 专属测试**(217 行核心门禁纯间接覆盖)。
+**推荐 v0.17 = prometheus plan-review 专属测试深化**（与 plan-review 门禁生产路径对齐）。
 
 ## Explicit non-goals
 

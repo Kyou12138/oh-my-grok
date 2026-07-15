@@ -110,9 +110,15 @@ export function setStopPaused(input: HookInput, cfg: EnvConfig, paused: boolean)
 /** Abort-like stop reasons re-open yank within todoAbortWindowMs (omo-style). */
 export function isAbortLikeStopReason(stopReason?: string): boolean {
   if (!stopReason) return false;
-  const s = stopReason.toLowerCase();
-  return /abort|error|interrupt|tool_error|tool-error|timeout|max_token|rate.?limit|failed|cancel/.test(
-    s,
+  const s = stopReason.toLowerCase().trim();
+  // Normal completion must not re-open yank
+  if (s === "end_turn" || s === "stop" || s === "completed" || s === "done") {
+    return false;
+  }
+  return (
+    /\b(abort(ed)?|interrupt(ed)?|tool[_-]?error|timeout|max_tokens?|rate[_-]?limit|failed)\b/.test(
+      s,
+    ) || /\bcancel(led|ed)?\b/.test(s)
   );
 }
 
@@ -209,7 +215,8 @@ export function hasOpenPlanCheckboxes(input: HookInput, cfg: EnvConfig): string 
   }
   for (const f of files) {
     const text = readText(f);
-    if (text && /^- \[ \]/m.test(text)) {
+    // Open boxes: "- [ ]", "* [ ]", indented, optional extra spaces inside brackets
+    if (text && /^\s*[-*+]\s*\[\s\]/m.test(text)) {
       return `PLAN CHECKBOXES open in ${f}. Continue until all [ ] are [x] or cancelled.`;
     }
   }

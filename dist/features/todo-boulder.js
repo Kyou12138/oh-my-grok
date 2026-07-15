@@ -73,8 +73,12 @@ export function setStopPaused(input, cfg, paused) {
 export function isAbortLikeStopReason(stopReason) {
     if (!stopReason)
         return false;
-    const s = stopReason.toLowerCase();
-    return /abort|error|interrupt|tool_error|tool-error|timeout|max_token|rate.?limit|failed|cancel/.test(s);
+    const s = stopReason.toLowerCase().trim();
+    // Normal completion must not re-open yank
+    if (s === "end_turn" || s === "stop" || s === "completed" || s === "done") {
+        return false;
+    }
+    return (/\b(abort(ed)?|interrupt(ed)?|tool[_-]?error|timeout|max_tokens?|rate[_-]?limit|failed)\b/.test(s) || /\bcancel(led|ed)?\b/.test(s));
 }
 export function todoEnforcerAllows(input, cfg, now = Date.now()) {
     const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
@@ -158,7 +162,8 @@ export function hasOpenPlanCheckboxes(input, cfg) {
     }
     for (const f of files) {
         const text = readText(f);
-        if (text && /^- \[ \]/m.test(text)) {
+        // Open boxes: "- [ ]", "* [ ]", indented, optional extra spaces inside brackets
+        if (text && /^\s*[-*+]\s*\[\s\]/m.test(text)) {
             return `PLAN CHECKBOXES open in ${f}. Continue until all [ ] are [x] or cancelled.`;
         }
     }

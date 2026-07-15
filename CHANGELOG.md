@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.16.0] — 2026-07-14
+
+### MAGI spiral (审视→执行→提升)
+
+- **审视:** CATEGORY_DISCIPLINE 已在 v0.10 shipped；下一缺口为 todo-boulder 仅间接覆盖
+- **执行:** `tests/todo-boulder.test.ts` 专属 13 it；收紧 `isAbortLikeStopReason`；加固 plan checkbox 开项检测
+- **提升:** 下一螺旋优先 prometheus plan-review 专属测试深化
+
 ## [0.15.0] — 2026-07-15
 ### MAGI 螺旋8 · isDoneMessage 否定漏网续修(连续第三同源 bug)+ ralph.ts 专属测试
 - **fix(ralph)** — isDoneMessage 用 `msg.includes(m)` 纯子串匹配 DONE_MARKERS(含 RALPH_DONE/ULW_DONE 裸标记无锚定),零否定集。processLoopStop 在 ralph 模式对命中直接 cancelRalph 不经 gate,故 `'not ULW_DONE'`/`'NOT <promise>DONE</promise>'`/`'will never mark RALPH_DONE'`/`'no ULW_DONE yet'` 等否定话术立即关闭活跃 loop。补 NEGATED_DONE 否定集(对齐 isVerifiedMessage v0.13/v0.14 修复模式)——**连续三轮同源 bug**(v0.13/v0.14 isVerifiedMessage + v0.15 isDoneMessage)。
