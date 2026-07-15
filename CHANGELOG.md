@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [0.17.0] — 2026-07-15
+
+### MAGI spiral (审视→执行→提升)
+
+- **审视:** plan-review 门禁仅有 magi-spiral-v09 四路径覆盖；`planFileHasReview` 列表符 `+` 与 `hasOpenPlanCheckboxes` 不一致
+- **执行:**
+  - `tests/prometheus.test.ts` 专属 30 it：detectPlanCommand / planFileHasReview 真值表 / startWorkFromPlan 失败矩阵 / planModeDeny / UserPrompt+PreTool 生产路径
+  - **fix(prometheus):** 已勾选与未勾选 checklist 支持 GFM `+` 列表符（对齐 todo-boulder）
+- **提升:** 下一螺旋优先 v0.15 契约锁定缺陷修复（parseGoals 尾分号/单字符数字目标、detectRalph 连字符、isVerifyShell echo 边界）
+
 ## [0.16.0] — 2026-07-14
 
 ### MAGI spiral (审视→执行→提升)
