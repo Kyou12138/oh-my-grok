@@ -40,7 +40,7 @@ export function sessionResumeSummary(
   if (todos.length > 0) {
     const preview = todos
       .slice(0, 4)
-      .map((t) => t.content || t.title || "?")
+      .map((t) => t.content || "?")
       .join("; ");
     lines.push(
       `- **Todos** incomplete: ${todos.length} — ${preview}${todos.length > 4 ? "…" : ""}`,
