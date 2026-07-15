@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.20.0] — 2026-07-15
+
+### MAGI spiral (审视→执行→提升)
+
+- **审视:** idle-turn / think-mode 仅 omo-gap-v07 薄切片，fluff 真值表与 UserPrompt 注入边界未专属锁定
+- **执行:** `tests/idle-think.test.ts`（18 it）：idle 空/短/中英 fluff/deferral/emoji/短状态 vs 有路径证据；think 英/中正例 + casual think 负例；Stop todos/ULW 联动 + UserPrompt THINK_MODE 注入
+- **提升:** 下一螺旋优先 background spawn follow-through（Stop 再拉）
+
 ## [0.19.0] — 2026-07-15
 
 ### MAGI spiral (审视→执行→提升)

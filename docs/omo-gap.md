@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-15 · **omg version:** 0.19.x  
+**Date:** 2026-07-15 · **omg version:** 0.20.x  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -132,15 +132,22 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | agent-guard 专属测试 | `tests/agent-guard.test.ts`（27 it）：只读全集 / 别名 / slash>host / spawn fallback / deny 真值表 / 生产路径 |
 | sticky 优先级契约 | slash-agent 压 host；spawn 不压 host agentName |
 
+## Closed this spiral (v0.20)
+
+| Item | Behavior |
+|------|----------|
+| idle-turn 专属测试 | fluff/deferral/emoji/短 I-status 真值表 + 有路径/test 证据非 idle |
+| think-mode 专属测试 | ultrathink/deep/中文正例；casual "I think" 负例；UserPrompt 注入边界 |
+| 生产联动 | Stop todos/ULW idle yank；UserPrompt THINK_MODE |
+
 ## Next spiral focus (提升)
 
-v0.20 候选:
+v0.21 候选:
 
-- **idle-turn + think-mode 专属测试深化**: fluff 真值表、Stop 联动、ultrathink 注入边界
-- **Background babysitter**: spawn 未完成时 Stop 再拉（非 category 一次 yank）
+- **Background spawn follow-through**: 本会话刚 spawn 且 assistant 仅 idle/「已派出」时 Stop block 一次，要求回收子代理结果或继续主任务
 - **候选B — project memory 持久层(仍 defer)**: 硬信号未变
 
-**推荐 v0.20 = idle-turn + think-mode 专属测试**（Stop yank / UserPrompt 注入高频路径）。
+**推荐 v0.21 = spawn follow-through Stop gate**（category-discipline 的互补：有 spawn 也要跟进，而非仅惩罚零 spawn）。
 
 ## Explicit non-goals
 
