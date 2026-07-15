@@ -1,15 +1,30 @@
 export function detectIntent(prompt) {
+    if (!prompt?.trim())
+        return null;
     const p = prompt.toLowerCase();
-    if (/\bultrawork\b|\bulw\b|\/ulw/.test(p))
+    // ulw keyword: reject ulw-stop / ulw_foo (JS \b matches before hyphen) — align detectRalph
+    if (/\bultrawork\b/.test(p) ||
+        /\/ulw(?:-loop)?\b/.test(p) ||
+        /(^|[\s,;:，])ulw\b(?![-_])/.test(p) ||
+        /^\s*ulw\b(?![-_])/.test(p)) {
         return "ultrawork";
+    }
     if (/\bhyperplan\b|\/hyperplan/.test(p))
         return "hyperplan";
-    if (/\b(search|find|where is|grep|locate)\b/.test(p))
+    // search before debug so "search for the bug" stays search
+    if (/\b(search|find|where is|grep|locate)\b/.test(p) ||
+        /查找|搜索|定位/.test(prompt)) {
         return "search";
-    if (/\b(analyze|investigate|root cause|why)\b/.test(p))
-        return "analyze";
-    if (/\b(debug|fix|bug|error|failing)\b/.test(p))
+    }
+    // debug before analyze — fix/bug/error are actionable harness intents
+    if (/\b(debug|fix|bug|error|failing)\b/.test(p) ||
+        /调试|修\s*bug|报错/.test(prompt)) {
         return "debug";
+    }
+    if (/\b(analyze|investigate|root cause|why)\b/.test(p) ||
+        /分析|根因|为何/.test(prompt)) {
+        return "analyze";
+    }
     if (/\b(team mode|parallel agents|spawn.*agents)\b/.test(p))
         return "team";
     return null;

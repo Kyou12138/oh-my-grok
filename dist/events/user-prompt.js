@@ -8,7 +8,7 @@ import { detectIntent, intentBanner } from "../features/intent-gate.js";
 import { commentCheckerHint, hardOrchestrationBanner, } from "../features/orchestration.js";
 import { detectPlanCommand, loadPlanMode, planModeContext, startPlanMode, startWorkFromPlan, } from "../features/prometheus.js";
 import { cancelRalph, detectRalphCommand, loadRalph, startRalph, } from "../features/ralph.js";
-import { loadInjectedRules, sisyphusBootstrap, usingSuperpowersHint, } from "../features/rules.js";
+import { loadInjectedRules, readPluginVersion, sisyphusBootstrap, usingSuperpowersHint, } from "../features/rules.js";
 import { saveLastPrompt, skillGateContext } from "../features/last-prompt.js";
 import { detectAgentCommand, loadSessionAgentRoleState, setSessionAgentRole, } from "../features/session-role.js";
 import { detectThinkMode, thinkModeBanner } from "../features/think-mode.js";
@@ -121,7 +121,8 @@ export function handleUserPrompt(input, cfg) {
     if (isFirst) {
         parts.push(sisyphusBootstrap());
         parts.push(usingSuperpowersHint(cfg.pluginRoot));
-        parts.push("[oh-my-grok:alive] hooks online — fingerprint + harness v0.2.");
+        const ver = readPluginVersion(cfg.pluginRoot);
+        parts.push(`[oh-my-grok:alive] hooks online — fingerprint + harness v${ver}.`);
     }
     if (cfg.hardOrchestration) {
         parts.push(hardOrchestrationBanner());

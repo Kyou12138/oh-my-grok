@@ -1,5 +1,6 @@
+import { findLatestHandoff, resumeFromHandoffContext, } from "../features/handoff.js";
 import { refreshCatalog } from "../features/skill-gate.js";
-import { sisyphusBootstrap, usingSuperpowersHint } from "../features/rules.js";
+import { loadInjectedRules, readPluginVersion, sisyphusBootstrap, usingSuperpowersHint, } from "../features/rules.js";
 import { ensureDir, writeJsonAtomic } from "../state/fs.js";
 import { pathsFor, sessionStateRoot } from "../state/paths.js";
 export function handleSessionStart(input, cfg) {
@@ -7,10 +8,11 @@ export function handleSessionStart(input, cfg) {
     const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
     ensureDir(p.session);
     ensureDir(p.omg);
+    const version = readPluginVersion(cfg.pluginRoot);
     writeJsonAtomic(p.fingerprint, {
         schemaVersion: 1,
         plugin: "oh-my-grok",
-        version: "0.16.0",
+        version,
         sessionId: input.sessionId,
         workspaceRoot: input.workspaceRoot,
         pid: process.pid,
@@ -19,12 +21,18 @@ export function handleSessionStart(input, cfg) {
     // Reset prompt count for new session
     writeJsonAtomic(p.promptCount, { n: 0 });
     const catalog = refreshCatalog(input, cfg);
+    const latestHandoff = findLatestHandoff(input.workspaceRoot, cfg, input.sessionId);
+    const resume = latestHandoff ? resumeFromHandoffContext(latestHandoff) : "";
     const additionalContext = [
         sisyphusBootstrap(),
         usingSuperpowersHint(cfg.pluginRoot),
-        `[oh-my-grok] SessionStart OK. skills=${catalog.catalog.length} fingerprint=${p.fingerprint}`,
+        loadInjectedRules(input.workspaceRoot, cfg),
+        resume,
+        `[oh-my-grok] SessionStart OK v${version}. skills=${catalog.catalog.length} fingerprint=${p.fingerprint}`,
         "Do not dual-enable another oh-my-grok (e.g. mihazs Go edition) — hooks will conflict.",
-    ].join("\n\n");
+    ]
+        .filter(Boolean)
+        .join("\n\n");
     return { additionalContext };
 }
 //# sourceMappingURL=session-start.js.map
