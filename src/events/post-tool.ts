@@ -16,6 +16,7 @@ import {
 } from "../features/session-role.js";
 import { markSkillLoaded } from "../features/skill-gate.js";
 import { markSpawnActivity } from "../features/category-discipline.js";
+import { markSpawnFollowThrough } from "../features/spawn-followthrough.js";
 import {
   extractTodosFromToolInput,
   mirrorTodos,
@@ -126,6 +127,7 @@ export function handlePostToolSpawn(input: HookInput, cfg: EnvConfig): HookOutpu
   if (!isSpawn) return {};
   markSpawnActivity(input, cfg);
   const role = extractSpawnRole(input.toolInput);
+  markSpawnFollowThrough(input, cfg, role || undefined);
   if (!role) return {};
   setSessionAgentRole(input, cfg, role, `spawn:${input.toolName || "task"}`);
   return mergeContext(

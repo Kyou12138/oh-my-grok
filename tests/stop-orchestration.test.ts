@@ -1,9 +1,10 @@
 /**
  * stop orchestration priority (MAGI spiral 7, v0.14, 组G3b)
  *
- * 锁定 handleStop 的 7 段门禁优先级：
+ * 锁定 handleStop 的门禁优先级：
  *   段0 isStopPaused → 段1 ralph → 段2 boulder → 段2.5 category-discipline
- *   → 段3 todos → 段4 diagnostics → 段5 plan-checkboxes → 段6 comment-aggregate
+ *   → 段2.6 spawn-followthrough → 段3 todos → 段4 diagnostics
+ *   → 段5 plan-checkboxes → 段6 comment-aggregate
  *
  * 全部直驱 handleStop,状态隔离:每 it 独立 workspaceRoot + pluginData + sessionId。
  */

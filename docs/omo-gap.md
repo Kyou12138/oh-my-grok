@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-15 · **omg version:** 0.20.x  
+**Date:** 2026-07-15 · **omg version:** 0.21.x  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -37,7 +37,7 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 |------|---------|---------|-------|
 | Built-in Exa/Context7 MCP | blocked | **partial** | Platform supports native MCP; `.mcp.json` already carries a context7 entry (enabling it flips `disabled:false`) |
 | In-plugin LSP / AST | blocked | **partial** | Full in-plugin suite remains non-goal; can opt-in to omo author's external stdio servers (lsp-tools-mcp / ast-grep-skill) as optional enhancement (pi-ast-grep removed v0.12 — pi coding agent only) |
-| Background agent babysitter | blocked | **partial** | Grok Build `spawn_subagent` (8 concurrent) shipped; hooks.json registers post-tool-spawn matcher; agent-guard parses subagent roles; path is open, only the Stop gate is missing (deferred to v0.10 CATEGORY_DISCIPLINE) |
+| Background agent babysitter | blocked | **shipped** (partial) | spawn_subagent + post-tool-spawn + agent-guard sticky + **v0.21 spawn-followthrough** Stop once per wave when idle/announce after spawn |
 | Multi-provider model matrix | blocked | **blocked** | Still non-goal (single-host Grok) |
 
 ## Grok-feasible gaps still open (after v0.9)
@@ -140,14 +140,24 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | think-mode 专属测试 | ultrathink/deep/中文正例；casual "I think" 负例；UserPrompt 注入边界 |
 | 生产联动 | Stop todos/ULW idle yank；UserPrompt THINK_MODE |
 
+## Closed this spiral (v0.21)
+
+| Item | Behavior |
+|------|----------|
+| spawn follow-through | PostTool spawn → pending；Stop idle/spawn-announce → block 一次；实质进展清 pending |
+| Stop order 2.6 | contract + stop.ts after category-discipline |
+| tests | `tests/spawn-followthrough.test.ts` 8 it |
+| README 同步 | 中英 harness 表补 plan-review / spawn follow-through；en 对齐 start-work 评审要求 |
+
 ## Next spiral focus (提升)
 
-v0.21 候选:
+v0.22 候选:
 
-- **Background spawn follow-through**: 本会话刚 spawn 且 assistant 仅 idle/「已派出」时 Stop block 一次，要求回收子代理结果或继续主任务
+- **comment-checker 专属测试深化**（若仅 soft-aggregate 切片）
 - **候选B — project memory 持久层(仍 defer)**: 硬信号未变
+- **Hashline 深化**: 若宿主仍无 native edit tool，保持 partial
 
-**推荐 v0.21 = spawn follow-through Stop gate**（category-discipline 的互补：有 spawn 也要跟进，而非仅惩罚零 spawn）。
+**推荐 v0.22 = comment-checker 真值表 + 聚合门专属测试**（或验收前静置，等待用户反馈）。
 
 ## Explicit non-goals
 

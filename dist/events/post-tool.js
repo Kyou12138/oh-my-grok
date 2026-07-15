@@ -6,6 +6,7 @@ import { isVerifyShellCommand, noteUlwRead, noteUlwShell, noteUlwWrite, } from "
 import { extractSpawnRole, isSpawnTool, setSessionAgentRole, } from "../features/session-role.js";
 import { markSkillLoaded } from "../features/skill-gate.js";
 import { markSpawnActivity } from "../features/category-discipline.js";
+import { markSpawnFollowThrough } from "../features/spawn-followthrough.js";
 import { extractTodosFromToolInput, mirrorTodos, resetTodoEnforcer, } from "../features/todo-boulder.js";
 function fileFromInput(input) {
     return String(input.toolInput?.file_path ??
@@ -100,6 +101,7 @@ export function handlePostToolSpawn(input, cfg) {
         return {};
     markSpawnActivity(input, cfg);
     const role = extractSpawnRole(input.toolInput);
+    markSpawnFollowThrough(input, cfg, role || undefined);
     if (!role)
         return {};
     setSessionAgentRole(input, cfg, role, `spawn:${input.toolName || "task"}`);

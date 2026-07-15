@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here.
 
+## [0.21.0] — 2026-07-15
+
+### MAGI spiral (审视→执行→提升)
+
+- **审视:** category-discipline 只惩罚零 spawn；spawn 后父会话以 idle/「已派出」收工无再拉
+- **执行:**
+  - **feat** `spawn-followthrough.ts`：PostTool spawn 武装 pending；Stop 遇 idle 或 spawn-announce 则 block 一次；有路径/test 证据的实质进展清 pending
+  - wire stop 2.6 + post-tool-spawn；contract Stop order +2.6
+  - `tests/spawn-followthrough.test.ts`（8 it）
+- **提升:** 下一螺旋 README 能力表同步 + 可选 project-memory 再评估
+
 ## [0.20.0] — 2026-07-15
 
 ### MAGI spiral (审视→执行→提升)

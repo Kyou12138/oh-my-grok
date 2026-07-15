@@ -121,7 +121,7 @@ Plan-mode 下只允许写 `.omg/plans/`。然后：
 
 | 层 | 已交付 |
 |----|--------|
-| **Harness** | Ralph / **ULW v3 multi-goal**（shell→verify）、**think-mode**、**意图 Skill Gate**、**Hashline**、Stop 链、Todo abort-window/**Boulder**、**idle-turn**、**粘性 agent role**、IntentGate、Prometheus、Comment Checker、Agent Guard、Category、Diagnostics、Handoff、`/init-deep` |
+| **Harness** | Ralph / **ULW v3 multi-goal**（shell→verify）、**think-mode**、**意图 Skill Gate**、**Hashline**、Stop 链、Todo abort-window/**Boulder**、**idle-turn**、**粘性 agent role**、**plan-review 门禁**、**spawn follow-through**、Category discipline、Comment aggregate、Agent Guard、Diagnostics、Handoff、`/init-deep` |
 | **纪律 Agents** | Sisyphus · Hephaestus · Prometheus · Atlas · Oracle · Explore · Librarian · Metis · Momus |
 | **Superpowers** | Vendor MIT skills：brainstorming、writing-plans、TDD、verification-before-completion … |
 

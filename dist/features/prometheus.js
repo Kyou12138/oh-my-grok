@@ -77,11 +77,12 @@ export function planFileHasReview(planPath) {
     const lines = text.split(/\r?\n/);
     for (const line of lines) {
         const t = line.trim();
-        // Unchecked checklist — never evidence (even if it mentions Metis/VERDICT)
-        if (/^[-*]\s*\[\s*\]/.test(t))
+        // Unchecked checklist — never evidence (even if it mentions Metis/VERDICT).
+        // GFM list markers: - * + (align hasOpenPlanCheckboxes).
+        if (/^[-*+]\s*\[\s*\]/.test(t))
             continue;
         // Checked item about review / Metis / Momus
-        if (/^[-*]\s*\[x\]/i.test(t) &&
+        if (/^[-*+]\s*\[x\]/i.test(t) &&
             /(metis|momus|review|评审|verdict)/i.test(t)) {
             return true;
         }

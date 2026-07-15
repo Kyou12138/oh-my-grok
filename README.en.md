@@ -111,7 +111,7 @@ Agent may only write under `.omg/plans/` (Prometheus plan-mode). Then:
 /start-work
 ```
 
-Activates **boulder** execution (Atlas/Sisyphus). Optional review agents: **Metis** (gaps), **Momus** (plan quality) — both read-only.
+Activates **boulder** execution (Atlas/Sisyphus). **Plan review required first**: check Metis/Momus items under `## Review`, or write `VERDICT: PASS` — otherwise `/start-work` is blocked.
 
 ---
 
@@ -119,7 +119,7 @@ Activates **boulder** execution (Atlas/Sisyphus). Optional review agents: **Meti
 
 | Layer | Ships today |
 |-------|-------------|
-| **Harness** | Ralph / **ULW v3 multi-goal** (shell→verify), **think-mode**, **intent Skill Gate**, **Hashline**, Stop chain, Todo abort-window/**Boulder**, **idle-turn**, **sticky agent role**, IntentGate, Prometheus, Comment Checker, Agent Guard, Categories, Diagnostics, Handoff, `/init-deep` |
+| **Harness** | Ralph / **ULW v3 multi-goal** (shell→verify), **think-mode**, **intent Skill Gate**, **Hashline**, Stop chain, Todo abort-window/**Boulder**, **idle-turn**, **sticky agent role**, **plan-review gate**, **spawn follow-through**, Category discipline, Comment aggregate, Agent Guard, Diagnostics, Handoff, `/init-deep` |
 | **Discipline agents** | Sisyphus · Hephaestus · Prometheus · Atlas · Oracle · Explore · Librarian · Metis · Momus |
 | **Superpowers** | Vendored MIT skills: brainstorming, writing-plans, TDD, verification-before-completion, … |
 

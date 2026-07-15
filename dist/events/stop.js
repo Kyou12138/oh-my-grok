@@ -2,6 +2,7 @@ import { diagStopReason, isVerifiedMessage, loadDiag, markSoftPrompted, markVeri
 import { commentAggregateStopReason, markCommentSoftPrompted, } from "../features/comment-checker.js";
 import { idleTurnStopReason, isIdleAssistantMessage } from "../features/idle-turn.js";
 import { categoryDisciplineStopReason } from "../features/category-discipline.js";
+import { spawnFollowThroughStopReason } from "../features/spawn-followthrough.js";
 import { loadRalph, processLoopStop } from "../features/ralph.js";
 import { isDoneMessage } from "../features/ralph.js";
 import { boulderStopReason, clearBoulder, hasOpenPlanCheckboxes, incompleteTodos, isStopPaused, loadBoulder, markTodoContinued, todoEnforcerAllows, todoStopReason, } from "../features/todo-boulder.js";
@@ -59,6 +60,11 @@ export function handleStop(input, cfg) {
     const catDisc = categoryDisciplineStopReason(input, cfg);
     if (catDisc) {
         return { decision: "block", reason: catDisc };
+    }
+    // 2.6 Spawn follow-through — just spawned + idle/announce only (once per wave)
+    const follow = spawnFollowThroughStopReason(input, cfg);
+    if (follow) {
+        return { decision: "block", reason: follow };
     }
     // 3. Todos (+ idle-turn / abort-window yank when work unfinished)
     const todos = incompleteTodos(input, cfg);

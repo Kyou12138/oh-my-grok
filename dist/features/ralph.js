@@ -21,7 +21,10 @@ export function parseGoalsFromTask(task) {
             .split(";")
             .map((s) => s.trim())
             .filter(Boolean);
+        // Trailing semicolon "a;" → ["a"] (strip empty segments); multi → split
         if (parts.length >= 2)
+            return parts;
+        if (parts.length === 1 && /;\s*$/.test(t))
             return parts;
     }
     if (t.includes("|")) {
@@ -31,9 +34,12 @@ export function parseGoalsFromTask(task) {
             .filter(Boolean);
         if (parts.length >= 2)
             return parts;
+        if (parts.length === 1 && /\|\s*$/.test(t))
+            return parts;
     }
+    // Numbered goals: allow single-char items ("1) a 2) b") — was [^\d].+? (need ≥2 chars)
     const numbered = [
-        ...t.matchAll(/(?:^|[\s,])\d+[.)]\s*([^\d].+?)(?=(?:[\s,]\d+[.)])|$)/g),
+        ...t.matchAll(/(?:^|[\s,])\d+[.)]\s*(.+?)(?=(?:[\s,]\d+[.)])|$)/g),
     ].map((m) => m[1].trim());
     if (numbered.length >= 2)
         return numbered;
@@ -238,12 +244,18 @@ export function detectRalphCommand(prompt) {
             task: (ulwSlash[1] || "ultrawork until fully done").trim(),
         };
     }
-    // Mid-sentence / leading keywords (omo-style): "ulw 重构登录", "please ultrawork this"
-    if (/\bultrawork\b/i.test(p) || /\bulw-loop\b/i.test(p) || /(^|[\s,;:，])ulw([\s,;:，]|$)/i.test(p) || /^\s*ulw\b/i.test(p)) {
+    // Mid-sentence / leading keywords (omo-style): "ulw 重构登录", "please ultrawork this".
+    // \b matches before hyphen in JS — reject ulw-stop / ulw_foo with (?![-_]), keep CJK glue (ulw重构).
+    const ulwKeyword = /\bultrawork\b/i.test(p) ||
+        /\bulw-loop\b/i.test(p) ||
+        /(^|[\s,;:，])ulw\b(?![-_])/i.test(p) ||
+        /^\s*ulw\b(?![-_])/i.test(p);
+    if (ulwKeyword) {
         let task = p
             .replace(/\bultrawork\b/gi, " ")
             .replace(/\bulw-loop\b/gi, " ")
-            .replace(/(^|[\s,;:，])ulw\b/gi, " ")
+            .replace(/(^|[\s,;:，])ulw\b(?![-_])/gi, "$1")
+            .replace(/^\s*ulw\b(?![-_])/gi, " ")
             .replace(/^\/+/, "")
             .replace(/\s+/g, " ")
             .trim();
@@ -292,10 +304,16 @@ export function noteUlwWrite(input, cfg, filePath) {
 }
 /** Commands that count as verification evidence for ULW. */
 export const VERIFY_SHELL_RE = /\b(npm\s+(test|run\s+test|run\s+ci)|pnpm\s+(test|run\s+test)|yarn\s+test|vitest|jest|pytest|cargo\s+test|go\s+test|dotnet\s+test|mvn\s+test|gradlew?\s+test|typecheck|tsc\s+--noEmit|eslint|lint|npm\s+run\s+doctor|npm\s+run\s+validate)\b/i;
+/** echo/printf of test names is not verification evidence. */
+const ECHO_LIKE_RE = /^(echo|printf|Write-Host|console\.log)\b/i;
 export function isVerifyShellCommand(command) {
     if (!command)
         return false;
-    return VERIFY_SHELL_RE.test(command);
+    // Split compound shells so "echo npm test" is rejected but "echo x && npm test" still counts.
+    const segments = command.split(/&&|\|\||;|\n/).map((s) => s.trim()).filter(Boolean);
+    if (segments.length === 0)
+        return false;
+    return segments.some((seg) => !ECHO_LIKE_RE.test(seg) && VERIFY_SHELL_RE.test(seg));
 }
 /**
  * Record shell/terminal activity for ULW.

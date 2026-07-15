@@ -23,6 +23,7 @@ Events: `session-start` | `user-prompt` | `pre-tool-use` | `post-tool-read` | `p
 1. Ralph / ULW (+ idle fluff note when loop active)  
 2. Boulder (blocks while active; open plan checkboxes called out; DONE/VERIFIED clears when checkboxes complete; `/cancel-boulder`)  
 2.5 Category discipline — specialist work (deep/visual-engineering/ultrabrain) + zero session spawns => block once  
+2.6 Spawn follow-through — after spawn, idle or spawn-announce only => block once per wave (real progress clears)  
 3. Todo enforcer (+ **idle-turn** bypasses cooldown when reply is fluff/empty)  
 4. Diagnostics (errors hard-block; soft verify once if no `diagCommand`)  
 5. Plan checkboxes (fallback when no boulder)
