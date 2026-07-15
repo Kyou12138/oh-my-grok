@@ -65,10 +65,13 @@ export function applyGoalDoneMarkers(state, msg) {
     for (const g of state.goals) {
         if (g.done)
             continue;
+        const gl = g.text.toLowerCase();
         for (const mk of markers) {
-            if (g.text.toLowerCase() === mk.toLowerCase() ||
-                g.text.toLowerCase().includes(mk.toLowerCase()) ||
-                mk.toLowerCase().includes(g.text.toLowerCase())) {
+            const mkl = mk.toLowerCase();
+            // 精确相等总是命中;否则要求 marker 是 goal 的子串(且 marker 足够具体)。
+            // 删除反向 mk.includes(g.text)(短 goal 被长 marker 整段吞的过宽路径);
+            // 超短 marker(<=3 字符)只接受精确相等,避免 'GOAL_DONE: a' 单字符误标多 goal。
+            if (gl === mkl || (mkl.length > 3 && gl.includes(mkl))) {
                 g.done = true;
                 break;
             }
@@ -205,6 +208,13 @@ export function saveRalph(input, cfg, state) {
 }
 export function isDoneMessage(msg) {
     if (!msg)
+        return false;
+    // 否定语境紧邻 DONE 标记不算完成(对齐 isVerifiedMessage 的 v0.13/v0.14 修复)。
+    // processLoopStop 在 ralph 模式对 isDoneMessage 命中直接 cancelRalph 不经 gate,
+    // 故 'not ULW_DONE' / 'NOT <promise>DONE</promise>' / 'will never mark RALPH_DONE'
+    // / 'no ULW_DONE yet' 等否定话术必须被拦,否则一句否定关闭整个 loop。
+    const NEGATED_DONE = /\b(?:not|never|without|no|rarely|seldom|hardly|barely|scarcely|don'?t|doesn'?t|isn'?t|aren'?t|wasn'?t|weren'?t|won'?t|wouldn'?t|shouldn'?t|couldn'?t|mustn'?t|haven'?t|hasn'?t|hadn'?t|ain'?t|didn'?t)\b[^.!\n]*(?:<promise>DONE<\/promise>|<promise>done<\/promise>|RALPH_DONE|ULW_DONE)/i;
+    if (NEGATED_DONE.test(msg))
         return false;
     return DONE_MARKERS.some((m) => msg.includes(m));
 }

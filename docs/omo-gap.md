@@ -92,16 +92,25 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | stop 编排测试 | 新增 tests/stop-orchestration.test.ts(9 it):锁 7 段优先级(isStopPaused→ralph→boulder→catDisc 2.5→todos→diag→plan→comment)+ diag soft-verify 一次窗口 + catDisc/ralph 每会话至多一次副作用 |
 | 关键纠偏 | agent-guard.ts:92 对非 mutating 工具首行 return null,故 oracle 的 Read 直接 allow(非被拦);编排测试锁定真实行为而非 false-pass 假设 |
 
+## Closed this spiral (v0.15)
+
+| Item | Behavior |
+|------|----------|
+| isDoneMessage 否定漏网续修 | ralph.ts isDoneMessage 纯子串匹配 DONE_MARKERS(含 RALPH_DONE/ULW_DONE 裸标记无锚定),零否定集;processLoopStop ralph 模式对命中直接 cancelRalph 不经 gate,'not ULW_DONE' 等否定话术关闭 loop。补 NEGATED_DONE 否定集(对齐 isVerifiedMessage v0.13/v0.14)——**连续三轮同源 bug** |
+| applyGoalDoneMarkers 收紧 | 双向 includes 过宽(单字符 marker 误标多 goal,绕过 multi-goal gate)→ 删反向 mk.includes(g.text) + 超短 marker<=3 仅精确相等 |
+| ralph.ts 专属测试 | 新增 tests/ralph.test.ts(63 it,10 describe):isDoneMessage 真值表/parseGoals/applyGoalDoneMarkers/isVerifyShellCommand/phase 谓词/detectRalphCommand/processLoopStop 四分支/ulwDoneGate/multi-goal/noteUlwShell 联动。695 行最大模块此前零专属测试 |
+| 契约锁定(未修 src) | parseGoalsFromTask 尾分号/数字单字符吞并、detectRalph 连字符、isVerifyShellCommand echo 边界 |
+
 ## Next spiral focus (提升)
 
-v0.15 候选(v0.14 已落地:verify-gate 续修 + pre-tool/stop 编排测试):
+v0.16 候选(v0.15 已落地:isDoneMessage/applyGoalDoneMarkers 修复 + ralph 63it 专属测试):
 
-- **候选B — project memory 持久层(仍 defer)**:重评硬信号未变(CATEGORY_DISCIPLINE 真实触发≥3次 / ≥1次误报复现路径 / 回归投诉,三者任一满足前不动 stop 判定)。
-- **ralph.ts 专属测试**:695 行最大模块,纯间接覆盖;processLoopStop 状态机 + STALL 检测 + DONE 真值表需专属断言。
-- **todo-boulder.ts 专属测试**:217 行,abort-window/cooldown 边界需专属。
-- **prometheus.ts plan-review 测试**:`## Review` checked / Metis/Momus `VERDICT:PASS` 解析逻辑复杂且无专属。
+- **候选B — project memory 持久层(仍 defer)**:硬信号未变(真实触发≥3次 / ≥1次误报复现路径 / 回归投诉,三者任一)。
+- **todo-boulder.ts 专属测试**:217 行核心门禁,abort-window/cooldown 边界 + isAbortLikeStopReason 否定集 + incompleteTodos cancelled/canceled 双拼写,纯间接覆盖。
+- **prometheus.ts plan-review 深化**:detectPlanCommand / startWorkFromPlan 失败分支 / unchecked-prose 反例。
+- **契约锁定缺陷修复**:parseGoalsFromTask 尾分号/数字吞并、detectRalph 连字符、isVerifyShellCommand echo 锚定(v0.15 锁定的契约)。
 
-**推荐 v0.15 = ralph.ts 专属测试**(最大模块纯间接覆盖,最高风险盲区)。
+**推荐 v0.16 = todo-boulder.ts 专属测试**(217 行核心门禁纯间接覆盖)。
 
 ## Explicit non-goals
 

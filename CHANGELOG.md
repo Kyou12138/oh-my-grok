@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [0.15.0] — 2026-07-15
+### MAGI 螺旋8 · isDoneMessage 否定漏网续修(连续第三同源 bug)+ ralph.ts 专属测试
+- **fix(ralph)** — isDoneMessage 用 `msg.includes(m)` 纯子串匹配 DONE_MARKERS(含 RALPH_DONE/ULW_DONE 裸标记无锚定),零否定集。processLoopStop 在 ralph 模式对命中直接 cancelRalph 不经 gate,故 `'not ULW_DONE'`/`'NOT <promise>DONE</promise>'`/`'will never mark RALPH_DONE'`/`'no ULW_DONE yet'` 等否定话术立即关闭活跃 loop。补 NEGATED_DONE 否定集(对齐 isVerifiedMessage v0.13/v0.14 修复模式)——**连续三轮同源 bug**(v0.13/v0.14 isVerifiedMessage + v0.15 isDoneMessage)。
+- **fix(ralph)** — applyGoalDoneMarkers 双向 includes(`g.text.includes(mk) || mk.includes(g.text)`)过宽:单字符 marker `'GOAL_DONE: a'` 误标多 goal 完成,绕过 ulwDoneGate multi-goal gate。删反向 `mk.includes(g.text)` + 超短 marker(<=3 字符)仅精确相等。
+- **test(ralph)** — 新增 tests/ralph.test.ts(63 it,10 describe):isDoneMessage 真值表(含否定集)/parseGoalsFromTask/applyGoalDoneMarkers/isVerifyShellCommand/phase 谓词状态机/detectRalphCommand/processLoopStop 四分支/ulwDoneGate problems/multi-goal DONE/noteUlwShell 联动。ralph.ts 695 行最大模块此前零专属测试。
+- **契约锁定(未修 src,防范围蔓延)** — parseGoalsFromTask 尾分号/数字单字符吞并、detectRalphCommand 连字符残留、isVerifyShellCommand echo 边界,以当前行为契约锁定,留待后续。
+
 ## [0.14.0] — 2026-07-15
 ### MAGI 螺旋7 · verify-gate 否定检测续修 + pre-tool/stop 编排测试
 - **fix(diagnostics)** — isVerifiedMessage v0.13 黑名单仅含 not/never/without/didn't/haven't/hasn't,漏网 don't/isn't/aren't/wasn't/weren't/won't/doesn't/couldn't/shouldn't/wouldn't/mustn't/hadn't/ain't 等缩写与 rarely/hardly/barely/scarcely/seldom 频度否定 → 全部误判已验证、绕过 verify-gate(5 调用点:stop markVerified / boulder clear / ralph ulwDoneGate / markVerifyReached / diag 软提醒)。补全完整否定集(不含 no,避免误拒合法 'no issue, all tests passed')。
