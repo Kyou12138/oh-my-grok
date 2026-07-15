@@ -1,7 +1,7 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-15 · **omg version:** 0.22.x  
-**MAGI method:** 审视 → 执行 → 提升 (spiral)
+**Date:** 2026-07-15 · **omg version:** 0.23.x  
+**MAGI method:** 审视 → 执行 → 提升 (spiral) · **定时 30m**
 
 ## Legend
 
@@ -155,15 +155,26 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 |------|----------|
 | comment-checker 专属测试 | `tests/comment-checker.test.ts`（12 it）：slop 真值表 / aggregate 阈值 / deny / postWarn |
 
+## Closed this spiral (v0.23)
+
+| Item | Behavior |
+|------|----------|
+| intent ulw- 对齐 | `ulw-stop` 不触发 ultrawork intent |
+| intent 优先级 | search → debug → analyze；中文 查找/调试/分析 |
+| category CJK `\b` | 中文分类关键词去掉 `\b`（JS 词边界对 CJK 无效） |
+| unspecified-low | tweak/微调/润色 路径激活 |
+| tests | `tests/intent-category.test.ts` 18 it |
+| 定时 | MAGI scheduler **30m**（原 4h） |
+
 ## Next spiral focus (提升)
 
-v0.23 候选:
+v0.24 候选:
 
-- **验收反馈驱动**: 用户 24h 后验收项优先
-- **候选B — project memory 持久层(仍 defer)**: 硬信号未变
-- **Hashline native edit**: 宿主限制，保持 partial
+- **init-deep / handoff 专属测试或硬化**
+- **候选B — project memory 持久层(仍 defer)**
+- **Hashline native edit**: 宿主限制
 
-**推荐**: 本轮螺旋已从 v0.16→0.22 连续交付；优先保持绿构建 + 等验收，有新反馈再开螺旋。
+**推荐 v0.24 = init-deep + handoff 深化**（SessionStart/交接路径）。
 
 ## Explicit non-goals
 

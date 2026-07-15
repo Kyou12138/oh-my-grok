@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [0.23.0] — 2026-07-15
+
+### MAGI spiral (审视→执行→提升)
+
+- **审视:** intent-gate `\bulw\b` 误吃 `ulw-stop`；category 中文用 `\b` 对 CJK 永不匹配；`unspecified-low` 有文案无路径
+- **执行:**
+  - **fix(intent)** ulw 连字符拒绝；search→debug→analyze 优先级；中文 查找/调试/分析
+  - **fix(category)** 中文模式去掉 `\b`；激活 unspecified-low（tweak/微调）
+  - `tests/intent-category.test.ts` 18 it
+- **运维:** MAGI 定时 4h → **30m**
+- **提升:** 下一螺旋 handoff / init-deep 专属或 skill-gate 生产路径硬化
+
 ## [0.22.0] — 2026-07-15
 
 ### MAGI spiral (审视→执行→提升)
