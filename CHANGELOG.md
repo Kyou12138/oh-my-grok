@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [0.30.1] — 2026-07-15
+
+### Acceptance
+
+- **test(protocol):** beforeEach 清空 GROK_* env，避免宿主/验收脚本污染导致 `workspaceRoot` 误用 `GROK_WORKSPACE_ROOT`
+- **docs:** `docs/acceptance-report-0.30.md` — 自动化验收 24/24 主路径 PASS
+
 ## [0.30.0] — 2026-07-15
 
 ### MAGI spiral (审视→执行→提升)

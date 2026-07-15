@@ -1,20 +1,29 @@
 /**
  * protocol/parse.ts (MAGI v0.27) — fail-open field normalization matrix.
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { parseHookInput } from "../src/protocol/parse.js";
 
-const prev = {
-  GROK_SESSION_ID: process.env.GROK_SESSION_ID,
-  GROK_WORKSPACE_ROOT: process.env.GROK_WORKSPACE_ROOT,
-  GROK_AGENT_NAME: process.env.GROK_AGENT_NAME,
-  OMG_AGENT_ROLE: process.env.OMG_AGENT_ROLE,
-};
+const ENV_KEYS = [
+  "GROK_SESSION_ID",
+  "GROK_WORKSPACE_ROOT",
+  "GROK_AGENT_NAME",
+  "OMG_AGENT_ROLE",
+] as const;
+
+const prev: Record<string, string | undefined> = {};
+
+beforeEach(() => {
+  for (const k of ENV_KEYS) {
+    prev[k] = process.env[k];
+    delete process.env[k];
+  }
+});
 
 afterEach(() => {
-  for (const [k, v] of Object.entries(prev)) {
-    if (v === undefined) delete process.env[k];
-    else process.env[k] = v;
+  for (const k of ENV_KEYS) {
+    if (prev[k] === undefined) delete process.env[k];
+    else process.env[k] = prev[k];
   }
 });
 
