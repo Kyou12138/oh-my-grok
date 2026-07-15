@@ -102,12 +102,13 @@ export function isVerifiedMessage(msg?: string): boolean {
   if (/<promise>VERIFIED<\/promise>/i.test(msg)) return true;
   if (/\bOMG_VERIFIED\b/.test(msg)) return true;
   if (/diagnostics clean/i.test(msg)) return true;
-  // "all tests passed" 仅当前面无紧邻否定语境(not/never/without/…n't)时算验证,
-  // 堵住 'not all tests passed' 误放行 verify-gate(v0.13 修复)。
-  if (
-    /\ball tests passed\b/i.test(msg) &&
-    !/\b(?:not|never|without|didn'?t|haven'?t|hasn'?t)\b[^.!\n]*\ball tests passed\b/i.test(msg)
-  ) {
+  // "all tests passed" 仅当前面无紧邻否定语境时算验证,堵住 verify-gate 误放行。
+  // v0.13 起 'not all tests passed';v0.14 补全缩写(don't/isn't/aren't/wasn't/...)
+  // 与频度否定(rarely/hardly/barely/scarcely/seldom)——v0.13 黑名单列窄漏网。
+  // 不含 'no':会误拒合法 'no issue, all tests passed'。
+  const NEGATED_ALL_TESTS =
+    /\b(?:not|never|without|rarely|seldom|hardly|barely|scarcely|don'?t|doesn'?t|isn'?t|aren'?t|wasn'?t|weren'?t|won'?t|wouldn'?t|shouldn'?t|couldn'?t|mustn'?t|haven'?t|hasn'?t|hadn'?t|ain'?t|didn'?t)\b[^.!\n]*\ball tests passed\b/i;
+  if (/\ball tests passed\b/i.test(msg) && !NEGATED_ALL_TESTS.test(msg)) {
     return true;
   }
   return false;

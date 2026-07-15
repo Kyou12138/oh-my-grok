@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.14.0] — 2026-07-15
+### MAGI 螺旋7 · verify-gate 否定检测续修 + pre-tool/stop 编排测试
+- **fix(diagnostics)** — isVerifiedMessage v0.13 黑名单仅含 not/never/without/didn't/haven't/hasn't,漏网 don't/isn't/aren't/wasn't/weren't/won't/doesn't/couldn't/shouldn't/wouldn't/mustn't/hadn't/ain't 等缩写与 rarely/hardly/barely/scarcely/seldom 频度否定 → 全部误判已验证、绕过 verify-gate(5 调用点:stop markVerified / boulder clear / ralph ulwDoneGate / markVerifyReached / diag 软提醒)。补全完整否定集(不含 no,避免误拒合法 'no issue, all tests passed')。
+- **test(diagnostics)** — truth-table 扩展:缩写否定(16 词)/频度否定(5 词)/非缩写(3 条)用例,锁 v0.13 漏网回归。
+- **test(pre-tool-orchestration)** — 新增 tests/pre-tool-orchestration.test.ts(11 it):锁 pre-tool-use 5 门禁顺序(agent-guard→mutating 短路→plan-mode→hashline→comment-checker→skill-gate)的双重断言 + 非 mutating 短路 + fail-open + 文案。此前编排顺序零专属覆盖。
+- **test(stop-orchestration)** — 新增 tests/stop-orchestration.test.ts(9 it):锁 stop 7 段优先级(isStopPaused→ralph→boulder→catDisc 2.5→todos→diag→plan→comment)+ diag soft-verify 一次窗口 + ralph/catDisc 每会话至多一次副作用。
+- **关键纠偏** — agent-guard.ts:92 对非 mutating 工具首行 return null,故 oracle 的 Read 直接 allow(非被拦);编排测试锁定真实行为而非 false-pass 假设。
+
 ## [0.13.0] — 2026-07-15
 ### MAGI 螺旋6 · verify-gate 误放行修复 + diagnostics/hashline 测试深化 + 文档一致性
 - **fix(diagnostics)** — `isVerifiedMessage` 的 `/all tests passed/i` 子串无锚定,`'not all tests passed'` / 否定句误判已验证、绕过 verify-gate(被 stop.ts 入口 markVerified + ralph DONE 接受)。收紧为 `\ball tests passed\b` + 否定语境排除(not/never/without/n't 前导),保留合法肯定陈述。

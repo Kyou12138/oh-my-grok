@@ -83,15 +83,25 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | 文档一致性 | omo-gap L34/L39/L93 三处 pi-ast-grep 残留(pi agent 专用,与螺旋5 README 移除矛盾)→ ast-grep-skill;inventory Hashline/Context7 状态对齐 v0.12;contract.md Env 补 OMG_DIAG_TIMEOUT_MS/OMG_HASHLINE_TTL_MS/OMG_TODO_ABORT_WINDOW_MS |
 | 候选B project memory 裁定 | **defer**(推迟):CATEGORY_DISCIPLINE(v0.10)上线仅约 15h、零外部反馈,omo-gap 自标前置未满足;当前门禁单 session 纯函数式,叠跨 session 历史会让误报归因从三变量扩到双调试面。改做确定性加固项(本轮) |
 
+## Closed this spiral (v0.14)
+
+| Item | Behavior |
+|------|----------|
+| verify-gate 否定检测续修 | isVerifiedMessage v0.13 黑名单列窄(not/never/without/didn't/haven't/hasn't)漏网 don't/isn't/aren't/…n't 缩写与 rarely/hardly/barely/scarcely/seldom 频度否定 → 全部误判已验证、绕过 verify-gate(5 调用点)。补全完整否定集(不含 no,避免误拒合法 'no issue, all tests passed')|
+| pre-tool 编排测试 | 新增 tests/pre-tool-orchestration.test.ts(11 it):锁 5 门禁顺序(agent-guard→mutating 短路→plan-mode→hashline→comment→skill-gate)双重断言 + 非 mutating 短路(oracle Read 直接 allow,核实 agent-guard.ts:92)+ fail-open。编排顺序此前零专属覆盖 |
+| stop 编排测试 | 新增 tests/stop-orchestration.test.ts(9 it):锁 7 段优先级(isStopPaused→ralph→boulder→catDisc 2.5→todos→diag→plan→comment)+ diag soft-verify 一次窗口 + catDisc/ralph 每会话至多一次副作用 |
+| 关键纠偏 | agent-guard.ts:92 对非 mutating 工具首行 return null,故 oracle 的 Read 直接 allow(非被拦);编排测试锁定真实行为而非 false-pass 假设 |
+
 ## Next spiral focus (提升)
 
-v0.14 候选(v0.13 已落地:verify-gate 收紧 + diagnostics/hashline 测试深化 + 文档一致性):
+v0.15 候选(v0.14 已落地:verify-gate 续修 + pre-tool/stop 编排测试):
 
-- **候选B — project memory 持久层(仍 defer)**:跨会话决策记忆。**重评触发条件**:CATEGORY_DISCIPLINE 沉淀 ≥2-3 螺旋真实使用反馈且误报模式被记录后,优先做「只读观察层」(workspace 级 `.omg/category-history.json`,单字段 observedCategoryChoices,容量 50 + TTL 14d,门禁判定一行不动),再决定是否读进 stop。
-- **官方 marketplace 收录 PR**:向 xai-org/plugin-marketplace 提 `external_plugins` entry(远程源 + 40-char sha pin)。外部依赖,合并不可控。
-- **事件编排测试**:pre-tool-use 5 门禁顺序 / stop 7 段优先级 + diagnostics soft-verify 一次窗口的专属测试(防重构调换顺序导致 oracle 读操作漏网等回归)。
+- **候选B — project memory 持久层(仍 defer)**:重评硬信号未变(CATEGORY_DISCIPLINE 真实触发≥3次 / ≥1次误报复现路径 / 回归投诉,三者任一满足前不动 stop 判定)。
+- **ralph.ts 专属测试**:695 行最大模块,纯间接覆盖;processLoopStop 状态机 + STALL 检测 + DONE 真值表需专属断言。
+- **todo-boulder.ts 专属测试**:217 行,abort-window/cooldown 边界需专属。
+- **prometheus.ts plan-review 测试**:`## Review` checked / Metis/Momus `VERDICT:PASS` 解析逻辑复杂且无专属。
 
-**推荐 v0.14 = 事件编排测试**(pre-tool/stop 顺序锁定),除非候选B 重评条件已满足。
+**推荐 v0.15 = ralph.ts 专属测试**(最大模块纯间接覆盖,最高风险盲区)。
 
 ## Explicit non-goals
 

@@ -103,6 +103,25 @@ describe("diagnostics — isVerifiedMessage 真值表", () => {
     expect(isVerifiedMessage("I have not confirmed all tests passed")).toBe(false);
     expect(isVerifiedMessage("not all tests passed yet")).toBe(false);
   });
+  it("负例:缩写否定 don't/doesn't/isn't/…n't + all tests passed 不得误放行(v0.14 续修)", () => {
+    for (const w of [
+      "don't", "doesn't", "isn't", "aren't", "wasn't", "weren't",
+      "won't", "wouldn't", "shouldn't", "couldn't", "mustn't",
+      "haven't", "hasn't", "hadn't", "ain't", "didn't",
+    ]) {
+      expect(isVerifiedMessage(`${w} all tests passed`)).toBe(false);
+    }
+  });
+  it("负例:频度否定 rarely/seldom/hardly/barely/scarcely + all tests passed 不得误放行", () => {
+    for (const w of ["rarely", "seldom", "hardly", "barely", "scarcely"]) {
+      expect(isVerifiedMessage(`${w} all tests passed`)).toBe(false);
+    }
+  });
+  it("负例:非缩写 'do not'/'does not'/'is not' + all tests passed 不得误放行", () => {
+    expect(isVerifiedMessage("do not all tests passed")).toBe(false);
+    expect(isVerifiedMessage("does not all tests passed")).toBe(false);
+    expect(isVerifiedMessage("is not all tests passed")).toBe(false);
+  });
 });
 
 describe("diagnostics — diagStopReason 三分支", () => {
