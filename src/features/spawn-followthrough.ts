@@ -71,6 +71,57 @@ export function markSpawnFollowThrough(
   });
 }
 
+/** Clear pending after get_task_output / inline subagent result / real progress. */
+export function clearSpawnFollowThrough(input: HookInput, cfg: EnvConfig): void {
+  const st = load(input, cfg);
+  if (!st.pending && !st.yankCount) return;
+  save(input, cfg, {
+    schemaVersion: 2,
+    pending: false,
+    lastRole: st.lastRole,
+    yankCount: 0,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+export function isSpawnFollowThroughPending(
+  input: HookInput,
+  cfg: EnvConfig,
+): boolean {
+  return load(input, cfg).pending;
+}
+
+/** Tools that fetch subagent/shell task output → result recovered. */
+export function isResultRecoveryTool(toolName?: string): boolean {
+  if (!toolName) return false;
+  // strip separators so get_command_or_subagent_output → getcommandorsubagentoutput
+  const n = toolName.toLowerCase().replace(/[^a-z]/g, "");
+  return (
+    n.includes("gettaskoutput") ||
+    n.includes("getcommandorsubagentoutput") ||
+    n.includes("getsubagentoutput") ||
+    n.includes("awaitsubagent")
+  );
+}
+
+/**
+ * Sync spawn already returned a substantial payload (not just "started").
+ * Heuristic: long output with evidence-ish content, or recovered-message shape.
+ */
+export function isInlineSubagentResult(toolOutput?: string): boolean {
+  if (!toolOutput) return false;
+  const t = toolOutput.trim();
+  if (t.length < 80) return false;
+  if (isSpawnAnnounceMessage(t.slice(0, 280))) return false;
+  if (isSpawnResultRecoveredMessage(t)) return true;
+  // substantial body with code/path/structure signals (sync spawn payload)
+  const evidence =
+    /[\\/].+\.\w{1,8}\b/.test(t) ||
+    /\b(function|class|export|error|found|file|line|recommend)\b/i.test(t) ||
+    /```/.test(t);
+  return t.length >= 100 && evidence;
+}
+
 /**
  * "I spawned explore" / "dispatched hephaestus" without concrete results.
  * Long messages with evidence keywords are NOT spawn-announce.

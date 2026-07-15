@@ -76,7 +76,7 @@
         ]
       },
       {
-        "matcher": "spawn_subagent|Task|task|call_omo_agent|SpawnSubagent",
+        "matcher": "spawn_subagent|Task|task|call_omo_agent|SpawnSubagent|get_task_output|get_command_or_subagent_output|GetTaskOutput",
         "hooks": [
           {
             "type": "command",

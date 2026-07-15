@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.0.2] — 2026-07-15
+
+### MAGI spiral
+
+- **feat(spawn-followthrough)** `get_task_output` / `get_command_or_subagent_output` PostTool → **clear pending**（工具路径结果回收）
+- **feat** 同步 spawn 若 `toolOutput` 已是实质结果 → 不 arm follow-through
+- **hooks** matcher 注册上述 recovery 工具名
+- **test** +3 it；483 passed
+
 ## [1.0.1] — 2026-07-15
 
 ### MAGI post-1.0 spiral

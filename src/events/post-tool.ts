@@ -16,7 +16,12 @@ import {
 } from "../features/session-role.js";
 import { markSkillLoaded } from "../features/skill-gate.js";
 import { markSpawnActivity } from "../features/category-discipline.js";
-import { markSpawnFollowThrough } from "../features/spawn-followthrough.js";
+import {
+  clearSpawnFollowThrough,
+  isInlineSubagentResult,
+  isResultRecoveryTool,
+  markSpawnFollowThrough,
+} from "../features/spawn-followthrough.js";
 import {
   extractTodosFromToolInput,
   mirrorTodos,
@@ -121,13 +126,31 @@ export function handlePostToolShell(input: HookInput, cfg: EnvConfig): HookOutpu
   return {};
 }
 
-/** PostTool spawn/task — sticky session role for Agent Guard. */
+/**
+ * PostTool spawn / task-output recovery.
+ * - get_task_output (etc.) → clear follow-through pending (result recovered)
+ * - spawn with empty/short output → arm follow-through
+ * - spawn with substantial inline toolOutput → treat as recovered (no yank arm)
+ */
 export function handlePostToolSpawn(input: HookInput, cfg: EnvConfig): HookOutput {
+  // Result recovery tools clear pending even when not a spawn
+  if (isResultRecoveryTool(input.toolName)) {
+    clearSpawnFollowThrough(input, cfg);
+    return mergeContext(
+      "<OMG_SPAWN_FOLLOWTHROUGH recovered=\"true\">Subagent/task output retrieved — follow-through cleared. Integrate findings next.</OMG_SPAWN_FOLLOWTHROUGH>",
+    );
+  }
+
   const isSpawn = isSpawnTool(input.toolName) || !!extractSpawnRole(input.toolInput);
   if (!isSpawn) return {};
   markSpawnActivity(input, cfg);
   const role = extractSpawnRole(input.toolInput);
-  markSpawnFollowThrough(input, cfg, role || undefined);
+  const out = String(input.toolOutput || "");
+  if (isInlineSubagentResult(out)) {
+    clearSpawnFollowThrough(input, cfg);
+  } else {
+    markSpawnFollowThrough(input, cfg, role || undefined);
+  }
   if (!role) return {};
   setSessionAgentRole(input, cfg, role, `spawn:${input.toolName || "task"}`);
   return mergeContext(

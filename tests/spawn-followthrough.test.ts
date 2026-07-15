@@ -9,7 +9,11 @@ import { handlePostToolSpawn } from "../src/events/post-tool.js";
 import { handleStop } from "../src/events/stop.js";
 import type { EnvConfig, HookInput } from "../src/protocol/types.js";
 import {
+  clearSpawnFollowThrough,
+  isInlineSubagentResult,
+  isResultRecoveryTool,
   isSpawnAnnounceMessage,
+  isSpawnFollowThroughPending,
   isSpawnResultRecoveredMessage,
   markSpawnFollowThrough,
   SPAWN_FOLLOWTHROUGH_MAX_YANKS,
@@ -203,5 +207,61 @@ describe("production path PostTool + Stop", () => {
     if ("decision" in stop3 && stop3.decision === "block") {
       expect(JSON.stringify(stop3)).not.toMatch(/SPAWN_FOLLOWTHROUGH/);
     }
+  });
+
+  it("get_task_output clears pending (v1.0.2 tool-path recovery)", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    expect(isResultRecoveryTool("get_task_output")).toBe(true);
+    expect(isResultRecoveryTool("get_command_or_subagent_output")).toBe(true);
+    markSpawnFollowThrough(base(ws), c, "explore");
+    expect(isSpawnFollowThroughPending(base(ws), c)).toBe(true);
+    const out = handlePostToolSpawn(
+      base(ws, {
+        event: "post-tool-write",
+        toolName: "get_task_output",
+        toolInput: { task_ids: ["abc"] },
+        toolOutput: "explore found src/auth.ts callers",
+      }),
+      c,
+    );
+    expect(JSON.stringify(out)).toMatch(/recovered|cleared/i);
+    expect(isSpawnFollowThroughPending(base(ws), c)).toBe(false);
+    expect(
+      spawnFollowThroughStopReason(
+        base(ws, { lastAssistantMessage: "ok" }),
+        c,
+      ),
+    ).toBeNull();
+  });
+
+  it("inline substantial spawn toolOutput does not arm follow-through", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const big =
+      "Found 3 call sites in src/auth.ts and src/login.ts.\n" +
+      "```ts\nexport function login() {}\n```\n" +
+      "Recommend fixing the race in middleware next.";
+    expect(isInlineSubagentResult(big)).toBe(true);
+    handlePostToolSpawn(
+      base(ws, {
+        event: "post-tool-write",
+        toolName: "spawn_subagent",
+        toolInput: { subagent_type: "explore", prompt: "map" },
+        toolOutput: big,
+      }),
+      c,
+    );
+    expect(isSpawnFollowThroughPending(base(ws), c)).toBe(false);
+  });
+
+  it("clearSpawnFollowThrough is idempotent", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    clearSpawnFollowThrough(base(ws), c);
+    markSpawnFollowThrough(base(ws), c, "x");
+    clearSpawnFollowThrough(base(ws), c);
+    clearSpawnFollowThrough(base(ws), c);
+    expect(isSpawnFollowThroughPending(base(ws), c)).toBe(false);
   });
 });

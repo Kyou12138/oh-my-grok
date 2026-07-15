@@ -11,6 +11,16 @@ export interface SpawnFollowThroughState {
 }
 /** PostTool spawn — arm / re-arm follow-through for result recovery. */
 export declare function markSpawnFollowThrough(input: HookInput, cfg: EnvConfig, role?: string): void;
+/** Clear pending after get_task_output / inline subagent result / real progress. */
+export declare function clearSpawnFollowThrough(input: HookInput, cfg: EnvConfig): void;
+export declare function isSpawnFollowThroughPending(input: HookInput, cfg: EnvConfig): boolean;
+/** Tools that fetch subagent/shell task output → result recovered. */
+export declare function isResultRecoveryTool(toolName?: string): boolean;
+/**
+ * Sync spawn already returned a substantial payload (not just "started").
+ * Heuristic: long output with evidence-ish content, or recovered-message shape.
+ */
+export declare function isInlineSubagentResult(toolOutput?: string): boolean;
 /**
  * "I spawned explore" / "dispatched hephaestus" without concrete results.
  * Long messages with evidence keywords are NOT spawn-announce.
