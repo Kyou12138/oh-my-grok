@@ -58,6 +58,22 @@ function hasCodeFiles(dir: string): boolean {
   }
 }
 
+/** True if dir or a nested subdir (bounded) holds code — intermediate package paths. */
+function hasCodeFilesDeep(dir: string, maxLook = 6): boolean {
+  if (hasCodeFiles(dir)) return true;
+  if (maxLook <= 0) return false;
+  try {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (!e.isDirectory()) continue;
+      if (SKIP_DIRS.has(e.name) || e.name.startsWith(".")) continue;
+      if (hasCodeFilesDeep(path.join(dir, e.name), maxLook - 1)) return true;
+    }
+  } catch {
+    return false;
+  }
+  return false;
+}
+
 function stubContent(relDir: string, isRoot: boolean): string {
   const title = isRoot ? "Project" : relDir.replace(/\\/g, "/");
   return [
@@ -123,21 +139,10 @@ export function runInitDeep(workspaceRoot: string, opts: InitDeepOptions = {}): 
     const depth = rel === "." ? 0 : rel.split(path.sep).length;
     if (depth > maxDepth) continue;
 
-    // root always; nested only if has code or children with code
+    // root always; nested only if this dir or a descendant has code
     const isRoot = dir === workspaceRoot;
-    if (!isRoot && !hasCodeFiles(dir)) {
-      // still create for intermediate dirs that contain code deeper? skip empty leaves
-      let childHas = false;
-      try {
-        for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-          if (e.isDirectory() && !SKIP_DIRS.has(e.name)) {
-            if (hasCodeFiles(path.join(dir, e.name))) childHas = true;
-          }
-        }
-      } catch {
-        /* */
-      }
-      if (!childHas) continue;
+    if (!isRoot && !hasCodeFilesDeep(dir)) {
+      continue;
     }
 
     const target = path.join(dir, "AGENTS.md");

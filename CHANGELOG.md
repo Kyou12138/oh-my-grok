@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [0.24.0] — 2026-07-15
+
+### MAGI spiral (审视→执行→提升)
+
+- **审视:** `/init-deep` 中间目录仅向下看一层 `hasCodeFiles`，`a/b/c/d.ts` 时 `a/` 不生成 AGENTS.md
+- **执行:**
+  - **fix(init-deep)** `hasCodeFilesDeep` 有界递归，中间包路径也能生成 stub
+  - `tests/init-deep.test.ts` 9 it：detect/opts/code dirs/skip vendor/maxDepth/手写保留
+- **提升:** 下一螺旋 session-start / rules 注入，或 project-memory 再评估
+
 ## [0.23.0] — 2026-07-15
 
 ### MAGI spiral (审视→执行→提升)
