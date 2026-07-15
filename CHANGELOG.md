@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.28.0] — 2026-07-15
+
+### MAGI spiral (审视→执行→提升)
+
+- **审视:** cli fail-open 仅源码注释，无子进程 e2e
+- **执行:** `tests/cli-failopen.test.ts` 6 it：未知 event exit 0、空 stdin session-start、畸形 JSON、pre-tool allow、user-prompt 注入
+- **提升:** 下一螺旋可选 project-memory lite 或验收反馈
+
 ## [0.27.0] — 2026-07-15
 
 ### MAGI spiral (审视→执行→提升)
