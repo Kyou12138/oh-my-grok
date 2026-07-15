@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here.
 
+## [0.30.0] — 2026-07-15
+
+### MAGI spiral (审视→执行→提升)
+
+- **审视:** `/handoff` 写 stub 后新 session 不自动续跑，需用户手动 @ 文件
+- **执行:**
+  - **feat(handoff)** `findLatestHandoff` + `resumeFromHandoffContext`
+  - **feat(session-start)** 有 handoff 时注入 `OMG_HANDOFF_RESUME` 摘要
+  - handoff 测试 +4 it
+- **提升:** 验收用 docs/acceptance.md；下一轮反馈驱动
+
 ## [0.29.0] — 2026-07-15
 
 ### MAGI spiral (审视→执行→提升)

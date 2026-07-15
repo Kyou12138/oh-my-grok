@@ -1,4 +1,8 @@
 import type { EnvConfig, HookInput, HookOutput } from "../protocol/types.js";
+import {
+  findLatestHandoff,
+  resumeFromHandoffContext,
+} from "../features/handoff.js";
 import { refreshCatalog } from "../features/skill-gate.js";
 import {
   loadInjectedRules,
@@ -30,11 +34,18 @@ export function handleSessionStart(input: HookInput, cfg: EnvConfig): HookOutput
   writeJsonAtomic(p.promptCount, { n: 0 });
 
   const catalog = refreshCatalog(input, cfg);
+  const latestHandoff = findLatestHandoff(
+    input.workspaceRoot,
+    cfg,
+    input.sessionId,
+  );
+  const resume = latestHandoff ? resumeFromHandoffContext(latestHandoff) : "";
 
   const additionalContext = [
     sisyphusBootstrap(),
     usingSuperpowersHint(cfg.pluginRoot),
     loadInjectedRules(input.workspaceRoot, cfg),
+    resume,
     `[oh-my-grok] SessionStart OK v${version}. skills=${catalog.catalog.length} fingerprint=${p.fingerprint}`,
     "Do not dual-enable another oh-my-grok (e.g. mihazs Go edition) — hooks will conflict.",
   ]

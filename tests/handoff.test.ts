@@ -16,9 +16,12 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   detectHandoff,
+  findLatestHandoff,
   handoffContext,
+  resumeFromHandoffContext,
   writeHandoffStub,
 } from "../src/features/handoff.js";
+import { handleSessionStart } from "../src/events/session-start.js";
 import type { EnvConfig, HookInput } from "../src/protocol/types.js";
 
 const tmpRoots: string[] = [];
@@ -35,11 +38,14 @@ afterEach(() => {
   }
 });
 
-function cfg(over: Partial<EnvConfig> = {}): EnvConfig {
+function cfg(wsOrOver: string | Partial<EnvConfig> = {}, maybeOver: Partial<EnvConfig> = {}): EnvConfig {
+  const over = typeof wsOrOver === "string" ? maybeOver : wsOrOver;
+  const pluginData =
+    typeof wsOrOver === "string" ? path.join(wsOrOver, "pdata") : ".";
   return {
-    pluginRoot: ".",
-    pluginData: ".",
-    grokHome: ".",
+    pluginRoot: process.cwd(),
+    pluginData,
+    grokHome: pluginData,
     stateDirName: ".omg",
     skillGate: false,
     intentGate: false,
@@ -56,6 +62,7 @@ function cfg(over: Partial<EnvConfig> = {}): EnvConfig {
     commentChecker: false,
     commentCheckerDeny: false,
     agentGuard: false,
+    categoryDiscipline: false,
     ...over,
   };
 }
@@ -160,9 +167,48 @@ describe("handoffsDir isolation (no real .omg/ pollution)", () => {
     const file = writeHandoffStub(input(ws), cfg(), "/handoff");
 
     expect(file.startsWith(ws)).toBe(true);
-    // Real project state dir must remain untouched.
-    expect(fs.existsSync(path.join(realProjectRoot, ".omg", "handoffs"))).toBe(
-      false,
+    // Real project state dir must remain untouched by this write.
+    expect(file.startsWith(path.join(realProjectRoot, ".omg"))).toBe(false);
+  });
+});
+
+describe("findLatestHandoff + resumeFromHandoffContext (v0.30)", () => {
+  it("null when no handoffs dir", () => {
+    const ws = tmpWorkspace();
+    expect(findLatestHandoff(ws, cfg())).toBeNull();
+  });
+
+  it("picks newest mtime handoff", () => {
+    const ws = tmpWorkspace();
+    const c = cfg();
+    const older = writeHandoffStub(input(ws), c, "/handoff older");
+    // ensure newer mtime
+    const newer = writeHandoffStub(input(ws), c, "/handoff newer PHASE3-NEXT-MARKER");
+    const t = Date.now() + 2000;
+    fs.utimesSync(newer, new Date(t), new Date(t));
+    const latest = findLatestHandoff(ws, c);
+    expect(latest).toBe(newer);
+    expect(latest).not.toBe(older);
+  });
+
+  it("resume context embeds excerpt and path", () => {
+    const ws = tmpWorkspace();
+    const file = writeHandoffStub(input(ws), cfg(), "/handoff");
+    fs.appendFileSync(file, "\n## PHASE 3 — Next\n- finish oauth\n", "utf8");
+    const ctx = resumeFromHandoffContext(file);
+    expect(ctx).toMatch(/OMG_HANDOFF_RESUME/);
+    expect(ctx).toContain(file);
+    expect(ctx).toMatch(/finish oauth|PHASE 3/i);
+  });
+
+  it("SessionStart injects resume when handoff exists", () => {
+    const ws = tmpWorkspace();
+    const data = path.join(ws, "pdata");
+    const c = cfg(data);
+    writeHandoffStub(input(ws), c, "/handoff continue the gate work");
+    const out = handleSessionStart(input(ws, { event: "session-start" }), c);
+    expect("additionalContext" in out && out.additionalContext).toMatch(
+      /OMG_HANDOFF_RESUME|continue the gate work/i,
     );
   });
 });

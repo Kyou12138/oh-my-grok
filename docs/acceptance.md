@@ -36,6 +36,7 @@
 ## 其它命令
 
 - [ ] `/handoff` 写出 `.omg/handoffs/*`
+- [ ] 写过 handoff 后**新 session** 上下文含 `OMG_HANDOFF_RESUME` / 路径
 - [ ] `/init-deep` 在有代码的子目录生成 `AGENTS.md`（不覆盖手写长文）
 - [ ] `/stop-continuation` / `/resume-continuation`
 

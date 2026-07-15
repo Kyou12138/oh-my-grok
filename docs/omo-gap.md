@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-15 · **omg version:** 0.29.x  
+**Date:** 2026-07-15 · **omg version:** 0.30.x  
 **MAGI method:** 审视 → 执行 → 提升 (spiral) · **定时 30m**
 
 ## Legend
@@ -202,15 +202,22 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 |------|----------|
 | 验收清单 | `docs/acceptance.md` 可勾选摸测路径 + 反馈模板 |
 
+## Closed this spiral (v0.30)
+
+| Item | Behavior |
+|------|----------|
+| handoff resume | SessionStart 注入最新 `.omg/handoffs/*` 摘要 `OMG_HANDOFF_RESUME` |
+| findLatestHandoff | mtime 选最新；无目录 null |
+
 ## Next spiral focus (提升)
 
-v0.30 候选:
+v0.31 候选:
 
 - **验收反馈驱动**（用户勾选 acceptance.md 失败项优先）
 - **候选B — project memory 持久层(仍 defer)**
 - **Hashline native edit**: 宿主限制
 
-**推荐**: 本会话螺旋 v0.23–0.29 已连交；定时 30m 继续扫缺口，人工验收用 `docs/acceptance.md`。
+**推荐**: 定时 30m 继续扫；人工验收 `docs/acceptance.md`（含 handoff 续跑）。
 
 ## Explicit non-goals
 
