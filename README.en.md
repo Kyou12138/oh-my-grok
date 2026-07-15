@@ -62,6 +62,17 @@ grok plugin enable oh-my-grok
 
 ---
 
+## Distribution channels
+
+oh-my-grok is a **community plugin, not an xAI product** (see disclaimer above). Two install paths with independent trust chains:
+
+- **GitHub direct (primary, recommended for this repo)** — the `grok plugin install Kyou12138/oh-my-grok --trust` above. `--trust` is required by the platform (the plugin executes code and reads/writes local data); no external index needed, works at any time.
+- **Official marketplace (browse)** — [xai-org/plugin-marketplace](https://github.com/xai-org/plugin-marketplace) is the xAI-maintained plugin index; browse it interactively with `/plugin` (or `/marketplace`) in the Grok Build terminal. Integrity is guaranteed by the index's **commit-SHA pin** (Grok Build re-verifies `git rev-parse HEAD == sha` after cloning) — a **different trust chain** from `--trust` direct install.
+
+> oh-my-grok is **not yet listed** in the official marketplace index; use the GitHub direct install. Both paths are community, not affiliated with xAI.
+
+---
+
 ## Wow path (copy-paste)
 
 ### 1) Ultrawork — work until verified
@@ -177,6 +188,25 @@ cp docs/config.example.json .omg/config.json
 
 Flags: `hashline`, `skillGate`, `agentGuard`, `commentChecker`, `diagCommand`, `maxRalphIter`.  
 Env: `OMG_SKILL_GATE`, `OMG_HASHLINE`, `OMG_AGENT_GUARD`, `OMG_COMMENT_CHECKER`, `OMG_DIAG_CMD`, …
+
+---
+
+## Optional enhancements (MCP)
+
+oh-my-grok does **not** ship an in-plugin LSP/AST tool suite (see the non-goal in [omo-gap](./docs/omo-gap.md)), but it interoperates with external MCPs. Two tiers by whether they ship with the plugin:
+
+**Ships with the plugin**
+
+- **context7** — official library docs ([upstash/context7](https://github.com/upstash/context7)). Already enabled in [.mcp.json](./.mcp.json) (`disabled: false`, npm package `@upstash/context7-mcp`) — **loaded on plugin install, no manual setup**.
+
+**Advanced / optional (not Grok-native, opt-in)**
+
+External stdio MCPs by the oh-my-openagent author [code-yeongyu](https://github.com/code-yeongyu). They do **not** ship with this plugin, require manual `grok mcp add`, and are not designed for Grok Build natively:
+
+- **lsp-tools-mcp** ([code-yeongyu/lsp-tools-mcp](https://github.com/code-yeongyu/lsp-tools-mcp)) — LSP diagnostics bridge (extracted from codex-lsp / omo). ⚠️ Known Windows startup defect ([oh-my-openagent #4262](https://github.com/code-yeongyu/oh-my-openagent/issues/4262)); under Grok Build you must register the server name manually.
+- **ast-grep-skill** ([code-yeongyu/ast-grep-skill](https://github.com/code-yeongyu/ast-grep-skill)) — LLM-neutral AST search/rewrite skill (25 languages, wraps `ast-grep`).
+
+> These external MCPs are **not** built-in capabilities of oh-my-grok; they are optional "plug in an existing external server" enhancements, consistent with this repo's LSP/AST non-goal.
 
 ---
 

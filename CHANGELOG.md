@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [0.12.0] — 2026-07-15
+### MAGI 螺旋5 · README 分发渠道 + 分级 MCP + hashline 加固
+- **docs(README)** — README/README.en 新增「分发渠道」小节:GitHub 直装(主路径,`--trust`)+ 官方 marketplace 教育引导(`/plugin` 浏览 + commit-SHA pin 信任链);明确「暂未收录,用 GitHub 直装」,不写已上架。
+- **docs(README)** — 新增「可选增强(MCP)」分级:context7(已随 `.mcp.json` shipped,无需配置,中英同步)/ lsp-tools-mcp + ast-grep-skill(omo 作者外部 MCP,标注非 Grok 原生 + Windows #4262 警示)。
+- **fix(marketing)** — 修正 omo-gap 原文把 pi-ast-grep(pi coding agent 专用,非 Grok)当推荐 MCP 的虚假宣传风险 → 移除 pi-ast-grep,改推同作者通用 ast-grep-skill(审视脑 fan-out 4 维度独立确认 high severity)。
+- **test(hashline)** — 新增 `tests/hashline.test.ts`:跨风格路径收敛 / stale-cache 拒绝 / post-write recache 三条零覆盖分支。hashline.ts 300+ 行核心「先读后改」门禁此前无专属测试。
+- **chore(hashline)** — `resolvePath` 用 `path.resolve` 替代 `path.join`+`path.normalize`(预防性硬化,非 bugfix;多参数等价 normalize(join),测试验证收敛语义不回归)。
+- **docs(omo-gap)** — 关闭候选A(v0.12),设 v0.13 焦点 = 候选B(project memory 持久层);owner Kyou12138 经 git remote 核实(mihazs 嫌疑为搜索混淆)。
+
 ## [0.11.0] — 2026-07-14
 ### MAGI spiral 4 · nested-AGENTS 加厚(realpath 容器 + code-point 安全截断)
 - **feat(directory-inject)** — realpath 容器:`safeRealpath`+`isInside` 用 `fs.realpathSync.native` 解析规范路径后再做 containment 比较,堵住 symlink 下 lexical `path.relative` 误判(外部 AGENTS.md 经符号链接泄漏 / 容器内路径被误判越界);不存在路径/symlink 环自动回退 `path.normalize`

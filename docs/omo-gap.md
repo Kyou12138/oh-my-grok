@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-14 · **omg version:** 0.10.x  
+**Date:** 2026-07-14 · **omg version:** 0.12.x
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -65,15 +65,23 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 |------|----------|
 | nested-AGENTS.md 加厚 | `directory-inject.ts` realpath 容器(safeRealpath+isInside via `fs.realpathSync.native`,堵 symlink 泄漏)+ code-point 安全截断(truncateByCodePoints,防 CJK/emoji lone surrogate);对齐 omo pi-nested-agents-md。realpath symlink 容器测试保留 skip(Windows symlink 权限,手动 / Linux CI 验证) |
 
+## Closed this spiral (v0.12)
+
+| Item | Behavior |
+|------|----------|
+| README 分发渠道 + 分级 MCP | README/README.en 新增「分发渠道」小节:GitHub 直装(主路径,`--trust`)+ 官方 marketplace 教育引导(`/plugin` 浏览 + commit-SHA pin 信任链);明确「暂未收录,用 GitHub 直装」,不写已上架。新增「可选增强(MCP)」分级:context7(已随 `.mcp.json` shipped,无需配置)/ lsp-tools-mcp + ast-grep-skill(omo 作者外部 MCP,标注非 Grok 原生 + Windows #4262 警示)。**修正** omo-gap 原文把 pi-ast-grep(pi coding agent 专用,非 Grok)当推荐 MCP 的虚假宣传风险 → 移除 pi-ast-grep,改推同作者通用 ast-grep-skill |
+| hashline post-write recache 测试 | 新增 `tests/hashline.test.ts`:跨风格路径收敛(`./a` / `a` / 绝对路径)、stale-cache 拒绝、post-write recache 链路三条零覆盖分支。hashline.ts 300+ 行核心「先读后改」门禁此前无专属测试 |
+| hashline 路径卫生(候选C) | `resolvePath` 用 `path.resolve` 替代 `path.join`+`path.normalize`(预防性硬化,非 bugfix;现有 normalize+toLowerCase 已使风格变体收敛) |
+
 ## Next spiral focus (提升)
 
-v0.12 候选(nested-AGENTS 加厚已于 v0.11 落地):
+v0.13 候选(候选A 分发段 + hashline 加固已于 v0.12 落地):
 
-- **候选A — README 官方 marketplace 分发 + MCP 推荐**:在 README/README.en 加官方 plugin marketplace(github.com/xai-org/plugin-marketplace)安装入口与推荐 MCP(context7 / omo 作者 lsp-tools-mcp / pi-ast-grep)。理由:分发是 star 增长与 "must-install" 定位的关键缺口,成本极低。
-- **候选B — project memory 持久层**:跨会话记住决策(选定 subagent 偏好、已废弃方案),让 CATEGORY_DISCIPLINE 门禁携带历史语义。理由:每会话重置决策导致重复返工。
-- **候选C — hashline Windows 路径规范化**:用 `path.resolve` 替代 replace+toLowerCase 建缓存 key(早期审视 Top5)。理由:Windows 开发者占比高,路径处理可能导致状态丢失 / 缓存失效。
+- **候选B — project memory 持久层**:跨会话记住决策(选定 subagent 偏好、已废弃方案),让 CATEGORY_DISCIPLINE 门禁携带历史语义。前置:CATEGORY_DISCIPLINE(v0.10)需先沉淀真实使用反馈,再叠历史层,避免放大调试面。
+- **官方 marketplace 收录 PR**:向 xai-org/plugin-marketplace 提 `external_plugins` entry(远程源 + 40-char commit sha pin),过 code-owner review。README 已就绪,收录后 `/plugin` 可搜到;外部依赖,合并不可控。
+- **hashline 测试深化**:补 LINE#ID mismatch / unknown line 分支(本轮已补三条核心)。
 
-**推荐 v0.12 = 候选A**(README marketplace)。分发缺口是当前最高杠杆、最低成本项;B/C 可作为后续螺旋。
+**推荐 v0.13 = 候选B**(project memory),除非真实使用反馈指向别处。
 
 ## Explicit non-goals
 

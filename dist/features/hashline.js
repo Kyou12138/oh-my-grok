@@ -44,9 +44,11 @@ export function annotateLines(text, maxLines = 200) {
     return { tags, annotated: out.join("\n"), lineCount: lines.length };
 }
 function resolvePath(input, filePath) {
-    if (path.isAbsolute(filePath))
-        return path.normalize(filePath);
-    return path.normalize(path.join(input.workspaceRoot || input.cwd, filePath));
+    // path.resolve 自带 normalize,且对绝对/相对、盘符、混合分隔符的解析比
+    // path.join + path.normalize 更健壮(Windows 混合分隔符/大小写盘符场景)。
+    // 单参数绝对路径等价于 path.normalize;多参数等价于 normalize(join(base, file))。
+    const base = input.workspaceRoot || input.cwd || ".";
+    return path.resolve(base, filePath);
 }
 export function recordRead(input, cfg, filePath) {
     if (!cfg.hashline || !filePath)

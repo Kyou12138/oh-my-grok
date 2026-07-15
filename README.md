@@ -62,6 +62,17 @@ grok plugin enable oh-my-grok
 
 ---
 
+## 分发渠道
+
+oh-my-grok 是**社区插件,非 xAI 官方产品**(见顶部免责)。两条安装路径,信任链各自独立:
+
+- **GitHub 直装(主路径,本仓库推荐)** — 即上面 `grok plugin install Kyou12138/oh-my-grok --trust`。`--trust` 是官方要求(插件会执行代码、读写本地数据),不依赖任何外部索引,随时可用。
+- **官方插件市场(浏览)** — [xai-org/plugin-marketplace](https://github.com/xai-org/plugin-marketplace) 是 xAI 官方维护的插件索引,Grok Build 终端用 `/plugin`(或 `/marketplace`)交互浏览。其完整性由索引的 **commit-SHA pin** 保证(Grok Build clone 后 re-verify `git rev-parse HEAD == sha`),与 `--trust` 直装是**两条不同的信任链**。
+
+> oh-my-grok **暂未收录**进官方 marketplace 索引,请用 GitHub 直装。两条路径均为社区,与 xAI 无隶属。
+
+---
+
 ## 开箱 wow 路径（可复制）
 
 ### 1) Ultrawork — 干到验证过关
@@ -180,6 +191,25 @@ cp docs/config.example.json .omg/config.json
 
 常用开关：`hashline`、`skillGate`、`agentGuard`、`commentChecker`、`diagCommand`、`maxRalphIter`。  
 环境变量：`OMG_SKILL_GATE`、`OMG_HASHLINE`、`OMG_AGENT_GUARD`、`OMG_COMMENT_CHECKER`、`OMG_DIAG_CMD` …
+
+---
+
+## 可选增强（MCP）
+
+oh-my-grok **不内建** LSP/AST 工具套件（见 [omo-gap](./docs/omo-gap.md) 的 non-goal），但可与外部 MCP 协同。按是否随插件分发分两级：
+
+**已随插件分发**
+
+- **context7** — 官方库文档检索（[upstash/context7](https://github.com/upstash/context7)）。已在 [.mcp.json](./.mcp.json) 默认启用（`disabled: false`，npm 包 `@upstash/context7-mcp`），**装插件即加载，无需手动配置**。
+
+**进阶可选（非 Grok 原生，需自行接入）**
+
+oh-my-openagent 作者 [code-yeongyu](https://github.com/code-yeongyu) 的外部 stdio MCP，**不随本插件分发**，需自行 `grok mcp add`，且非为 Grok Build 原生设计：
+
+- **lsp-tools-mcp**（[code-yeongyu/lsp-tools-mcp](https://github.com/code-yeongyu/lsp-tools-mcp)）— LSP 诊断桥（自 codex-lsp / omo 抽取）。⚠️ Windows 有已知启动缺陷（[oh-my-openagent #4262](https://github.com/code-yeongyu/oh-my-openagent/issues/4262)），Grok Build 下需手动注册 server 名。
+- **ast-grep-skill**（[code-yeongyu/ast-grep-skill](https://github.com/code-yeongyu/ast-grep-skill)）— LLM 中立的 AST 搜索/重写 skill（覆盖 25 种语言，包装 `ast-grep`）。
+
+> 上述外部 MCP **不**是 oh-my-grok 的内置能力，属「接入既有外部 server」的可选增强，与本仓库 LSP/AST non-goal 一致。
 
 ---
 
