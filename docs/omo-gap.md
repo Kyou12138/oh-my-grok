@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-15 · **omg version:** 0.26.x  
+**Date:** 2026-07-15 · **omg version:** 0.27.x  
 **MAGI method:** 审视 → 执行 → 提升 (spiral) · **定时 30m**
 
 ## Legend
@@ -184,15 +184,21 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | hard-orchestration | UserPrompt 开关 + banner 专属测试 |
 | session-end | promptCount 重置锁定 |
 
+## Closed this spiral (v0.27)
+
+| Item | Behavior |
+|------|----------|
+| protocol parse 矩阵 | 11 it：畸形 JSON、array、env 回填、agent/stop/firstPrompt 别名 |
+
 ## Next spiral focus (提升)
 
-v0.27 候选:
+v0.28 候选:
 
-- **protocol/parse HookInput 边界专属测试**
+- **cli fail-open e2e**（未知 event / throw → allow/empty）
 - **候选B — project memory 持久层(仍 defer)**
 - **Hashline native edit**: 宿主限制
 
-**推荐 v0.27 = protocol parse 硬化**（stdin/toolInput 畸形 fail-open）。
+**推荐 v0.28 = cli fail-open 行为锁定**。
 
 ## Explicit non-goals
 

@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.27.0] — 2026-07-15
+
+### MAGI spiral (审视→执行→提升)
+
+- **审视:** `parseHookInput` 仅 2 it，畸形 tool_input / env 回填 / agent 别名零专属锁定
+- **执行:** `tests/protocol.test.ts` 扩到 11 it：JSON 失败→`{raw}`、array 忽略、env session/workspace、agent/stop/firstPrompt/toolOutput 别名
+- **提升:** 下一螺旋 project-memory lite 再评估，或 cli fail-open e2e
+
 ## [0.26.0] — 2026-07-15
 
 ### MAGI spiral (审视→执行→提升) · 连续两轮
