@@ -1,20 +1,25 @@
 import type { EnvConfig, HookInput } from "../protocol/types.js";
+export declare const SPAWN_FOLLOWTHROUGH_MAX_YANKS = 2;
 export interface SpawnFollowThroughState {
-    schemaVersion: 1;
-    /** Set true on each spawn; cleared after follow-through yank or real progress. */
+    schemaVersion: 2;
+    /** Armed until progress or max yanks exhausted. */
     pending: boolean;
     lastRole?: string;
+    /** How many times we blocked this wave. */
+    yankCount: number;
     updatedAt: string;
 }
-/** PostTool spawn — arm follow-through for next Stop. */
+/** PostTool spawn — arm / re-arm follow-through for result recovery. */
 export declare function markSpawnFollowThrough(input: HookInput, cfg: EnvConfig, role?: string): void;
 /**
  * "I spawned explore" / "dispatched hephaestus" without concrete results.
  * Long messages with evidence keywords are NOT spawn-announce.
  */
 export declare function isSpawnAnnounceMessage(msg?: string): boolean;
+/** Evidence that parent recovered/used subagent output (not just dispatched). */
+export declare function isSpawnResultRecoveredMessage(msg?: string): boolean;
 /**
- * Stop gate: pending follow-through + (idle | spawn-announce) => block once.
- * Real progress clears pending without blocking.
+ * Stop gate: pending + (idle | spawn-announce) => block up to MAX_YANKS.
+ * Progress or result-recovery language clears pending.
  */
 export declare function spawnFollowThroughStopReason(input: HookInput, cfg: EnvConfig): string | null;

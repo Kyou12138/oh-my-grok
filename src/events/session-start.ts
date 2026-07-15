@@ -3,6 +3,7 @@ import {
   findLatestHandoff,
   resumeFromHandoffContext,
 } from "../features/handoff.js";
+import { sessionResumeSummary } from "../features/session-resume.js";
 import { refreshCatalog } from "../features/skill-gate.js";
 import {
   loadInjectedRules,
@@ -39,13 +40,17 @@ export function handleSessionStart(input: HookInput, cfg: EnvConfig): HookOutput
     cfg,
     input.sessionId,
   );
-  const resume = latestHandoff ? resumeFromHandoffContext(latestHandoff) : "";
+  const handoffResume = latestHandoff
+    ? resumeFromHandoffContext(latestHandoff)
+    : "";
+  const stateResume = sessionResumeSummary(input, cfg);
 
   const additionalContext = [
     sisyphusBootstrap(),
     usingSuperpowersHint(cfg.pluginRoot),
     loadInjectedRules(input.workspaceRoot, cfg),
-    resume,
+    stateResume,
+    handoffResume,
     `[oh-my-grok] SessionStart OK v${version}. skills=${catalog.catalog.length} fingerprint=${p.fingerprint}`,
     "Do not dual-enable another oh-my-grok (e.g. mihazs Go edition) — hooks will conflict.",
   ]

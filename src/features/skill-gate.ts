@@ -21,12 +21,17 @@ export interface SkillGateState {
 const MUTATING = new Set([
   "write",
   "strreplace",
+  "search_replace",
   "editnotebook",
   "delete",
+  "deletefile",
   "edit",
+  "editfile",
   "create",
   "apply_patch",
+  "applypatch",
   "multiedit",
+  "writefile",
 ]);
 
 export function isMutatingTool(name?: string): boolean {

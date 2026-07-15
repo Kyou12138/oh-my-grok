@@ -1,7 +1,7 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-15 · **omg version:** 0.30.x  
-**MAGI method:** 审视 → 执行 → 提升 (spiral) · **定时 30m**
+**Date:** 2026-07-15 · **omg version:** **1.0.0** (stable baseline)  
+**MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
 
@@ -19,7 +19,7 @@
 | Todo continuation enforcer | cooldown + **abort-window** | **shipped** (partial) |
 | Prometheus plan-mode | write lock + **plan-review gate** before start-work | **shipped** |
 | IntentGate / think-mode | keywords + ultrathink | **shipped** |
-| Hashline LINE#ID | PreTool tag+body + Read inject + 专属测试/path.resolve(v0.12) | **partial** |
+| Hashline LINE#ID | PreTool tag+body + Read inject + 文案/matcher v1.0 | **shipped** (partial vs native edit tool) |
 | Skill force-use | Intent Skill Gate | **shipped** |
 | Comment checker | patterns + **session aggregate Stop** | **shipped** (partial vs binary) |
 | Discipline agents + role lock | sticky /agent + spawn | **shipped** (partial models) |
@@ -37,7 +37,7 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 |------|---------|---------|-------|
 | Built-in Exa/Context7 MCP | blocked | **partial** | Platform supports native MCP; `.mcp.json` already carries a context7 entry (enabling it flips `disabled:false`) |
 | In-plugin LSP / AST | blocked | **partial** | Full in-plugin suite remains non-goal; can opt-in to omo author's external stdio servers (lsp-tools-mcp / ast-grep-skill) as optional enhancement (pi-ast-grep removed v0.12 — pi coding agent only) |
-| Background agent babysitter | blocked | **shipped** (partial) | spawn_subagent + post-tool-spawn + agent-guard sticky + **v0.21 spawn-followthrough** Stop once per wave when idle/announce after spawn |
+| Background agent babysitter | blocked | **shipped** (partial) | category-discipline + spawn-followthrough **≤2 yanks/wave** + result-recovery language (v1.0) |
 | Multi-provider model matrix | blocked | **blocked** | Still non-goal (single-host Grok) |
 
 ## Grok-feasible gaps still open (after v0.9)
@@ -209,15 +209,24 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | handoff resume | SessionStart 注入最新 `.omg/handoffs/*` 摘要 `OMG_HANDOFF_RESUME` |
 | findLatestHandoff | mtime 选最新；无目录 null |
 
+## Closed this spiral (v1.0.0)
+
+| Item | Behavior |
+|------|----------|
+| Hashline P0 | deny How-to-fix；matcher 扩 search_replace/WriteFile/…；README 用法 |
+| Spawn P1 | 每 wave 最多 2 次 yank；get_task_output / 回收话术清 pending |
+| Session resume P2 | `OMG_SESSION_RESUME`：ULW/boulder/todos/handoff 摘要 |
+| **Stable** | 公共 hook 契约冻结；breaking → 2.0 |
+
 ## Next spiral focus (提升)
 
-v0.31 候选:
+post-1.0 候选（非阻塞）:
 
-- **验收反馈驱动**（用户勾选 acceptance.md 失败项优先）
-- **候选B — project memory 持久层(仍 defer)**
-- **Hashline native edit**: 宿主限制
+- 全量 project-memory 持久层（仍 defer 除非硬信号）
+- Hashline native edit（宿主）
+- marketplace 收录
 
-**推荐**: 定时 30m 继续扫；人工验收 `docs/acceptance.md`（含 handoff 续跑）。
+**推荐**: 用户 `grok plugin update oh-my-grok` 升到 1.0.0 后按 acceptance 摸测。
 
 ## Explicit non-goals
 

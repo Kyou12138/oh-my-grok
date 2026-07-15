@@ -2,6 +2,30 @@
 
 All notable changes to this project are documented here.
 
+## [1.0.0] — 2026-07-15
+
+### Stable baseline (P0 + P1 + P2 → 1.0)
+
+Grok-feasible harness 契约冻结：之后 breaking 走 2.0 / 迁移说明。
+
+#### P0 — Hashline
+- deny 文案补「How to fix」+ Read / hashline-edit skill
+- hooks matcher 扩：`search_replace`、`WriteFile`、`EditFile`、`read_file` 等
+- `isMutatingTool` 对齐 apply-patch / search_replace / WriteFile
+- README「Hashline 怎么用」+ skill 更新
+
+#### P1 — Spawn 结果回收
+- follow-through 每 wave **最多 2 次** Stop yank（`SPAWN_FOLLOWTHROUGH_MAX_YANKS`）
+- 第二次强调 `get_task_output` / 整合发现
+- `isSpawnResultRecoveredMessage` 识别结果回收话术并清 pending
+
+#### P2 — SessionStart 状态摘要
+- `sessionResumeSummary`：活跃 ULW/Ralph、boulder、未完成 todos、handoff 路径
+- 注入 `<OMG_SESSION_RESUME>`（非全量 project-memory）
+
+#### Non-goals unchanged
+Team Mode / multi-provider / in-plugin LSP suite — still out of scope.
+
 ## [0.30.1] — 2026-07-15
 
 ### Acceptance

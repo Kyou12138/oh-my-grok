@@ -138,18 +138,28 @@ export function hashlinePreToolDeny(input, cfg) {
     }
     const cached = getCached(input, cfg, file);
     const isReplace = tool.includes("strreplace") ||
+        tool.includes("search_replace") ||
         tool.includes("edit") ||
         tool === "multiedit";
     // Require a recent Read before mutating existing files
     if (current && !cached) {
         return [
             "[Hashline] No fresh Read cache for this file.",
-            `Re-Read first: ${file}`,
-            "Then edit using current content (optional LINE#ID anchors from <HASHLINE_CACHE>).",
+            `File: ${file}`,
+            "",
+            "How to fix:",
+            "1) Call **Read** (or read_file) on this exact path first — that builds the Hashline cache.",
+            "2) Copy **exact** current bytes into StrReplace old_string (no paraphrasing).",
+            "3) Optional: use LINE#TAG anchors from <HASHLINE_CACHE> in the next UserPrompt.",
+            "Skill: hashline-edit · skill-gate may require reading it before edits.",
         ].join("\n");
     }
     if (cached && Date.now() - cached.readAt > cfg.hashlineTtlMs) {
-        return `[Hashline] Read cache expired for ${file}. Re-Read the file before editing.`;
+        return [
+            `[Hashline] Read cache expired for ${file}.`,
+            "How to fix: **Read** the file again, then retry the edit with fresh old_string.",
+            `TTL: ${Math.round(cfg.hashlineTtlMs / 60000)} minutes since last Read.`,
+        ].join("\n");
     }
     if (cached && current) {
         const liveHash = contentHash(current);
@@ -158,8 +168,9 @@ export function hashlinePreToolDeny(input, cfg) {
             if (liveHash !== cached.contentHash) {
                 return [
                     "[Hashline] File changed since last Read (stale cache).",
-                    `Re-Read: ${file}`,
+                    `File: ${file}`,
                     `was=${cached.contentHash} now=${liveHash}`,
+                    "How to fix: **Read** again (disk or another agent changed the file), then edit.",
                 ].join("\n");
             }
         }
@@ -184,7 +195,8 @@ export function hashlinePreToolDeny(input, cfg) {
             if (!cached) {
                 return [
                     "[Hashline] LINE#ID anchors require a fresh Read cache.",
-                    `Re-Read: ${file}`,
+                    `File: ${file}`,
+                    "How to fix: **Read** the file, then paste lines from <HASHLINE_CACHE> (format N#TAG| text).",
                 ].join("\n");
             }
             const lineNo = Number(m[1]);
@@ -202,7 +214,7 @@ export function hashlinePreToolDeny(input, cfg) {
                 return [
                     "[Hashline] LINE#ID mismatch — content moved or stale.",
                     `line ${lineNo}: expected #${expected}, got #${tag}`,
-                    `Re-Read: ${file}`,
+                    `Re-Read: ${file} and copy anchors from the new <HASHLINE_CACHE>.`,
                 ].join("\n");
             }
             // Body after tag must match the live file line (tag alone is not enough)
@@ -224,7 +236,7 @@ export function hashlinePreToolDeny(input, cfg) {
                 `File: ${file}`,
                 hasTags
                     ? "LINE#ID anchors were used but plain content no longer matches. Re-Read and retry."
-                    : "Re-Read the file and copy exact current text into old_string.",
+                    : "How to fix: **Read** the file; set old_string to an exact contiguous snippet from disk (not memory).",
             ].join("\n");
         }
     }
@@ -243,8 +255,10 @@ export function hashlineUserContext(input, cfg) {
     const blocks = entries.map((e) => `### ${e.path}\nhash=${e.contentHash} lines=${e.lineCount}\n\`\`\`\n${e.annotatedPreview}\n\`\`\``);
     return [
         "<HASHLINE_CACHE>",
-        "Recent reads with LINE#ID anchors. Prefer editing with exact current text.",
-        "Format: LINE#TAG| content  — if you use tags, keep TAG matching the cache.",
+        "Recent reads with LINE#ID anchors (oh-my-grok Hashline).",
+        "Workflow: Read → edit with exact text → optional anchors.",
+        "Format: N#TAG| content  — TAG must match this cache; body after | must match the live line.",
+        "Do not StrReplace without a prior Read of the same path in this session.",
         ...blocks,
         "</HASHLINE_CACHE>",
     ].join("\n");

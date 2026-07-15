@@ -10,7 +10,9 @@ import { handleStop } from "../src/events/stop.js";
 import type { EnvConfig, HookInput } from "../src/protocol/types.js";
 import {
   isSpawnAnnounceMessage,
+  isSpawnResultRecoveredMessage,
   markSpawnFollowThrough,
+  SPAWN_FOLLOWTHROUGH_MAX_YANKS,
   spawnFollowThroughStopReason,
 } from "../src/features/spawn-followthrough.js";
 
@@ -100,7 +102,7 @@ describe("spawnFollowThroughStopReason", () => {
     ).toBeNull();
   });
 
-  it("blocks once on idle after mark", () => {
+  it("blocks up to MAX_YANKS on idle after mark (v1.0 deepen)", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));
     const input = base(ws);
@@ -110,16 +112,24 @@ describe("spawnFollowThroughStopReason", () => {
       c,
     );
     expect(r1).toMatch(/SPAWN_FOLLOWTHROUGH|explore|subagent/i);
-    // second stop — pending cleared
+    expect(r1).toMatch(/1\/2|yank 1/i);
+    const r2 = spawnFollowThroughStopReason(
+      base(ws, { lastAssistantMessage: "ok" }),
+      c,
+    );
+    expect(r2).toMatch(/SPAWN_FOLLOWTHROUGH|get_task_output|final/i);
+    expect(r2).toMatch(/2\/2|yank 2/i);
+    // third — wave exhausted
     expect(
       spawnFollowThroughStopReason(
         base(ws, { lastAssistantMessage: "ok" }),
         c,
       ),
     ).toBeNull();
+    expect(SPAWN_FOLLOWTHROUGH_MAX_YANKS).toBe(2);
   });
 
-  it("blocks on spawn-announce; clears pending", () => {
+  it("blocks on spawn-announce", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));
     markSpawnFollowThrough(base(ws), c, "oracle");
@@ -130,7 +140,12 @@ describe("spawnFollowThroughStopReason", () => {
     expect(r).toMatch(/SPAWN_FOLLOWTHROUGH|oracle/i);
   });
 
-  it("real progress after spawn clears pending without block", () => {
+  it("result recovery language clears without block", () => {
+    expect(
+      isSpawnResultRecoveredMessage(
+        "Used get_task_output; subagent returned path map.",
+      ),
+    ).toBe(true);
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));
     markSpawnFollowThrough(base(ws), c, "explore");
@@ -171,7 +186,7 @@ describe("production path PostTool + Stop", () => {
     expect(JSON.stringify(stop)).toMatch(/SPAWN_FOLLOWTHROUGH|explore/i);
   });
 
-  it("second Stop after follow-through does not re-block for same wave", () => {
+  it("third idle Stop after two yanks does not re-fire SPAWN_FOLLOWTHROUGH", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));
     handlePostToolSpawn(
@@ -183,15 +198,10 @@ describe("production path PostTool + Stop", () => {
       c,
     );
     handleStop(base(ws, { lastAssistantMessage: "ok" }), c);
-    const stop2 = handleStop(
-      base(ws, {
-        lastAssistantMessage: "ok still idle",
-      }),
-      c,
-    );
-    // may block for other gates; must not re-fire SPAWN_FOLLOWTHROUGH
-    if ("decision" in stop2 && stop2.decision === "block") {
-      expect(JSON.stringify(stop2)).not.toMatch(/SPAWN_FOLLOWTHROUGH/);
+    handleStop(base(ws, { lastAssistantMessage: "ok" }), c);
+    const stop3 = handleStop(base(ws, { lastAssistantMessage: "ok" }), c);
+    if ("decision" in stop3 && stop3.decision === "block") {
+      expect(JSON.stringify(stop3)).not.toMatch(/SPAWN_FOLLOWTHROUGH/);
     }
   });
 });

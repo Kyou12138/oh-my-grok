@@ -449,10 +449,11 @@ describe("isMutatingTool", () => {
   });
 
   it("对工具名做字符归一化（去掉非 [a-z_]）", () => {
-    // "apply-patch" → "applypatch" 仍不在集合中（集合要求 apply_patch）
-    expect(isMutatingTool("apply-patch")).toBe(false);
-    // "apply_patch" 在集合中
+    // "apply-patch" → "applypatch"；v1.0 起与 apply_patch 同属写入工具
+    expect(isMutatingTool("apply-patch")).toBe(true);
     expect(isMutatingTool("apply_patch")).toBe(true);
+    expect(isMutatingTool("search_replace")).toBe(true);
+    expect(isMutatingTool("WriteFile")).toBe(true);
     // "Write." → "write" 命中
     expect(isMutatingTool("Write.")).toBe(true);
   });

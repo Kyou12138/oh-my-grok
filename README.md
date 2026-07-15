@@ -8,7 +8,7 @@
 
 **中文** | [English](./README.en.md)
 
-**Grok Build 上的 omo 式 harness + Superpowers 方法论。**
+**Grok Build 上的 omo 式 harness + Superpowers 方法论。** · **v1.0.0 stable**
 
 装一次，输入 `ultrawork`。Hooks 强制 agent 走完 **探索 → 实现 → 验证**，直到真正做完。
 
@@ -121,7 +121,7 @@ Plan-mode 下只允许写 `.omg/plans/`。然后：
 
 | 层 | 已交付 |
 |----|--------|
-| **Harness** | Ralph / **ULW v3 multi-goal**（shell→verify）、**think-mode**、**意图 Skill Gate**、**Hashline**、Stop 链、Todo abort-window/**Boulder**、**idle-turn**、**粘性 agent role**、**plan-review 门禁**、**spawn follow-through**、Category discipline、Comment aggregate、Agent Guard、Diagnostics、Handoff、`/init-deep` |
+| **Harness** | Ralph / **ULW v3 multi-goal**、**Hashline**（先 Read 再改）、**plan-review**、**spawn follow-through**（结果回收至多 2 次）、SessionStart **状态摘要**、Todo/Boulder、idle-turn、粘性 `/agent`、Category discipline、Comment aggregate、Agent Guard、Handoff 续跑、`/init-deep` |
 | **纪律 Agents** | Sisyphus · Hephaestus · Prometheus · Atlas · Oracle · Explore · Librarian · Metis · Momus |
 | **Superpowers** | Vendor MIT skills：brainstorming、writing-plans、TDD、verification-before-completion … |
 
@@ -139,6 +139,13 @@ Plan-mode 下只允许写 `.omg/plans/`。然后：
 与 omo **语义对齐**；**不宣称** Team Mode、跨厂路由或完整工具 OS 对等。
 
 ---
+
+## Hashline 怎么用
+
+1. 先 **Read** 目标文件（缓存 LINE#ID）。  
+2. **StrReplace / Write** 的 `old_string` 必须是当前文件里的原文。  
+3. 可选：下一轮提示里的 `<HASHLINE_CACHE>` 用 `行号#TAG| 内容` 锚定。  
+未先 Read 就改**已有文件**会被 PreTool 拒绝（见 skill `hashline-edit`）。
 
 ## 命令
 

@@ -24,7 +24,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Write|StrReplace|EditNotebook|Delete|Edit|Create|Apply_patch|Multiedit",
+        "matcher": "Write|StrReplace|search_replace|EditNotebook|Delete|DeleteFile|Edit|EditFile|Create|Apply_patch|ApplyPatch|Multiedit|WriteFile",
         "hooks": [
           {
             "type": "command",
@@ -36,7 +36,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Read",
+        "matcher": "Read|read_file",
         "hooks": [
           {
             "type": "command",
@@ -56,7 +56,7 @@
         ]
       },
       {
-        "matcher": "Write|StrReplace|Edit|Create|Apply_patch|Multiedit",
+        "matcher": "Write|StrReplace|search_replace|Edit|EditFile|Create|Apply_patch|ApplyPatch|Multiedit|WriteFile",
         "hooks": [
           {
             "type": "command",
@@ -76,7 +76,7 @@
         ]
       },
       {
-        "matcher": "spawn_subagent|Task|task|call_omo_agent",
+        "matcher": "spawn_subagent|Task|task|call_omo_agent|SpawnSubagent",
         "hooks": [
           {
             "type": "command",

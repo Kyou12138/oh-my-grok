@@ -1,7 +1,7 @@
 {
   "name": "oh-my-grok",
-  "version": "0.30.1",
-  "description": "omo-style harness: plan-review, comment aggregate, multi-goal ULW, Superpowers",
+  "version": "1.0.0",
+  "description": "omo-style harness for Grok Build (stable): plan-review, Hashline, ULW, spawn follow-through",
   "author": {
     "name": "Kyou12138",
     "url": "https://github.com/Kyou12138"
