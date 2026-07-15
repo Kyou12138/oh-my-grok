@@ -30,6 +30,7 @@ import {
 } from "../features/ralph.js";
 import {
   loadInjectedRules,
+  readPluginVersion,
   sisyphusBootstrap,
   usingSuperpowersHint,
 } from "../features/rules.js";
@@ -169,7 +170,8 @@ export function handleUserPrompt(input: HookInput, cfg: EnvConfig): HookOutput {
   if (isFirst) {
     parts.push(sisyphusBootstrap());
     parts.push(usingSuperpowersHint(cfg.pluginRoot));
-    parts.push("[oh-my-grok:alive] hooks online — fingerprint + harness v0.2.");
+    const ver = readPluginVersion(cfg.pluginRoot);
+    parts.push(`[oh-my-grok:alive] hooks online — fingerprint + harness v${ver}.`);
   }
 
   if (cfg.hardOrchestration) {

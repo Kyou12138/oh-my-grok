@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here.
 
+## [0.26.0] — 2026-07-15
+
+### MAGI spiral (审视→执行→提升) · 连续两轮
+
+**v0.25 session-start / rules**
+- **fix** fingerprint 硬编码 `0.16.0` → `readPluginVersion(package.json)`
+- **fix** 首轮 alive `v0.2` → 真实版本
+- **feat(session-start)** 启动注入 `loadInjectedRules`
+- **fix(rules)** code-point 截断；bootstrap 分类补 unspecified-*
+- `tests/session-start.test.ts` 11 it
+
+**v0.26 orchestration + session-end**
+- `tests/orchestration-session-end.test.ts`：hard-orchestration 注入开关、comment hint、session-end 重置 promptCount
+- **提升:** 下一螺旋 protocol/parse 硬化或 project-memory 再评估
+
 ## [0.24.0] — 2026-07-15
 
 ### MAGI spiral (审视→执行→提升)

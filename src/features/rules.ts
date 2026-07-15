@@ -4,9 +4,30 @@ import type { EnvConfig } from "../protocol/types.js";
 
 const MAX_CHARS = 12_000;
 
+/** Truncate at code-point boundary (CJK/emoji safe). */
+export function truncateRulesText(str: string, max: number): string {
+  if (str.length <= max && /^[\x00-\x7F]*$/.test(str)) return str;
+  if (/^[\x00-\x7F]*$/.test(str)) return str.slice(0, max);
+  const cps = Array.from(str);
+  if (cps.length <= max) return str;
+  return cps.slice(0, max).join("");
+}
+
+/** Read plugin version from package.json (fingerprint / alive banner). */
+export function readPluginVersion(pluginRoot: string): string {
+  try {
+    const raw = fs.readFileSync(path.join(pluginRoot, "package.json"), "utf8");
+    const v = JSON.parse(raw)?.version;
+    if (typeof v === "string" && v.trim()) return v.trim();
+  } catch {
+    /* ignore */
+  }
+  return "0.0.0";
+}
+
 export function loadInjectedRules(workspaceRoot: string, cfg: EnvConfig): string {
   const parts: string[] = [];
-  // Workspace AGENTS.md
+  // Workspace AGENTS.md (prefer AGENTS.md over agents.md / CLAUDE.md)
   for (const name of ["AGENTS.md", "agents.md", "CLAUDE.md"]) {
     const f = path.join(workspaceRoot, name);
     if (fs.existsSync(f)) {
@@ -34,8 +55,8 @@ export function loadInjectedRules(workspaceRoot: string, cfg: EnvConfig): string
     }
   }
   let text = parts.join("\n\n");
-  if (text.length > MAX_CHARS) {
-    text = text.slice(0, MAX_CHARS) + "\n\n…[truncated for size]";
+  if (Array.from(text).length > MAX_CHARS) {
+    text = truncateRulesText(text, MAX_CHARS) + "\n\n…[truncated for size]";
   }
   if (!text) return "";
   return `<OMG_RULES>\n${text}\n</OMG_RULES>`;
@@ -57,7 +78,7 @@ export function sisyphusBootstrap(): string {
     "- hephaestus — deep autonomous implementation",
     "- atlas — execute plans after /start-work (boulder)",
     "",
-    "Categories (thin layer): visual-engineering | ultrabrain | deep | quick | writing — pick matching specialist.",
+    "Categories (thin layer): visual-engineering | ultrabrain | deep | quick | writing | unspecified-* — pick matching specialist.",
     "Methodology: Superpowers skills (brainstorming → writing-plans → TDD → verification).",
     "Before creative work: Read using-superpowers / brainstorming SKILL.md when applicable.",
     "Loops: /ralph-loop, /ulw-loop (ultrawork), /cancel-ralph, /handoff, /plan, /start-work,",

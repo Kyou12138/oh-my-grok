@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-15 · **omg version:** 0.24.x  
+**Date:** 2026-07-15 · **omg version:** 0.26.x  
 **MAGI method:** 审视 → 执行 → 提升 (spiral) · **定时 30m**
 
 ## Legend
@@ -173,15 +173,26 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | init-deep 中间目录 | `hasCodeFilesDeep` 有界递归，深路径父目录也生成 AGENTS.md |
 | init-deep 专属测试 | `tests/init-deep.test.ts` 9 it |
 
+## Closed this spiral (v0.25–v0.26)
+
+| Item | Behavior |
+|------|----------|
+| fingerprint 版本 | 读 `package.json`，不再硬编码 0.16.0 |
+| SessionStart rules | 启动注入 AGENTS.md + plugin rules |
+| alive 横幅 | 首轮 UserPrompt 使用真实版本号 |
+| session-start tests | 11 it |
+| hard-orchestration | UserPrompt 开关 + banner 专属测试 |
+| session-end | promptCount 重置锁定 |
+
 ## Next spiral focus (提升)
 
-v0.25 候选:
+v0.27 候选:
 
-- **session-start / rules 注入专属测试**
+- **protocol/parse HookInput 边界专属测试**
 - **候选B — project memory 持久层(仍 defer)**
 - **Hashline native edit**: 宿主限制
 
-**推荐 v0.25 = session-start 上下文组装锁定**（rules + Superpowers bootstrap）。
+**推荐 v0.27 = protocol parse 硬化**（stdin/toolInput 畸形 fail-open）。
 
 ## Explicit non-goals
 
