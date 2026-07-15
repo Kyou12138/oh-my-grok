@@ -1,6 +1,6 @@
 {
   "name": "oh-my-grok",
-  "version": "0.28.0",
+  "version": "0.29.0",
   "description": "omo-style harness for Grok Build — plan-review gate, comment aggregate, multi-goal ULW, Superpowers",
   "type": "module",
   "bin": {

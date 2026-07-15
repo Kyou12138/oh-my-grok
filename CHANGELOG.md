@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.29.0] — 2026-07-15
+
+### MAGI spiral (审视→执行→提升)
+
+- **审视:** 功能/测试已厚，验收缺少可勾选路径
+- **执行:** `docs/acceptance.md` 安装→规划→循环→角色/spawn→Hashline/注释→命令 摸测清单
+- **提升:** 等验收反馈驱动 v0.30+；project-memory 仍 defer
+
 ## [0.28.0] — 2026-07-15
 
 ### MAGI spiral (审视→执行→提升)

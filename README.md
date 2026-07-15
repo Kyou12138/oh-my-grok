@@ -178,6 +178,7 @@ npm run validate
 - [CHANGELOG.md](./CHANGELOG.md) — 版本说明  
 - [docs/contract.md](./docs/contract.md) — Hook I/O 契约  
 - [docs/omo-gap.md](./docs/omo-gap.md) — 与 omo 能力对照（可做 / 阻塞）  
+- [docs/acceptance.md](./docs/acceptance.md) — 人工验收勾选清单  
 - **CI：** `npm run ci`（[`scripts/ci.mjs`](./scripts/ci.mjs)）。GitHub Actions 模板：[`docs/ci.workflow.yml`](./docs/ci.workflow.yml)
 
 ---
