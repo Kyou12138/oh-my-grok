@@ -83,10 +83,19 @@ export function runDiagCommand(input, cfg) {
 export function isVerifiedMessage(msg) {
     if (!msg)
         return false;
-    return (/<promise>VERIFIED<\/promise>/i.test(msg) ||
-        /\bOMG_VERIFIED\b/.test(msg) ||
-        /all tests passed/i.test(msg) ||
-        /diagnostics clean/i.test(msg));
+    if (/<promise>VERIFIED<\/promise>/i.test(msg))
+        return true;
+    if (/\bOMG_VERIFIED\b/.test(msg))
+        return true;
+    if (/diagnostics clean/i.test(msg))
+        return true;
+    // "all tests passed" 仅当前面无紧邻否定语境(not/never/without/…n't)时算验证,
+    // 堵住 'not all tests passed' 误放行 verify-gate(v0.13 修复)。
+    if (/\ball tests passed\b/i.test(msg) &&
+        !/\b(?:not|never|without|didn'?t|haven'?t|hasn'?t)\b[^.!\n]*\ball tests passed\b/i.test(msg)) {
+        return true;
+    }
+    return false;
 }
 export function diagStopReason(input, cfg) {
     if (!cfg.diagEnforce)

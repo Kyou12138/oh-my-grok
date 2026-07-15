@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.13.0] — 2026-07-15
+### MAGI 螺旋6 · verify-gate 误放行修复 + diagnostics/hashline 测试深化 + 文档一致性
+- **fix(diagnostics)** — `isVerifiedMessage` 的 `/all tests passed/i` 子串无锚定,`'not all tests passed'` / 否定句误判已验证、绕过 verify-gate(被 stop.ts 入口 markVerified + ralph DONE 接受)。收紧为 `\ball tests passed\b` + 否定语境排除(not/never/without/n't 前导),保留合法肯定陈述。
+- **test(diagnostics)** — 新增 tests/diagnostics.test.ts(12 it):isVerifiedMessage 真值表(正例+负例锁 verify-gate)、diagStopReason 三分支、runDiagCommand 状态分支。diagnostics.ts 此前零专属测试。
+- **test(hashline)** — tests/hashline.test.ts 追加 7 it:LINE#ID 四拒绝分支(unknown/mismatch/body-mismatch/anchors-without-cache)+ 正例 + TTL + empty old_string,替换 functional-gates 过宽断言。
+- **docs** — omo-gap L34/L39/L93 pi-ast-grep 残留(pi agent 专用,与螺旋5 矛盾)→ ast-grep-skill;inventory Hashline/Context7 状态对齐 v0.12;contract.md Env 补 OMG_DIAG_TIMEOUT_MS / OMG_HASHLINE_TTL_MS / OMG_TODO_ABORT_WINDOW_MS。
+- **docs(omo-gap)** — 候选B project memory 裁定 defer(CATEGORY_DISCIPLINE 上线仅 ~15h、前置未满足,叠历史层会放大调试面);设 v0.14 焦点 = 事件编排测试(pre-tool/stop 门禁顺序锁定)。
+
 ## [0.12.0] — 2026-07-15
 ### MAGI 螺旋5 · README 分发渠道 + 分级 MCP + hashline 加固
 - **docs(README)** — README/README.en 新增「分发渠道」小节:GitHub 直装(主路径,`--trust`)+ 官方 marketplace 教育引导(`/plugin` 浏览 + commit-SHA pin 信任链);明确「暂未收录,用 GitHub 直装」,不写已上架。

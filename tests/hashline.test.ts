@@ -248,3 +248,244 @@ describe("hashline — post-write recache 链路", () => {
     expect(denyOld).not.toBeNull();
   });
 });
+
+/**
+ * LINE#ID 校验分支专属覆盖(螺旋6 v0.13 组B)。
+ *
+ * hashlinePreToolDeny 的 isReplace 分支里有 4 个 LINE#ID 拒绝点
+ * (anchors-without-cache / unknown-line / mismatch / body-mismatch),
+ * 外加 TTL 过期与 empty old_string 放行。本组全部直驱纯函数、真实
+ * 临时目录隔离,每个 it 用独立 tmpWorkspace;断言锁定每条 reason 的
+ * 精确文案,纠正 functional-gates.test.ts 间接覆盖时过宽的匹配。
+ */
+describe("hashline — LINE#ID 校验分支", () => {
+  it("(A) unknown line —— old_string 引用超出 lineCount 的行号,reason 含 unknown line / not in cache(锁 L241-247)", () => {
+    const ws = tmpWorkspace();
+    const fileAbs = path.join(ws, "two.ts");
+    // 2 行文件,lineTags 有效下标 1..2
+    fs.writeFileSync(fileAbs, "alpha\nbravo\n", "utf8");
+    const cfg = makeCfg();
+
+    recordRead(
+      makeInput(ws, { toolName: "Read", toolInput: { file_path: "two.ts" } }),
+      cfg,
+      "two.ts",
+    );
+
+    // 999#AA 引用超出 lineCount 的行号 → expected = lineTags[999] = undefined
+    const deny = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "strreplace",
+        toolInput: {
+          file_path: "two.ts",
+          old_string: "999#AA| whatever",
+          new_string: "x",
+        },
+      }),
+      cfg,
+    );
+
+    // 锁定 unknown line 分支(不是 mismatch / body)
+    expect(deny).not.toBeNull();
+    expect(deny).toMatch(/unknown line number/i);
+    expect(deny).toMatch(/not in cache/i);
+    // 明确不能误命中其它 LINE#ID 分支
+    expect(deny).not.toMatch(/mismatch/i);
+    expect(deny).not.toMatch(/body/i);
+  });
+
+  it("(B) mismatch —— tag 故意写错,reason 含 LINE#ID mismatch / expected / got(锁 L248-254)", () => {
+    const ws = tmpWorkspace();
+    const fileAbs = path.join(ws, "m.ts");
+    fs.writeFileSync(fileAbs, "const X = 1;\n", "utf8");
+    const cfg = makeCfg();
+
+    const entry = recordRead(
+      makeInput(ws, { toolName: "Read", toolInput: { file_path: "m.ts" } }),
+      cfg,
+      "m.ts",
+    );
+    expect(entry).not.toBeNull();
+    // 真实 tag(lineTags[1]);下面故意写一个不同的 tag
+    const realTag = entry!.lineTags[1];
+    const wrongTag = realTag === "ZZ" ? "AA" : "ZZ";
+
+    const deny = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "strreplace",
+        toolInput: {
+          file_path: "m.ts",
+          old_string: `1#${wrongTag}| const X = 1;`,
+          new_string: "y",
+        },
+      }),
+      cfg,
+    );
+
+    // 锁定 mismatch 分支(不是 unknown / body)
+    expect(deny).not.toBeNull();
+    expect(deny).toMatch(/LINE#ID mismatch/i);
+    expect(deny).toMatch(/expected/i);
+    expect(deny).toMatch(/got/i);
+    expect(deny).not.toMatch(/unknown line/i);
+    expect(deny).not.toMatch(/body mismatch/i);
+  });
+
+  it("(C) body-mismatch —— tag 正确但 body 伪造,reason 含 body mismatch / tag ok(锁 L256-265)", () => {
+    const ws = tmpWorkspace();
+    const fileAbs = path.join(ws, "b.ts");
+    fs.writeFileSync(fileAbs, "const REAL = 1;\n", "utf8");
+    const cfg = makeCfg();
+
+    const entry = recordRead(
+      makeInput(ws, { toolName: "Read", toolInput: { file_path: "b.ts" } }),
+      cfg,
+      "b.ts",
+    );
+    expect(entry).not.toBeNull();
+    // 取真实 tag,但 body 写伪造文本 —— tag 命中、body 不命中磁盘行
+    const realTag = entry!.lineTags[1];
+
+    const deny = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "strreplace",
+        toolInput: {
+          file_path: "b.ts",
+          old_string: `1#${realTag}| FAKE BODY`,
+          new_string: "z",
+        },
+      }),
+      cfg,
+    );
+
+    // 专属精确断言:body mismatch 分支(tag ok)
+    expect(deny).not.toBeNull();
+    expect(deny).toMatch(/body mismatch/i);
+    expect(deny).toMatch(/tag ok/i);
+    expect(deny).toMatch(/expected body/i);
+    expect(deny).toMatch(/got body/i);
+    // 不能误命中 mismatch / unknown
+    expect(deny).not.toMatch(/LINE#ID mismatch/i);
+    expect(deny).not.toMatch(/unknown line/i);
+  });
+
+  it("(D) anchors-without-cache —— 未 Read 直接带 tag 的 old_string,reason 含 anchors require a fresh Read(锁 L231-236)", () => {
+    const ws = tmpWorkspace();
+    const cfg = makeCfg();
+
+    // 关键:文件不能有 current,否则会先撞 L187 的 "No fresh Read cache"
+    // 这里用 workspaceRoot 下不存在的相对名,fs.existsSync 为 false → current=""
+    const deny = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "strreplace",
+        toolInput: {
+          file_path: "ghost.ts",
+          old_string: "1#AA| body",
+          new_string: "w",
+        },
+      }),
+      cfg,
+    );
+
+    // 锁定 anchors-without-cache 分支
+    expect(deny).not.toBeNull();
+    expect(deny).toMatch(/anchors require a fresh Read/i);
+  });
+
+  it("(E) 正例 —— 真实 tag + 真实 body 构造 old_string,hashlinePreToolDeny 返回 null(allow)", () => {
+    const ws = tmpWorkspace();
+    const fileAbs = path.join(ws, "ok.ts");
+    fs.writeFileSync(fileAbs, "const OK = 1;\n", "utf8");
+    const cfg = makeCfg();
+
+    const entry = recordRead(
+      makeInput(ws, { toolName: "Read", toolInput: { file_path: "ok.ts" } }),
+      cfg,
+      "ok.ts",
+    );
+    expect(entry).not.toBeNull();
+    // tag 与 body 都取真实值 —— 全部校验通过
+    const realTag = entry!.lineTags[1];
+    const realBody = "const OK = 1;";
+
+    const allow = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "strreplace",
+        toolInput: {
+          file_path: "ok.ts",
+          old_string: `1#${realTag}| ${realBody}`,
+          new_string: "const OK = 2;",
+        },
+      }),
+      cfg,
+    );
+
+    expect(allow).toBeNull();
+  });
+
+  it("(F) TTL 过期 —— 小 TTL cfg 等待超过 TTL 后 hashlinePreToolDeny 返回 expired for(锁 L195)", () => {
+    const ws = tmpWorkspace();
+    const fileAbs = path.join(ws, "ttl.ts");
+    fs.writeFileSync(fileAbs, "line one\n", "utf8");
+    // 小 TTL:50ms
+    const cfg = makeCfg();
+    cfg.hashlineTtlMs = 50;
+
+    recordRead(
+      makeInput(ws, { toolName: "Read", toolInput: { file_path: "ttl.ts" } }),
+      cfg,
+      "ttl.ts",
+    );
+
+    // 等待超过 TTL(60ms > 50ms)
+    const start = Date.now();
+    while (Date.now() - start < 60) {
+      /* spin */
+    }
+
+    const deny = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "strreplace",
+        toolInput: {
+          file_path: "ttl.ts",
+          old_string: "line one",
+          new_string: "line two",
+        },
+      }),
+      cfg,
+    );
+
+    // 锁定 TTL 过期分支(在 isReplace 之前,先于 LINE#ID 校验)
+    expect(deny).not.toBeNull();
+    expect(deny).toMatch(/expired for/i);
+  });
+
+  it("(G) empty old_string —— strreplace 但 old_string 为空,hashlinePreToolDeny 返回 null(放行, L221)", () => {
+    const ws = tmpWorkspace();
+    const fileAbs = path.join(ws, "empty.ts");
+    fs.writeFileSync(fileAbs, "something\n", "utf8");
+    const cfg = makeCfg();
+
+    // 先 Read 建缓存,避免撞 L187 的 "No fresh Read cache"
+    recordRead(
+      makeInput(ws, { toolName: "Read", toolInput: { file_path: "empty.ts" } }),
+      cfg,
+      "empty.ts",
+    );
+
+    const allow = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "strreplace",
+        toolInput: {
+          file_path: "empty.ts",
+          old_string: "",
+          new_string: "inserted",
+        },
+      }),
+      cfg,
+    );
+
+    // old_string 为空 → 直接放行(L221 return null)
+    expect(allow).toBeNull();
+  });
+});

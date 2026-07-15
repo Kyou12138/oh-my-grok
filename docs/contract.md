@@ -50,6 +50,7 @@ Fail-open: unexpected errors → allow/empty + exit 0.
 - `OMG_COMMENT_CHECKER` (`0` off, `1` soft warn, `deny` = hard via PreTool)
 - `OMG_COMMENT_CHECKER_DENY`, `OMG_AGENT_GUARD`
 - `OMG_CATEGORY_DISCIPLINE` (默认开, `0` 关闭)
+- `OMG_DIAG_TIMEOUT_MS` (default `60000` ms) · `OMG_HASHLINE_TTL_MS` (default `1800000` ms) · `OMG_TODO_ABORT_WINDOW_MS` (default `3000` ms)
 - `GROK_AGENT_NAME` / `OMG_AGENT_ROLE` for agent-guard role detection
 
 Workspace file: `.omg/config.json` (see `docs/config.example.json`).
