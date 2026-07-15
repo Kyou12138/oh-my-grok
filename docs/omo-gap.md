@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-15 · **omg version:** 0.18.x  
+**Date:** 2026-07-15 · **omg version:** 0.19.x  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -125,15 +125,22 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | detectRalph 连字符 | `"ulw-stop"` 不再 start-ulw；`ulw重构` CJK 仍有效 |
 | isVerifyShell echo | `"echo npm test"` false；`"echo x && npm test"` true |
 
+## Closed this spiral (v0.19)
+
+| Item | Behavior |
+|------|----------|
+| agent-guard 专属测试 | `tests/agent-guard.test.ts`（27 it）：只读全集 / 别名 / slash>host / spawn fallback / deny 真值表 / 生产路径 |
+| sticky 优先级契约 | slash-agent 压 host；spawn 不压 host agentName |
+
 ## Next spiral focus (提升)
 
-v0.19 候选:
+v0.20 候选:
 
-- **agent-guard / session-role 专属测试**: sticky /agent、只读角色拦写、fail-open（若零覆盖）
-- **Background babysitter 深化**: spawn 完成后 Stop 再拉一次（超出 category discipline 一次 yank）
+- **idle-turn + think-mode 专属测试深化**: fluff 真值表、Stop 联动、ultrathink 注入边界
+- **Background babysitter**: spawn 未完成时 Stop 再拉（非 category 一次 yank）
 - **候选B — project memory 持久层(仍 defer)**: 硬信号未变
 
-**推荐 v0.19 = agent-guard + session-role 专属测试矩阵**（生产门禁第一道，覆盖缺口大则补测+修）。
+**推荐 v0.20 = idle-turn + think-mode 专属测试**（Stop yank / UserPrompt 注入高频路径）。
 
 ## Explicit non-goals
 

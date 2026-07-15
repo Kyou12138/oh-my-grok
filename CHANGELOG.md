@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [0.19.0] — 2026-07-15
+
+### MAGI spiral (审视→执行→提升)
+
+- **审视:** PreTool 第一道 agent-guard 仅 omo-gap-v07 / orchestration 切片覆盖；session-role sticky 优先级契约未专属锁定
+- **执行:** `tests/agent-guard.test.ts`（27 it）：READ_ONLY 全集 / resolveAgentRole 别名+env+slash 优先 / agentGuardDeny 真值表 / detectAgentCommand·extractSpawnRole·isSpawnTool / UserPrompt+PostTool+PreTool 生产路径
+- **契约锁定:** slash-agent sticky 压过 host agentName；spawn sticky 仅在 host 省略 agentName 时生效
+- **提升:** 下一螺旋优先 idle-turn / think-mode 专属深化，或 background babysitter Stop 再拉
+
 ## [0.18.0] — 2026-07-15
 
 ### MAGI spiral (审视→执行→提升)
