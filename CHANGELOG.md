@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [0.18.0] — 2026-07-15
+
+### MAGI spiral (审视→执行→提升)
+
+- **审视:** v0.15 契约锁定三缺陷会误解析 goal / 误启 ULW / 假验证
+- **执行:**
+  - **fix(ralph)** `parseGoalsFromTask`：尾分号/竖线剥离；数字目标单字符（`1) a 2) b`）可拆
+  - **fix(ralph)** `detectRalphCommand`：`ulw-stop` 等连字符不再误启；保留 CJK 粘连 `ulw重构`
+  - **fix(ralph)** `isVerifyShellCommand`：按 `&&/||/;` 分段，拒绝 echo/printf/Write-Host 段
+  - 测试：ralph 专属 67 it（+4）
+- **提升:** 下一螺旋优先 background babysitter 深化，或 agent-guard / session-role 专属测试
+
 ## [0.17.0] — 2026-07-15
 
 ### MAGI spiral (审视→执行→提升)

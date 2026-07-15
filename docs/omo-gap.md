@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-15 · **omg version:** 0.17.x  
+**Date:** 2026-07-15 · **omg version:** 0.18.x  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -116,15 +116,24 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | prometheus 专属测试 | `tests/prometheus.test.ts`（30 it）：detectPlanCommand 六分支 / planFileHasReview 真值表(template 反例、unchecked VERDICT、`+` 列表、CRLF、FAIL) / startWorkFromPlan 无 plan·无 review·成功·缺文件 / planModeDeny 五分支 / UserPrompt+PreTool 生产路径 |
 | planFileHasReview `+` 对齐 | checklist 已/未勾选支持 GFM `+`（与 hasOpenPlanCheckboxes 一致） |
 
+## Closed this spiral (v0.18)
+
+| Item | Behavior |
+|------|----------|
+| parseGoals 尾分隔符 | `"a;"` → `["a"]`；竖线尾同理 |
+| parseGoals 单字符数字目标 | `"1) a 2) b"` → `["a","b"]`（原正则吞并） |
+| detectRalph 连字符 | `"ulw-stop"` 不再 start-ulw；`ulw重构` CJK 仍有效 |
+| isVerifyShell echo | `"echo npm test"` false；`"echo x && npm test"` true |
+
 ## Next spiral focus (提升)
 
-v0.18 候选:
+v0.19 候选:
 
-- **契约锁定缺陷修复(v0.15 锁定，优先)**: parseGoalsFromTask 尾分号剥离 + 数字单字符目标；detectRalphCommand `ulw-` 连字符不再误启；isVerifyShellCommand 拒绝 echo/printf 段
-- **候选B — project memory 持久层(仍 defer)**: 硬信号未变
+- **agent-guard / session-role 专属测试**: sticky /agent、只读角色拦写、fail-open（若零覆盖）
 - **Background babysitter 深化**: spawn 完成后 Stop 再拉一次（超出 category discipline 一次 yank）
+- **候选B — project memory 持久层(仍 defer)**: 硬信号未变
 
-**推荐 v0.18 = ralph 契约锁定三缺陷实修**（测试已锁旧行为，本轮改期望并修 src）。
+**推荐 v0.19 = agent-guard + session-role 专属测试矩阵**（生产门禁第一道，覆盖缺口大则补测+修）。
 
 ## Explicit non-goals
 
