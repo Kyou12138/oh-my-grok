@@ -5,7 +5,11 @@
 import type { EnvConfig, HookInput } from "../protocol/types.js";
 import { findLatestHandoff } from "./handoff.js";
 import { loadRalph } from "./ralph.js";
-import { incompleteTodos, loadBoulder } from "./todo-boulder.js";
+import {
+  hasOpenPlanCheckboxes,
+  incompleteTodos,
+  loadBoulder,
+} from "./todo-boulder.js";
 
 export function sessionResumeSummary(
   input: HookInput,
@@ -34,6 +38,12 @@ export function sessionResumeSummary(
       `- **Boulder** active: ${boulder.title || "untitled"}`,
       boulder.planPath ? `  plan: ${boulder.planPath}` : "",
     );
+    const openPlan = hasOpenPlanCheckboxes(input, cfg);
+    if (openPlan) {
+      lines.push(
+        "  ⚠ open plan checkboxes remain — finish or cancel-boulder before DONE",
+      );
+    }
   }
 
   const todos = incompleteTodos(input, cfg);

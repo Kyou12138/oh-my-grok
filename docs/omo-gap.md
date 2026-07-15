@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-15 · **omg version:** **1.0.0** (stable baseline)  
+**Date:** 2026-07-15 · **omg version:** **1.0.1**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -40,11 +40,11 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | Background agent babysitter | blocked | **shipped** (partial) | category-discipline + spawn-followthrough **≤2 yanks/wave** + result-recovery language (v1.0) |
 | Multi-provider model matrix | blocked | **blocked** | Still non-goal (single-host Grok) |
 
-## Grok-feasible gaps still open (after v0.9)
+## Grok-feasible gaps still open (post-1.0)
 
-1. **Background agent babysitter** — path open (spawn_subagent + post-tool-spawn matcher + agent-guard role parse), only the Stop gate is missing; folded into v0.10 CATEGORY_DISCIPLINE design  
-2. **Hashline native edit tool** — host tool registration limit  
-3. **Stronger AST-aware comment rewrite** — optional external binary  
+1. **Hashline native edit tool** — host tool registration limit (in-plugin gate is shipped)  
+2. **Stronger AST-aware comment rewrite** — optional external binary  
+3. **Full project-memory** — still defer unless hard signals  
 
 ## Closed this spiral (v0.10)
 
@@ -218,15 +218,21 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | Session resume P2 | `OMG_SESSION_RESUME`：ULW/boulder/todos/handoff 摘要 |
 | **Stable** | 公共 hook 契约冻结；breaking → 2.0 |
 
+## Closed this spiral (v1.0.1)
+
+| Item | Behavior |
+|------|----------|
+| boulder plan 优先 | `hasOpenPlanCheckboxes` 先扫 active boulder.planPath（去重） |
+| session-resume | boulder 下提示 open plan checkboxes |
+| omo-gap 清理 | 过时「babysitter 仅缺 Stop」条目移除 |
+
 ## Next spiral focus (提升)
 
-post-1.0 候选（非阻塞）:
-
-- 全量 project-memory 持久层（仍 defer 除非硬信号）
+- 全量 project-memory（仍 defer）
 - Hashline native edit（宿主）
 - marketplace 收录
 
-**推荐**: 用户 `grok plugin update oh-my-grok` 升到 1.0.0 后按 acceptance 摸测。
+**推荐**: `grok plugin update` → 1.0.1；验收用 `docs/acceptance.md`。
 
 ## Explicit non-goals
 

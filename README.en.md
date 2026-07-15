@@ -8,7 +8,7 @@
 
 [中文](./README.md) | **English**
 
-**omo-style agent harness + Superpowers methodology for [Grok Build](https://x.ai).**
+**omo-style agent harness + Superpowers methodology for [Grok Build](https://x.ai).** · **v1.0 stable**
 
 Install once. Type `ultrawork`. Hooks force the agent to explore → implement → verify until the work is actually done.
 
@@ -119,7 +119,7 @@ Activates **boulder** execution (Atlas/Sisyphus). **Plan review required first**
 
 | Layer | Ships today |
 |-------|-------------|
-| **Harness** | Ralph / **ULW v3 multi-goal** (shell→verify), **think-mode**, **intent Skill Gate**, **Hashline**, Stop chain, Todo abort-window/**Boulder**, **idle-turn**, **sticky agent role**, **plan-review gate**, **spawn follow-through**, Category discipline, Comment aggregate, Agent Guard, Diagnostics, Handoff, `/init-deep` |
+| **Harness** | Ralph / **ULW v3 multi-goal**, **Hashline** (Read-before-edit), **plan-review**, **spawn follow-through** (≤2 result-recovery yanks), SessionStart **state resume**, Todo/Boulder, idle-turn, sticky `/agent`, Category discipline, Comment aggregate, Agent Guard, Handoff resume, `/init-deep` |
 | **Discipline agents** | Sisyphus · Hephaestus · Prometheus · Atlas · Oracle · Explore · Librarian · Metis · Momus |
 | **Superpowers** | Vendored MIT skills: brainstorming, writing-plans, TDD, verification-before-completion, … |
 
@@ -137,6 +137,13 @@ Activates **boulder** execution (Atlas/Sisyphus). **Plan review required first**
 We **align on harness semantics** with omo; we do **not** claim Team Mode, multi-provider model routing, or full tool OS parity.
 
 ---
+
+## Hashline (safe edits)
+
+1. **Read** the target file first (builds LINE#ID cache).  
+2. **StrReplace / Write** with **exact** current text as `old_string`.  
+3. Optional: use `N#TAG| line` anchors from `<HASHLINE_CACHE>`.  
+Editing an existing file without a prior Read is denied (skill: `hashline-edit`).
 
 ## Commands
 

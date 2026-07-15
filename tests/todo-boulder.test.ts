@@ -76,6 +76,28 @@ function base(ws: string, over: Partial<HookInput> = {}): HookInput {
   };
 }
 
+describe("hasOpenPlanCheckboxes boulder planPath first", () => {
+  it("detects open boxes on boulder.planPath", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    const planPath = path.join(ws, "custom", "exec-plan.md");
+    fs.mkdirSync(path.dirname(planPath), { recursive: true });
+    fs.writeFileSync(planPath, "## Steps\n- [ ] ship it\n", "utf8");
+    setBoulder(input, c, {
+      schemaVersion: 1,
+      active: true,
+      planPath,
+      title: "custom",
+      notes: "",
+      updatedAt: new Date().toISOString(),
+    });
+    const reason = hasOpenPlanCheckboxes(input, c);
+    expect(reason).toBeTruthy();
+    expect(reason).toMatch(/checkbox|open|plan/i);
+  });
+});
+
 describe("extractTodosFromToolInput", () => {
   it("reads todos / items / todo keys and string entries", () => {
     expect(extractTodosFromToolInput({ todos: ["a", "b"] })).toEqual([

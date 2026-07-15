@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.0.1] — 2026-07-15
+
+### MAGI post-1.0 spiral
+
+- **fix(todo-boulder)** `hasOpenPlanCheckboxes` 优先检查 active `boulder.planPath`（含 plansDir 外路径）并去重
+- **feat(session-resume)** boulder 活跃且 plan 仍有开项 checkbox 时摘要提示
+- **docs** omo-gap 清理过时 babysitter 条目；README.en 对齐 1.0 Hashline / resume
+
 ## [1.0.0] — 2026-07-15
 
 ### Stable baseline (P0 + P1 + P2 → 1.0)

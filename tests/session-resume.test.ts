@@ -70,15 +70,18 @@ describe("sessionResumeSummary", () => {
     );
   });
 
-  it("lists active ULW + boulder + todos + handoff", () => {
+  it("lists active ULW + boulder + open checkboxes + todos + handoff", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));
     const input = base(ws);
     startRalph(input, c, "ship oauth", "ulw");
+    const planPath = path.join(ws, ".omg", "plans", "p.md");
+    fs.mkdirSync(path.dirname(planPath), { recursive: true });
+    fs.writeFileSync(planPath, "# Plan\n- [ ] still open\n- [x] done\n", "utf8");
     setBoulder(input, c, {
       schemaVersion: 1,
       active: true,
-      planPath: path.join(ws, ".omg", "plans", "p.md"),
+      planPath,
       title: "oauth plan",
       notes: "",
       updatedAt: new Date().toISOString(),
@@ -89,6 +92,7 @@ describe("sessionResumeSummary", () => {
     expect(s).toMatch(/OMG_SESSION_RESUME/);
     expect(s).toMatch(/ULW|oauth/i);
     expect(s).toMatch(/Boulder|oauth plan/i);
+    expect(s).toMatch(/open plan checkboxes/i);
     expect(s).toMatch(/Todos|write tests/i);
     expect(s).toMatch(/Handoff/i);
   });

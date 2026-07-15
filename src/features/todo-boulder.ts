@@ -204,6 +204,11 @@ export function todoStopReason(todos: TodoItem[]): string {
 export function hasOpenPlanCheckboxes(input: HookInput, cfg: EnvConfig): string | null {
   const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
   const files: string[] = [];
+  // Prefer active boulder plan path (may be the only open checklist that matters)
+  const boulder = loadBoulder(input, cfg);
+  if (boulder?.planPath && fs.existsSync(boulder.planPath)) {
+    files.push(boulder.planPath);
+  }
   for (const name of ["plan.md", "PLAN.md"]) {
     const f = path.join(input.workspaceRoot, name);
     if (fs.existsSync(f)) files.push(f);
@@ -213,7 +218,11 @@ export function hasOpenPlanCheckboxes(input: HookInput, cfg: EnvConfig): string 
       if (f.endsWith(".md")) files.push(path.join(p.plansDir, f));
     }
   }
+  const seen = new Set<string>();
   for (const f of files) {
+    const key = path.resolve(f).toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
     const text = readText(f);
     // Open boxes: "- [ ]", "* [ ]", indented, optional extra spaces inside brackets
     if (text && /^\s*[-*+]\s*\[\s\]/m.test(text)) {

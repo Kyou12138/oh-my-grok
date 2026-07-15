@@ -1,6 +1,6 @@
 {
   "name": "oh-my-grok",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "omo-style harness for Grok Build — stable baseline: plan-review, Hashline, ULW, spawn follow-through, Superpowers",
   "type": "module",
   "bin": {
