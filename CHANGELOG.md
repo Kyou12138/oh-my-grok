@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.22.0] — 2026-07-15
+
+### MAGI spiral (审视→执行→提升)
+
+- **审视:** comment-checker 仅 magi-v09 / functional 切片；findCommentSlop 真值表与 aggregate 阈值未专属锁定
+- **执行:** `tests/comment-checker.test.ts`（12 it）：EN/ZH/emoji/narration 正例、意图注释负例、阈值 3 次 yank、deny 模式、PostTool record
+- **提升:** 下一螺旋可静置等验收反馈，或挑 project-memory / hashline native 缺口
+
 ## [0.21.0] — 2026-07-15
 
 ### MAGI spiral (审视→执行→提升)

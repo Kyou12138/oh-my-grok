@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-15 · **omg version:** 0.21.x  
+**Date:** 2026-07-15 · **omg version:** 0.22.x  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -149,15 +149,21 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | tests | `tests/spawn-followthrough.test.ts` 8 it |
 | README 同步 | 中英 harness 表补 plan-review / spawn follow-through；en 对齐 start-work 评审要求 |
 
+## Closed this spiral (v0.22)
+
+| Item | Behavior |
+|------|----------|
+| comment-checker 专属测试 | `tests/comment-checker.test.ts`（12 it）：slop 真值表 / aggregate 阈值 / deny / postWarn |
+
 ## Next spiral focus (提升)
 
-v0.22 候选:
+v0.23 候选:
 
-- **comment-checker 专属测试深化**（若仅 soft-aggregate 切片）
+- **验收反馈驱动**: 用户 24h 后验收项优先
 - **候选B — project memory 持久层(仍 defer)**: 硬信号未变
-- **Hashline 深化**: 若宿主仍无 native edit tool，保持 partial
+- **Hashline native edit**: 宿主限制，保持 partial
 
-**推荐 v0.22 = comment-checker 真值表 + 聚合门专属测试**（或验收前静置，等待用户反馈）。
+**推荐**: 本轮螺旋已从 v0.16→0.22 连续交付；优先保持绿构建 + 等验收，有新反馈再开螺旋。
 
 ## Explicit non-goals
 
