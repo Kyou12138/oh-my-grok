@@ -27,7 +27,7 @@ import {
   startPlanMode,
   startWorkFromPlan,
 } from "../src/features/prometheus.js";
-import { loadBoulder } from "../src/features/todo-boulder.js";
+import { incompleteTodos, loadBoulder, loadTodosMirror } from "../src/features/todo-boulder.js";
 
 const tmpRoots: string[] = [];
 
@@ -294,6 +294,13 @@ describe("startWorkFromPlan", () => {
     expect(b?.planPath).toBe(pm.planFile);
     expect(b?.title).toBe("oauth");
     expect(loadPlanMode(input, c).active).toBe(false);
+    // omo #6066: plan tasks seeded as todos (Goal-like continuation)
+    const todos = loadTodosMirror(input, c);
+    expect(todos).toHaveLength(2);
+    expect(incompleteTodos(input, c).map((t) => t.content)).toEqual([
+      "1. Implement token refresh",
+      "2. Add regression tests",
+    ]);
   });
 
   it("review only, zero task checkboxes → PLAN_FORMAT deny (omo #6094)", () => {

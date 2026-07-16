@@ -333,6 +333,67 @@ export function todoStopReason(todos: TodoItem[]): string {
     .join("\n");
 }
 
+export interface PlanTaskCheckbox {
+  label: string;
+  checked: boolean;
+}
+
+/**
+ * Parse labeled GFM task checkboxes outside ## Review (omo #6094 / #6066).
+ * Empty placeholders (`- [ ]` with no label) are ignored — they are not work.
+ * ## Review is start-work gate only; open Metis boxes must not pin boulder forever.
+ */
+export function parsePlanTaskCheckboxes(text: string): PlanTaskCheckbox[] {
+  if (!text) return [];
+  const out: PlanTaskCheckbox[] = [];
+  let inReview = false;
+  for (const line of text.split(/\r?\n/)) {
+    const t = line.trim();
+    const hm = t.match(/^#{1,6}\s+(.+)$/);
+    if (hm) {
+      inReview = /^review\b/i.test(hm[1].trim());
+      continue;
+    }
+    if (inReview) continue;
+    // Indented or top-level: - [ ] label / * [x] label
+    const m = t.match(/^[-*+]\s*\[([ xX])\]\s+(\S.*)$/);
+    if (!m) continue;
+    const label = m[2].trim();
+    if (!label) continue;
+    out.push({ label, checked: /x/i.test(m[1]) });
+  }
+  return out;
+}
+
+/** Seed session todos from plan task rows (open → pending, checked → completed). */
+export function planTasksToTodos(tasks: PlanTaskCheckbox[]): TodoItem[] {
+  return tasks.map((t, i) => ({
+    id: `plan-${i + 1}`,
+    content: t.label,
+    status: t.checked ? "completed" : "pending",
+  }));
+}
+
+/**
+ * If todo mirror is empty, seed from plan task checkboxes (omo #6066 Goal parity).
+ * Does not overwrite an existing non-empty todo list.
+ */
+export function seedTodosFromPlanIfEmpty(
+  input: HookInput,
+  cfg: EnvConfig,
+  planPath: string,
+): TodoItem[] {
+  const existing = loadTodosMirror(input, cfg);
+  if (existing.length > 0) return existing;
+  if (!planPath || !fs.existsSync(planPath)) return [];
+  const text = readText(planPath);
+  if (!text) return [];
+  const todos = planTasksToTodos(parsePlanTaskCheckboxes(text));
+  if (!todos.length) return [];
+  mirrorTodos(input, cfg, todos);
+  return todos;
+}
+
 export function hasOpenPlanCheckboxes(input: HookInput, cfg: EnvConfig): string | null {
   const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
   const files: string[] = [];
@@ -356,9 +417,15 @@ export function hasOpenPlanCheckboxes(input: HookInput, cfg: EnvConfig): string 
     if (seen.has(key)) continue;
     seen.add(key);
     const text = readText(f);
-    // Open boxes: "- [ ]", "* [ ]", indented, optional extra spaces inside brackets
-    if (text && /^\s*[-*+]\s*\[\s\]/m.test(text)) {
-      return `PLAN CHECKBOXES open in ${f}. Continue until all [ ] are [x] or cancelled.`;
+    if (!text) continue;
+    // v1.1.18: labeled open only; skip ## Review + empty `- [ ]` placeholders
+    const open = parsePlanTaskCheckboxes(text).filter((t) => !t.checked);
+    if (open.length > 0) {
+      const sample = open
+        .slice(0, 4)
+        .map((t) => t.label)
+        .join("; ");
+      return `PLAN CHECKBOXES open in ${f} (${open.length}): ${sample}. Continue until all [ ] are [x] or cancelled.`;
     }
   }
   return null;

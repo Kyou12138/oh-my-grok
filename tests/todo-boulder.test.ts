@@ -22,7 +22,10 @@ import {
   loadTodosMirror,
   markTodoContinued,
   mirrorTodos,
+  parsePlanTaskCheckboxes,
+  planTasksToTodos,
   resetTodoEnforcer,
+  seedTodosFromPlanIfEmpty,
   setBoulder,
   setStopPaused,
   todoEnforcerAllows,
@@ -408,6 +411,72 @@ describe("hasOpenPlanCheckboxes variants", () => {
     fs.writeFileSync(path.join(plans, "b.md"), "steps:\n  - [ ] nested-looking\n", "utf8");
     // indented open box should still count (common markdown)
     expect(hasOpenPlanCheckboxes(input, c)).toMatch(/plans|open|checkbox/i);
+  });
+
+  it("ignores empty placeholder - [ ] (v1.1.18 stuck-boulder fix)", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    fs.writeFileSync(
+      path.join(ws, "plan.md"),
+      ["# P", "## Steps", "- [ ] ", "- [ ]", "- [x] done work", "## Review", "- [ ] Metis gap"].join(
+        "\n",
+      ),
+      "utf8",
+    );
+    // empty placeholders + Review open Metis must NOT keep stop yanking
+    expect(hasOpenPlanCheckboxes(input, c)).toBeNull();
+  });
+
+  it("still flags labeled open tasks outside Review", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    fs.writeFileSync(
+      path.join(ws, "plan.md"),
+      "## Steps\n- [ ] ship api\n## Review\n- [ ] Metis\n",
+      "utf8",
+    );
+    expect(hasOpenPlanCheckboxes(input, c)).toMatch(/ship api/i);
+    expect(hasOpenPlanCheckboxes(input, c)).not.toMatch(/Metis/i);
+  });
+});
+
+describe("parsePlanTaskCheckboxes + seedTodosFromPlanIfEmpty (omo #6066)", () => {
+  it("parse skips Review and empty labels", () => {
+    const tasks = parsePlanTaskCheckboxes(
+      [
+        "## Steps",
+        "- [ ] 1. Implement",
+        "- [x] 2. Done",
+        "- [ ] ",
+        "## Review",
+        "- [ ] Metis",
+        "- [x] Momus",
+      ].join("\n"),
+    );
+    expect(tasks).toEqual([
+      { label: "1. Implement", checked: false },
+      { label: "2. Done", checked: true },
+    ]);
+  });
+
+  it("seeds todos only when mirror empty", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    const plan = path.join(ws, "p.md");
+    fs.writeFileSync(plan, "## Steps\n- [ ] alpha\n- [x] beta\n", "utf8");
+    const seeded = seedTodosFromPlanIfEmpty(input, c, plan);
+    expect(seeded).toEqual(planTasksToTodos(parsePlanTaskCheckboxes(fs.readFileSync(plan, "utf8"))));
+    expect(loadTodosMirror(input, c)).toHaveLength(2);
+    expect(incompleteTodos(input, c).map((t) => t.content)).toEqual(["alpha"]);
+
+    // second seed does not overwrite
+    mirrorTodos(input, c, [{ id: "keep", content: "user todo", status: "pending" }]);
+    const again = seedTodosFromPlanIfEmpty(input, c, plan);
+    expect(again).toHaveLength(1);
+    expect(again[0].content).toBe("user todo");
   });
 });
 

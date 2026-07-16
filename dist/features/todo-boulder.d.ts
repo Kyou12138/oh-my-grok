@@ -68,4 +68,21 @@ export declare function markTodoContinued(input: HookInput, cfg: EnvConfig, now?
 export declare function resetTodoEnforcer(input: HookInput, cfg: EnvConfig): void;
 export declare function boulderStopReason(b: BoulderState): string;
 export declare function todoStopReason(todos: TodoItem[]): string;
+export interface PlanTaskCheckbox {
+    label: string;
+    checked: boolean;
+}
+/**
+ * Parse labeled GFM task checkboxes outside ## Review (omo #6094 / #6066).
+ * Empty placeholders (`- [ ]` with no label) are ignored — they are not work.
+ * ## Review is start-work gate only; open Metis boxes must not pin boulder forever.
+ */
+export declare function parsePlanTaskCheckboxes(text: string): PlanTaskCheckbox[];
+/** Seed session todos from plan task rows (open → pending, checked → completed). */
+export declare function planTasksToTodos(tasks: PlanTaskCheckbox[]): TodoItem[];
+/**
+ * If todo mirror is empty, seed from plan task checkboxes (omo #6066 Goal parity).
+ * Does not overwrite an existing non-empty todo list.
+ */
+export declare function seedTodosFromPlanIfEmpty(input: HookInput, cfg: EnvConfig, planPath: string): TodoItem[];
 export declare function hasOpenPlanCheckboxes(input: HookInput, cfg: EnvConfig): string | null;

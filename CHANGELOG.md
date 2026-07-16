@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.18] — 2026-07-16
+
+### MAGI spiral — plan checkbox hygiene + start-work todos (omo #6066)
+
+- **fix(hasOpenPlanCheckboxes)** only labeled open tasks outside `## Review`; ignore empty `- [ ]` placeholders and Review rows so boulder is not stuck forever after VERDICT:PASS
+- **feat(start-work)** seed session todos from plan task rows when mirror empty (omo [#6066](https://github.com/code-yeongyu/oh-my-openagent/issues/6066) Goal-like continuation)
+- **refactor** shared `parsePlanTaskCheckboxes` / `seedTodosFromPlanIfEmpty` used by prometheus count + stop gate
+- **test** empty-placeholder null; Review skip; seed once / no overwrite
+
 ## [1.1.17] — 2026-07-16
 
 ### MAGI spiral — omo issue parity (skill false positives + plan format)

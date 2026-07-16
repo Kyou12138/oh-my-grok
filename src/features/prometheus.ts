@@ -3,7 +3,11 @@ import path from "node:path";
 import type { EnvConfig, HookInput } from "../protocol/types.js";
 import { ensureDir, readJson, removeFile, writeJsonAtomic, writeTextAtomic } from "../state/fs.js";
 import { pathsFor } from "../state/paths.js";
-import { setBoulder } from "./todo-boulder.js";
+import {
+  parsePlanTaskCheckboxes,
+  seedTodosFromPlanIfEmpty,
+  setBoulder,
+} from "./todo-boulder.js";
 
 export interface PlanModeState {
   schemaVersion: 1;
@@ -174,23 +178,7 @@ export function countPlanTaskCheckboxes(planPath?: string): number {
   } catch {
     return 0;
   }
-  let count = 0;
-  let inReview = false;
-  for (const line of text.split(/\r?\n/)) {
-    const t = line.trim();
-    // ATX headings: enter/leave Review section (case-insensitive)
-    const hm = t.match(/^#{1,6}\s+(.+)$/);
-    if (hm) {
-      inReview = /^review\b/i.test(hm[1].trim());
-      continue;
-    }
-    if (inReview) continue;
-    // Non-empty checkbox label: `- [ ] title` or `- [x] title`
-    if (/^[-*+]\s*\[[ xX]\]\s+\S/.test(t)) {
-      count += 1;
-    }
-  }
-  return count;
+  return parsePlanTaskCheckboxes(text).length;
 }
 
 export function planFormatDenyReason(planPath?: string): string {
@@ -235,6 +223,8 @@ export function startWorkFromPlan(
     notes: "Activated via /start-work (Atlas/Sisyphus execution) after plan review.",
     updatedAt: new Date().toISOString(),
   });
+  // omo #6066: seed todos from plan tasks so Stop continuation tracks work like a Goal
+  seedTodosFromPlanIfEmpty(input, cfg, planPath);
   endPlanMode(input, cfg);
   return { ok: true, planPath };
 }
