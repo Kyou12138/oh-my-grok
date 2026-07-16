@@ -101,7 +101,7 @@ export function spawnFollowThroughPreDeny(input, cfg) {
         `Host reports subagent${roleBit} **finished**, but parent has not recovered/integrated output yet.`,
         "",
         "How to fix:",
-        "1) Call **get_task_output** (or get_command_or_subagent_output) and integrate findings, then retry, or",
+        "1) Call **get_task_output** (or wait_tasks / get_command_or_subagent_output) and integrate findings, then retry, or",
         "2) Retry this same tool once to proceed (one soft PreTool yank per wave).",
         "</OMG_SPAWN_FOLLOWTHROUGH>",
     ].join("\n");

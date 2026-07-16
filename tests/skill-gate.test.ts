@@ -460,6 +460,9 @@ describe("isMutatingTool", () => {
     expect(isMutatingTool("search-replace")).toBe(true);
     expect(isMutatingTool("WriteFile")).toBe(true);
     expect(isMutatingTool("EditFile")).toBe(true);
+    // v1.1.12: NotebookEdit ≠ EditNotebook letter order
+    expect(isMutatingTool("NotebookEdit")).toBe(true);
+    expect(isMutatingTool("EditNotebook")).toBe(true);
     // "Write." → "write" 命中
     expect(isMutatingTool("Write.")).toBe(true);
   });

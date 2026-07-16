@@ -24,7 +24,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Write|WriteFile|StrReplace|SearchReplace|search_replace|search-replace|EditNotebook|NotebookEdit|Delete|DeleteFile|Edit|EditFile|Create|Apply_patch|ApplyPatch|apply_patch|apply-patch|Multiedit|MultiEdit",
+        "matcher": "Write|WriteFile|StrReplace|SearchReplace|search_replace|search-replace|EditNotebook|NotebookEdit|notebook_edit|Delete|DeleteFile|Edit|EditFile|Create|Apply_patch|ApplyPatch|apply_patch|apply-patch|Multiedit|MultiEdit",
         "hooks": [
           {
             "type": "command",

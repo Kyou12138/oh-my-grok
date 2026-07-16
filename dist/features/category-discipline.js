@@ -52,7 +52,8 @@ export function categoryDisciplineYankReason(input, cfg) {
         "Recommended (reduce blind edits):",
         "- " + advice,
         "",
-        "Or proceed without spawning if truly unnecessary — this prompt appears at most once per session.",
+        "Prefer host **task** (or spawn_subagent) when useful; skip if a direct fix is clearly enough.",
+        "This prompt appears at most once per session.",
         "</OMG_CATEGORY_DISCIPLINE>",
     ].join("\n");
 }
@@ -69,7 +70,7 @@ export function categoryDisciplinePreDeny(input, cfg) {
         reason,
         "",
         "How to fix:",
-        "1) spawn_subagent (explore / oracle / hephaestus) for the recommended consult, then retry, or",
+        "1) Host **task** (or spawn_subagent): explore / oracle / hephaestus as recommended, then retry, or",
         "2) Retry this same tool once to proceed without spawning (one soft yank per session).",
     ].join("\n");
 }

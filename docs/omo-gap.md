@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-16 · **omg version:** **1.1.11**  
+**Date:** 2026-07-16 · **omg version:** **1.1.12**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -320,14 +320,21 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | [#74](https://github.com/code-yeongyu/oh-my-openagent/issues/74) memory | 仍 **defer**（作者亦认为易冗余） |
 | Team/tmux, multi-model, container subagents | **blocked** / non-goal on Grok |
 
+## Closed this spiral (v1.1.12)
+
+| Item | Behavior |
+|------|----------|
+| **NotebookEdit** | isMutatingTool + PreTool matcher（此前 CamelCase 漏网） |
+| **Grok tool names** | Sisyphus/rules 主推 `task` + `get_task_output`；弱化绝对委托语气（omo #6129 方向） |
+
 ## Next spiral focus (提升)
 
 - Hashline native edit tool（宿主能力）
-- omo skill-reminder 类文案：仅 SessionStart/UserPrompt 状态机，禁止假装注入 tool 结果
 - marketplace 收录
 - project-memory 仍 defer（对齐 omo #74 共识）
+- 持续扫 omo issues 中 **Grok-feasible** 门禁（非 multi-model / tmux）
 
-**推荐**: `grok plugin update` → **1.1.11**。
+**推荐**: `grok plugin update` → **1.1.12**。
 
 ## Explicit non-goals
 

@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.12] — 2026-07-16
+
+### MAGI spiral — Grok-native tool names + NotebookEdit
+
+- **fix(isMutatingTool)** recognize **NotebookEdit** (letter order ≠ EditNotebook)
+- **hooks** PreTool matcher add `notebook_edit`
+- **docs/agents** Sisyphus bootstrap + agents/rules prefer host **`task`** + **`get_task_output`** (Grok native); soft absolute “never stop” wording (omo #6129 direction)
+- category-discipline / spawn follow-through How-to-fix use `task` language
+
 ## [1.1.11] — 2026-07-16
 
 ### MAGI spiral — omo issue parity (todo continuation config + stagnation)

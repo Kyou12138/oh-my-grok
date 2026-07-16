@@ -12,6 +12,7 @@ const MUTATING = new Set([
     "strreplace",
     "searchreplace",
     "editnotebook",
+    "notebookedit", // Grok / Claude NotebookEdit CamelCase → notebookedit
     "delete",
     "deletefile",
     "edit",

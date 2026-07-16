@@ -1,6 +1,6 @@
 {
   "name": "oh-my-grok",
-  "version": "1.1.11",
+  "version": "1.1.12",
   "description": "omo-style harness for Grok Build — source-aligned hooks: PreTool enforce, SubagentStart/End, Hashline, ULW, Superpowers",
   "type": "module",
   "bin": {
