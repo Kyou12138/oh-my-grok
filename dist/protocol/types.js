@@ -1,3 +1,3 @@
-/** Normalized hook I/O — Grok Build contract (mihazs-aligned). */
+/** Normalized hook I/O — Grok Build open-source envelope (xai-grok-hooks). */
 export {};
 //# sourceMappingURL=types.js.map

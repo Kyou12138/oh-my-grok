@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.0] — 2026-07-16
+
+### Source-aligned with xai-org/grok-build
+
+Based on open-source `xai-grok-hooks` + plugin `hooks_adapter` (see `docs/grok-build-source.md`).
+
+- **feat(hooks)** register host **`SubagentStart` / `SubagentEnd`** → arm / clear spawn follow-through (prefer host lifecycle over assistant prose)
+- **feat(parse)** coerce Grok **`toolResult`** (string|object) → `toolOutput`; expose `subagentType`
+- **docs(contract)** truth table: only **PreToolUse** is host-enforced; non-blocking stdout discarded
+- **test** protocol `toolResult` / `subagentType`; SubagentStart→arm / SubagentEnd→clear; cli e2e lifecycle
+- Note: plugin loader skips `SubagentStop` — use **`SubagentEnd`** only
+
 ## [1.0.2] — 2026-07-15
 
 ### MAGI spiral

@@ -8,7 +8,7 @@
 
 [中文](./README.md) | **English**
 
-**omo-style agent harness + Superpowers methodology for [Grok Build](https://x.ai).** · **v1.0 stable**
+**omo-style agent harness + Superpowers methodology for [Grok Build](https://x.ai).** · **v1.1.0** (aligned with [grok-build](https://github.com/xai-org/grok-build) open-source hooks)
 
 Install once. Type `ultrawork`. Hooks force the agent to explore → implement → verify until the work is actually done.
 

@@ -94,4 +94,27 @@ describe("cli fail-open e2e", () => {
     expect(r.status).toBe(0);
     expect(r.stdout).toMatch(/additionalContext|OMG_/);
   });
+
+  it("subagent-start / subagent-end exit 0 (host lifecycle)", () => {
+    const start = runCli(
+      "subagent-start",
+      JSON.stringify({
+        sessionId: "cli-test",
+        subagentType: "explore",
+        workspaceRoot: ".",
+      }),
+    );
+    expect(start.status).toBe(0);
+    expect(start.stdout.trim()).toBe("{}");
+
+    const end = runCli(
+      "subagent-end",
+      JSON.stringify({
+        sessionId: "cli-test",
+        subagentType: "explore",
+      }),
+    );
+    expect(end.status).toBe(0);
+    expect(end.stdout.trim()).toBe("{}");
+  });
 });

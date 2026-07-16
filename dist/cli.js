@@ -9,6 +9,7 @@ import { handlePreToolUse } from "./events/pre-tool-use.js";
 import { handleSessionEnd } from "./events/session-end.js";
 import { handleSessionStart } from "./events/session-start.js";
 import { handleStop } from "./events/stop.js";
+import { handleSubagentEnd, handleSubagentStart, } from "./events/subagent.js";
 import { handleUserPrompt } from "./events/user-prompt.js";
 const EVENTS = new Set([
     "session-start",
@@ -19,6 +20,8 @@ const EVENTS = new Set([
     "post-tool-write",
     "post-tool-shell",
     "post-tool-spawn",
+    "subagent-start",
+    "subagent-end",
     "stop",
     "session-end",
 ]);
@@ -59,6 +62,12 @@ async function main() {
                 break;
             case "post-tool-spawn":
                 emit(handlePostToolSpawn(input, cfg), 0);
+                break;
+            case "subagent-start":
+                emit(handleSubagentStart(input, cfg), 0);
+                break;
+            case "subagent-end":
+                emit(handleSubagentEnd(input, cfg), 0);
                 break;
             case "stop":
                 emit(handleStop(input, cfg), 0);

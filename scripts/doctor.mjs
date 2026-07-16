@@ -60,7 +60,16 @@ if (!fs.existsSync(hooksPath)) err("hooks/hooks.json missing");
 else {
   const hooks = JSON.parse(fs.readFileSync(hooksPath, "utf8"));
   const events = Object.keys(hooks.hooks || {});
-  const need = ["SessionStart", "UserPromptSubmit", "PreToolUse", "PostToolUse", "Stop", "SessionEnd"];
+  const need = [
+    "SessionStart",
+    "UserPromptSubmit",
+    "PreToolUse",
+    "PostToolUse",
+    "SubagentStart",
+    "SubagentEnd",
+    "Stop",
+    "SessionEnd",
+  ];
   for (const e of need) {
     if (events.includes(e)) ok(`hook ${e}`);
     else err(`missing hook ${e}`);

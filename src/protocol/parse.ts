@@ -8,11 +8,38 @@ function firstString(...vals: unknown[]): string {
   return "";
 }
 
+/** Grok PostToolUse sends toolResult (object or string); normalize to text. */
+export function coerceToolOutput(raw: Record<string, unknown>): string {
+  const candidates = [
+    raw.toolResult,
+    raw.tool_result,
+    raw.toolOutput,
+    raw.tool_output,
+    raw.output,
+    raw.result,
+  ];
+  for (const v of candidates) {
+    if (typeof v === "string" && v.length > 0) return v;
+    if (v !== undefined && v !== null && typeof v === "object") {
+      try {
+        return JSON.stringify(v);
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+  return "";
+}
+
 /** Prefer workspace-aware config after we know workspaceRoot. */
 export function readEnvConfig(workspaceRoot?: string): EnvConfig {
   return loadConfig(workspaceRoot);
 }
 
+/**
+ * Parse Grok Build hook envelope (camelCase flatten) + legacy aliases.
+ * @see xai-grok-hooks HookEventEnvelope
+ */
 export function parseHookInput(event: HookEvent, raw: Record<string, unknown>): HookInput {
   const toolInputRaw = raw.toolInput ?? raw.tool_input ?? raw.input;
   let toolInput: Record<string, unknown> | undefined;
@@ -40,11 +67,19 @@ export function parseHookInput(event: HookEvent, raw: Record<string, unknown>): 
     "default",
   );
 
-  const toolOutput = firstString(
-    raw.toolOutput,
-    raw.tool_output,
-    raw.output,
-    raw.result,
+  const toolOutput = coerceToolOutput(raw) || undefined;
+  const subagentType =
+    firstString(raw.subagentType, raw.subagent_type) || undefined;
+
+  const agentFromHost = firstString(
+    raw.agentName,
+    raw.agent_name,
+    raw.agent,
+    raw.agentType,
+    raw.agent_type,
+    subagentType,
+    process.env.GROK_AGENT_NAME,
+    process.env.OMG_AGENT_ROLE,
   );
 
   return {
@@ -56,7 +91,8 @@ export function parseHookInput(event: HookEvent, raw: Record<string, unknown>): 
     prompt: firstString(raw.prompt, raw.userPrompt, raw.user_prompt) || undefined,
     toolName: firstString(raw.toolName, raw.tool_name, raw.name) || undefined,
     toolInput,
-    toolOutput: toolOutput || undefined,
+    toolOutput,
+    toolUseId: firstString(raw.toolUseId, raw.tool_use_id) || undefined,
     stopReason: firstString(raw.stopReason, raw.stop_reason, raw.reason) || undefined,
     lastAssistantMessage:
       firstString(
@@ -66,16 +102,8 @@ export function parseHookInput(event: HookEvent, raw: Record<string, unknown>): 
         raw.message,
       ) || undefined,
     isFirstPrompt: Boolean(raw.isFirstPrompt ?? raw.is_first_prompt ?? raw.firstPrompt),
-    agentName:
-      firstString(
-        raw.agentName,
-        raw.agent_name,
-        raw.agent,
-        raw.subagent_type,
-        raw.subagentType,
-        process.env.GROK_AGENT_NAME,
-        process.env.OMG_AGENT_ROLE,
-      ) || undefined,
+    agentName: agentFromHost || undefined,
+    subagentType,
   };
 }
 

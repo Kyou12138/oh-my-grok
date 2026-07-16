@@ -121,6 +121,30 @@ describe("parseHookInput", () => {
     );
   });
 
+  it("Grok host toolResult (string + object) → toolOutput", () => {
+    expect(
+      parseHookInput("post-tool-spawn", { toolResult: "spawned ok" }).toolOutput,
+    ).toBe("spawned ok");
+    const obj = parseHookInput("post-tool-read", {
+      toolResult: { content: "file body", lineCount: 3 },
+    });
+    expect(obj.toolOutput).toContain("file body");
+    expect(obj.toolOutput).toContain("lineCount");
+  });
+
+  it("subagentType camelCase + snake_case on subagent events", () => {
+    expect(
+      parseHookInput("subagent-start", { subagentType: "explore" }).subagentType,
+    ).toBe("explore");
+    expect(
+      parseHookInput("subagent-end", { subagent_type: "oracle" }).subagentType,
+    ).toBe("oracle");
+    // also fills agentName when host only sends subagentType
+    expect(
+      parseHookInput("subagent-start", { subagentType: "hephaestus" }).agentName,
+    ).toBe("hephaestus");
+  });
+
   it("preserves raw payload", () => {
     const raw = { session_id: "z", custom: 42 };
     const input = parseHookInput("session-start", raw);

@@ -7,6 +7,10 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { handlePostToolSpawn } from "../src/events/post-tool.js";
 import { handleStop } from "../src/events/stop.js";
+import {
+  handleSubagentEnd,
+  handleSubagentStart,
+} from "../src/events/subagent.js";
 import type { EnvConfig, HookInput } from "../src/protocol/types.js";
 import {
   clearSpawnFollowThrough,
@@ -263,5 +267,53 @@ describe("production path PostTool + Stop", () => {
     clearSpawnFollowThrough(base(ws), c);
     clearSpawnFollowThrough(base(ws), c);
     expect(isSpawnFollowThroughPending(base(ws), c)).toBe(false);
+  });
+});
+
+describe("host SubagentStart / SubagentEnd (v1.1 Grok Build lifecycle)", () => {
+  it("SubagentStart arms follow-through from subagentType", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const out = handleSubagentStart(
+      base(ws, {
+        event: "subagent-start",
+        subagentType: "explore",
+        raw: { subagentType: "explore" },
+      }),
+      c,
+    );
+    expect(out).toEqual({});
+    expect(isSpawnFollowThroughPending(base(ws), c)).toBe(true);
+    const stop = spawnFollowThroughStopReason(
+      base(ws, { lastAssistantMessage: "ok" }),
+      c,
+    );
+    expect(stop).toMatch(/SPAWN_FOLLOWTHROUGH|explore/i);
+  });
+
+  it("SubagentEnd clears pending (host result recovery)", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    handleSubagentStart(
+      base(ws, {
+        event: "subagent-start",
+        subagentType: "oracle",
+        raw: { subagentType: "oracle" },
+      }),
+      c,
+    );
+    expect(isSpawnFollowThroughPending(base(ws), c)).toBe(true);
+    const end = handleSubagentEnd(
+      base(ws, { event: "subagent-end", subagentType: "oracle" }),
+      c,
+    );
+    expect(end).toEqual({});
+    expect(isSpawnFollowThroughPending(base(ws), c)).toBe(false);
+    expect(
+      spawnFollowThroughStopReason(
+        base(ws, { lastAssistantMessage: "ok" }),
+        c,
+      ),
+    ).toBeNull();
   });
 });

@@ -81,5 +81,13 @@ if (!events.includes("Stop") || !events.includes("UserPromptSubmit")) {
   console.error("missing critical hook events");
   ok = false;
 }
+if (!events.includes("SubagentStart") || !events.includes("SubagentEnd")) {
+  console.error("missing SubagentStart/SubagentEnd (Grok Build native lifecycle)");
+  ok = false;
+}
+if (events.includes("SubagentStop")) {
+  console.error("SubagentStop is not loaded by plugin adapter — use SubagentEnd");
+  ok = false;
+}
 
 process.exit(ok ? 0 : 1);

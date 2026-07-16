@@ -1,4 +1,4 @@
-/** Normalized hook I/O — Grok Build contract (mihazs-aligned). */
+/** Normalized hook I/O — Grok Build open-source envelope (xai-grok-hooks). */
 
 export type HookEvent =
   | "session-start"
@@ -9,6 +9,8 @@ export type HookEvent =
   | "post-tool-write"
   | "post-tool-shell"
   | "post-tool-spawn"
+  | "subagent-start"
+  | "subagent-end"
   | "stop"
   | "session-end";
 
@@ -21,13 +23,16 @@ export interface HookInput {
   prompt?: string;
   toolName?: string;
   toolInput?: Record<string, unknown>;
-  /** PostToolUse may include tool output text */
+  /** PostToolUse: toolResult / toolOutput text */
   toolOutput?: string;
+  toolUseId?: string;
   stopReason?: string;
   lastAssistantMessage?: string;
   isFirstPrompt?: boolean;
   /** Active agent / subagent role when provided by host */
   agentName?: string;
+  /** Host subagentType on tool/subagent envelopes */
+  subagentType?: string;
 }
 
 export type HookOutput =
