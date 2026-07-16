@@ -82,9 +82,24 @@ describe("hooks.json PostTool write matcher", () => {
     expect(names.some((n) => /CreateFile|Create/i.test(n))).toBe(true);
   });
 
+  it("includes snake_case write aliases (v1.1.28)", () => {
+    expect(names).toEqual(expect.arrayContaining(["write_file", "create_file", "delete_file"]));
+    expect(preNamesHasSnake()).toBe(true);
+  });
+
   it("every write matcher name is mutating", () => {
     for (const name of names) {
       expect(isMutatingTool(name), `PostTool write "${name}"`).toBe(true);
     }
   });
 });
+
+function preNamesHasSnake(): boolean {
+  const hooks = loadHooks();
+  const pre = splitMatcher(hooks.PreToolUse?.[0]?.matcher);
+  return (
+    pre.includes("write_file") &&
+    pre.includes("create_file") &&
+    pre.includes("delete_file")
+  );
+}

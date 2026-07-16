@@ -169,6 +169,8 @@ export function isCommentScanTool(toolName?: string): boolean {
   const n = normalizeToolName(toolName);
   return (
     n.includes("write") ||
+    n === "create" ||
+    n === "createfile" || // Create/CreateFile — full-body writes (v1.1.28)
     n.includes("strreplace") ||
     n.includes("searchreplace") ||
     n.includes("edit") || // edit, editfile, editnotebook, multiedit

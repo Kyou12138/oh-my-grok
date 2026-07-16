@@ -323,6 +323,8 @@ export function cancelRalph(input: HookInput, cfg: EnvConfig): void {
   const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
   removeFile(p.ralph);
   removeFile(stateJsonPath(input, cfg));
+  // v1.1.28: drop ceremony banner file when loop ends
+  removeFile(path.join(p.ulwDir, "CEREMONY.md"));
 }
 
 export function bumpRalph(input: HookInput, cfg: EnvConfig, state: RalphState): RalphState {
@@ -347,8 +349,9 @@ export function isDoneMessage(msg?: string): boolean {
   if (!DONE_RE.test(msg) && !DONE_MARKERS.some((m) => msg.includes(m))) {
     return false;
   }
+  // v1.1.28: cannot/unable/impossible/refuse/missing/far from 否定话术不得关 loop
   const NEGATED_DONE =
-    /\b(?:not|never|without|no|rarely|seldom|hardly|barely|scarcely|don'?t|doesn'?t|isn'?t|aren'?t|wasn'?t|weren'?t|won'?t|wouldn'?t|shouldn'?t|couldn'?t|mustn'?t|haven'?t|hasn'?t|hadn'?t|ain'?t|didn'?t)\b[^.!\n]*(?:<promise>DONE<\/promise>|<promise>done<\/promise>|RALPH_DONE|ULW_DONE)/i;
+    /\b(?:not|never|without|no|cannot|can'?t|unable|impossible|refuse|refusing|missing|far\s+from|rarely|seldom|hardly|barely|scarcely|don'?t|doesn'?t|isn'?t|aren'?t|wasn'?t|weren'?t|won'?t|wouldn'?t|shouldn'?t|couldn'?t|mustn'?t|haven'?t|hasn'?t|hadn'?t|ain'?t|didn'?t)\b[^.!\n]*(?:<promise>DONE<\/promise>|<promise>done<\/promise>|RALPH_DONE|ULW_DONE)/i;
   if (NEGATED_DONE.test(msg)) return false;
   // v1.1.15: partial-done hedges (align isVerifiedMessage v1.1.14)
   const HEDGED_AFTER =
@@ -356,9 +359,9 @@ export function isDoneMessage(msg?: string): boolean {
   const HEDGED_BEFORE =
     /\b(almost|nearly|mostly|partially|roughly)\b[^.!\n]{0,40}(?:<promise>DONE<\/promise>|<promise>done<\/promise>|RALPH_DONE|ULW_DONE)/i;
   if (HEDGED_AFTER.test(msg) || HEDGED_BEFORE.test(msg)) return false;
-  // Chinese negation near marker
+  // Chinese negation near marker (v1.1.28: 无法/不能/没法/难以)
   if (
-    /(?:未|没有|没|并非|不)[^。\n]{0,24}(?:ULW_DONE|RALPH_DONE|DONE)|(?:ULW_DONE|RALPH_DONE)[^。\n]{0,24}(?:未完成|还没|仍有)/.test(
+    /(?:未|没有|没|并非|不|无法|不能|没法|难以)[^。\n]{0,24}(?:ULW_DONE|RALPH_DONE|DONE)|(?:ULW_DONE|RALPH_DONE)[^。\n]{0,24}(?:未完成|还没|仍有)/.test(
       msg,
     )
   ) {

@@ -224,9 +224,15 @@ function hashlineDenyOneFile(input, cfg, file, toolNorm, checkOldString) {
         /* new file */
     }
     const cached = getCached(input, cfg, file);
-    const isReplace = toolNorm.includes("strreplace") ||
-        toolNorm.includes("searchreplace") ||
-        toolNorm.includes("edit"); // edit, editfile, editnotebook, multiedit
+    // Replace-family needs old_string. Notebook cell tools use new_source / cell
+    // fields — do NOT treat notebookedit/editnotebook as strreplace (v1.1.28).
+    const isNotebookTool = toolNorm.includes("notebookedit") || toolNorm.includes("editnotebook");
+    const isReplace = !isNotebookTool &&
+        (toolNorm.includes("strreplace") ||
+            toolNorm.includes("searchreplace") ||
+            toolNorm === "edit" ||
+            toolNorm === "editfile" ||
+            toolNorm.includes("multiedit"));
     // Require a recent Read before mutating existing files
     if (current && !cached) {
         return [
@@ -241,9 +247,11 @@ function hashlineDenyOneFile(input, cfg, file, toolNorm, checkOldString) {
         ].join("\n");
     }
     // Write/Create with explicit empty contents on an existing file = accidental wipe
+    // createfile (CreateFile) must match create — was missing in v1.1.15 wipe gate
     const isFullWrite = toolNorm === "write" ||
         toolNorm === "writefile" ||
-        toolNorm === "create";
+        toolNorm === "create" ||
+        toolNorm === "createfile";
     if (isFullWrite && current) {
         const hasKey = input.toolInput &&
             ("contents" in input.toolInput ||

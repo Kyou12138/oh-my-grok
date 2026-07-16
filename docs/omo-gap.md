@@ -1,6 +1,6 @@
 # oh-my-grok capability map (vs Vanilla Grok / omo)
 
-**Date:** 2026-07-16 · **omg version:** **1.1.27**  
+**Date:** 2026-07-16 · **omg version:** **1.1.28**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 **Product peer:** omo **Codex Light** 同温层（纪律 + 状态），**不是** Ultimate 全量 OS。  
@@ -463,6 +463,16 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **CEREMONY.md** | 落盘 `.omg/ulw-loop/CEREMONY.md`（宿主丢 inject 时仍可读） |
 | **resume** | SessionStart 活跃 ULW 时提醒开场白 |
 
+## Closed this spiral (v1.1.28) — gate false-neg / false-pos
+
+| Item | Behavior |
+|------|----------|
+| **CreateFile wipe** | `isFullWrite` 含 `createfile` — 空 contents 擦已有文件 PreTool deny |
+| **NotebookEdit isReplace** | 排除 notebookedit/editnotebook；仅要求 Read cache，不强制 old_string |
+| **comment Create\*** | isCommentScanTool 含 create/createfile |
+| **DONE/VERIFIED hedges** | cannot/unable/impossible/refuse/missing/far from + 无法/不能/没法/难以 |
+| **hooks snake_case** | write_file / create_file / delete_file / multi_edit 等进 Pre/Post matcher |
+
 ## Next spiral focus (提升)
 
 - **marketplace** + 传播资产（GIF）— 安装转化  
@@ -470,7 +480,7 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 - Hashline native edit tool（宿主能力）  
 - project-memory 仍 defer（omo #74）  
 
-**推荐**: pin **v1.1.26** · `grok plugin update`。
+**推荐**: pin **v1.1.28** · `grok plugin update`。
 
 ## Explicit non-goals
 

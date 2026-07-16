@@ -197,6 +197,29 @@ describe("PreTool deny + PostTool warn", () => {
     expect(commentCheckerPreDeny(input, hard)).toMatch(/OMG_COMMENT_CHECKER|这个/);
   });
 
+  it("CreateFile / Create slop scanned under deny mode (v1.1.28)", () => {
+    const ws = tmpWorkspace();
+    const hard = cfg(path.join(ws, "pdata-cf"), {
+      commentCheckerDeny: true,
+      commentChecker: true,
+    });
+    for (const toolName of ["CreateFile", "Create", "create_file"]) {
+      const deny = commentCheckerPreDeny(
+        base(ws, {
+          event: "pre-tool-use",
+          toolName,
+          toolInput: {
+            path: path.join(ws, "c.ts"),
+            contents:
+              "// This function returns the value\nexport const v = 1;\n",
+          },
+        }),
+        hard,
+      );
+      expect(deny, toolName).toMatch(/OMG_COMMENT_CHECKER|returns the value|slop/i);
+    }
+  });
+
   it("SearchReplace hard deny scans new_string (v1.1.7)", () => {
     const ws = tmpWorkspace();
     const hard = cfg(path.join(ws, "pdata"), {

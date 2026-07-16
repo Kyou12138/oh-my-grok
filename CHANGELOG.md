@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.28] — 2026-07-16
+
+### MAGI spiral — gate false-negatives / false-positives
+
+- **fix(hashline)** `CreateFile`/`createfile` empty contents on existing file now denied (wipe gate was only `write|writefile|create`)
+- **fix(hashline)** NotebookEdit / EditNotebook no longer require `old_string` (`isReplace` no longer matches `*edit*` via `includes("edit")`)
+- **fix(comment-checker)** Create / CreateFile content scanned under deny mode
+- **fix(ralph/diagnostics)** DONE / VERIFIED: `cannot|unable|impossible|refuse|missing|far from` + 中文 `无法|不能|没法|难以` 不得误关 loop / 误 markVerified
+- **fix(hooks)** Pre/Post write matcher snake_case aliases: `write_file` / `create_file` / `delete_file` / …
+- **fix(ralph)** cancelRalph also removes `.omg/ulw-loop/CEREMONY.md`
+- **test** hashline CreateFile+NotebookEdit; comment CreateFile; DONE/VERIFIED hedges; hooks snake aliases; ceremony cleanup
+
 ## [1.1.27] — 2026-07-16
 
 ### ULW opening ceremony (omo-style)

@@ -310,6 +310,54 @@ describe("hashline — empty Write wipe (v1.1.15)", () => {
     expect(deny).toMatch(/Empty Write|wipe/i);
   });
 
+  it("denies CreateFile / create_file empty wipe (v1.1.28 — createfile missed isFullWrite)", () => {
+    const ws = tmpWorkspace();
+    fs.writeFileSync(path.join(ws, "wipe.ts"), "keep me\n", "utf8");
+    const cfg = makeCfg();
+    recordRead(
+      makeInput(ws, { toolName: "Read", toolInput: { file_path: "wipe.ts" } }),
+      cfg,
+      "wipe.ts",
+    );
+    for (const toolName of ["CreateFile", "create_file", "Create"]) {
+      const deny = hashlinePreToolDeny(
+        makeInput(ws, {
+          toolName,
+          toolInput: { file_path: "wipe.ts", contents: "" },
+        }),
+        cfg,
+      );
+      expect(deny, toolName).toMatch(/Empty Write|wipe/i);
+    }
+  });
+
+  it("allows NotebookEdit without old_string after Read (v1.1.28 — isReplace over-match)", () => {
+    const ws = tmpWorkspace();
+    fs.writeFileSync(path.join(ws, "nb.ipynb"), '{"cells":[]}\n', "utf8");
+    const cfg = makeCfg();
+    recordRead(
+      makeInput(ws, {
+        toolName: "Read",
+        toolInput: { file_path: "nb.ipynb" },
+      }),
+      cfg,
+      "nb.ipynb",
+    );
+    for (const toolName of ["NotebookEdit", "EditNotebook", "notebook_edit"]) {
+      const deny = hashlinePreToolDeny(
+        makeInput(ws, {
+          toolName,
+          toolInput: {
+            notebook_path: "nb.ipynb",
+            new_source: "print(1)",
+          },
+        }),
+        cfg,
+      );
+      expect(deny, toolName).toBeNull();
+    }
+  });
+
   it("allows Write with content on existing file after Read", () => {
     const ws = tmpWorkspace();
     fs.writeFileSync(path.join(ws, "ok.ts"), "old\n", "utf8");

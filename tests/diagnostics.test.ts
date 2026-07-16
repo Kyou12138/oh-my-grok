@@ -145,6 +145,17 @@ describe("diagnostics — isVerifiedMessage 真值表", () => {
     expect(isVerifiedMessage("测试失败，仍有失败")).toBe(false);
     expect(isVerifiedMessage("没有全部测试通过")).toBe(false);
   });
+
+  it("负例: cannot/unable/无法 话术不得 markVerified (v1.1.28)", () => {
+    expect(isVerifiedMessage("cannot say all tests passed")).toBe(false);
+    expect(isVerifiedMessage("unable to claim all tests passed")).toBe(false);
+    expect(isVerifiedMessage("far from all tests passed")).toBe(false);
+    expect(isVerifiedMessage("impossible all tests passed")).toBe(false);
+    expect(isVerifiedMessage("missing all tests passed")).toBe(false);
+    expect(isVerifiedMessage("不能说全部测试通过")).toBe(false);
+    expect(isVerifiedMessage("无法全部测试通过")).toBe(false);
+    expect(isVerifiedMessage("没法所有测试通过")).toBe(false);
+  });
 });
 
 describe("diagnostics — diagStopReason 三分支", () => {

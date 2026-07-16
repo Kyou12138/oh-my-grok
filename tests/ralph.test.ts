@@ -187,6 +187,21 @@ describe("isDoneMessage 真值表(v0.15 否定集修复)", () => {
     expect(isDoneMessage("ULW_DONE 还没完成")).toBe(false);
     expect(isDoneMessage(undefined)).toBe(false);
   });
+
+  it("负例: cannot/unable/impossible/refuse/missing 话术不得关 loop (v1.1.28)", () => {
+    expect(isDoneMessage("cannot mark ULW_DONE")).toBe(false);
+    expect(isDoneMessage("Unable to claim ULW_DONE")).toBe(false);
+    expect(isDoneMessage("far from ULW_DONE")).toBe(false);
+    expect(isDoneMessage("I refuse to put ULW_DONE")).toBe(false);
+    expect(isDoneMessage("still missing ULW_DONE")).toBe(false);
+    expect(isDoneMessage("It is impossible to mark RALPH_DONE now")).toBe(
+      false,
+    );
+    expect(isDoneMessage("can't claim <promise>DONE</promise>")).toBe(false);
+    expect(isDoneMessage("无法 ULW_DONE")).toBe(false);
+    expect(isDoneMessage("不能 RALPH_DONE")).toBe(false);
+    expect(isDoneMessage("没法 ULW_DONE")).toBe(false);
+  });
 });
 
 // ─── 2. parseGoalsFromTask ──────────────────────────────────────────
@@ -833,6 +848,16 @@ describe("ulwCeremonyBanner (v1.1.27)", () => {
     const ceremony = path.join(ctx.ws, ".omg", "ulw-loop", "CEREMONY.md");
     expect(fs.existsSync(ceremony)).toBe(true);
     expect(fs.readFileSync(ceremony, "utf8")).toMatch(/ULTRAWORK MODE ENABLED/);
+  });
+
+  it("cancelRalph removes CEREMONY.md (v1.1.28)", () => {
+    const ctx = makeCtx(20);
+    const input0 = stopInput(ctx, "");
+    startRalph(input0, ctx.cfg, "ship", "ulw");
+    const ceremony = path.join(ctx.ws, ".omg", "ulw-loop", "CEREMONY.md");
+    expect(fs.existsSync(ceremony)).toBe(true);
+    cancelRalph(input0, ctx.cfg);
+    expect(fs.existsSync(ceremony)).toBe(false);
   });
 
   it("UserPrompt ultrawork injects ceremony banner", () => {
