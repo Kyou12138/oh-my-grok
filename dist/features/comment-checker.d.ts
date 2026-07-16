@@ -18,6 +18,8 @@ export declare function markCommentSoftPrompted(input: HookInput, cfg: EnvConfig
 /** Stop yank once when session accumulated enough slop hits. */
 export declare function commentAggregateStopReason(input: HookInput, cfg: EnvConfig): string | null;
 export declare function formatCommentHits(hits: CommentHit[], filePath: string): string;
+/** Tools that carry new content we can scan for slop comments. */
+export declare function isCommentScanTool(toolName?: string): boolean;
 /** PreTool deny when commentCheckerDeny is on. */
 export declare function commentCheckerPreDeny(input: HookInput, cfg: EnvConfig): string | null;
 /** PostTool soft warning context + aggregate. */

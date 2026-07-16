@@ -24,7 +24,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Write|StrReplace|search_replace|EditNotebook|Delete|DeleteFile|Edit|EditFile|Create|Apply_patch|ApplyPatch|Multiedit|WriteFile",
+        "matcher": "Write|WriteFile|StrReplace|SearchReplace|search_replace|search-replace|EditNotebook|NotebookEdit|Delete|DeleteFile|Edit|EditFile|Create|Apply_patch|ApplyPatch|apply_patch|apply-patch|Multiedit|MultiEdit",
         "hooks": [
           {
             "type": "command",
@@ -36,7 +36,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Read|read_file",
+        "matcher": "Read|read_file|ReadFile",
         "hooks": [
           {
             "type": "command",
@@ -56,7 +56,7 @@
         ]
       },
       {
-        "matcher": "Write|StrReplace|search_replace|Edit|EditFile|Create|Apply_patch|ApplyPatch|Multiedit|WriteFile",
+        "matcher": "Write|WriteFile|StrReplace|SearchReplace|search_replace|search-replace|Edit|EditFile|Create|Apply_patch|ApplyPatch|apply_patch|apply-patch|Multiedit|MultiEdit|Delete|DeleteFile",
         "hooks": [
           {
             "type": "command",

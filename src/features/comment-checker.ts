@@ -8,6 +8,7 @@ import path from "node:path";
 import type { EnvConfig, HookInput } from "../protocol/types.js";
 import { ensureDir, readJson, writeJsonAtomic } from "../state/fs.js";
 import { pathsFor } from "../state/paths.js";
+import { normalizeToolName } from "./skill-gate.js";
 
 export interface CommentHit {
   line: number;
@@ -169,20 +170,27 @@ export function formatCommentHits(hits: CommentHit[], filePath: string): string 
   ].join("\n");
 }
 
+/** Tools that carry new content we can scan for slop comments. */
+export function isCommentScanTool(toolName?: string): boolean {
+  if (!toolName) return false;
+  const n = normalizeToolName(toolName);
+  return (
+    n.includes("write") ||
+    n.includes("strreplace") ||
+    n.includes("searchreplace") ||
+    n.includes("edit") || // edit, editfile, editnotebook, multiedit
+    n.includes("applypatch")
+  );
+}
+
 /** PreTool deny when commentCheckerDeny is on. */
 export function commentCheckerPreDeny(
   input: HookInput,
   cfg: EnvConfig,
 ): string | null {
   if (!cfg.commentChecker || !cfg.commentCheckerDeny) return null;
-  const tool = (input.toolName || "").toLowerCase();
-  if (
-    !tool.includes("write") &&
-    !tool.includes("strreplace") &&
-    !tool.includes("edit")
-  ) {
-    return null;
-  }
+  // v1.1.7: SearchReplace must scan (old lower+strreplace miss CamelCase)
+  if (!isCommentScanTool(input.toolName)) return null;
   const { content, filePath } = extractWriteContent(input.toolInput);
   if (!content) return null;
   const hits = findCommentSlop(content, filePath);

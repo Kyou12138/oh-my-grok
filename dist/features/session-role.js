@@ -54,10 +54,10 @@ export function extractSpawnRole(toolInput) {
 export function isSpawnTool(toolName) {
     if (!toolName)
         return false;
-    const n = toolName.toLowerCase().replace(/[^a-z_]/g, "");
+    // Letters-only (v1.1.7): SpawnSubagent / spawn-subagent same as spawn_subagent
+    const n = toolName.toLowerCase().replace(/[^a-z]/g, "");
     return (n.includes("spawn") ||
         n === "task" ||
-        n.includes("call_omo") ||
         n.includes("callomo") ||
         n === "subagent");
 }

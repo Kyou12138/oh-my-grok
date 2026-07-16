@@ -195,6 +195,27 @@ describe("PreTool deny + PostTool warn", () => {
     expect(commentCheckerPreDeny(input, hard)).toMatch(/OMG_COMMENT_CHECKER|这个/);
   });
 
+  it("SearchReplace hard deny scans new_string (v1.1.7)", () => {
+    const ws = tmpWorkspace();
+    const hard = cfg(path.join(ws, "pdata"), {
+      commentCheckerDeny: true,
+      commentChecker: true,
+    });
+    const deny = commentCheckerPreDeny(
+      base(ws, {
+        event: "pre-tool-use",
+        toolName: "SearchReplace",
+        toolInput: {
+          path: path.join(ws, "c.ts"),
+          old_string: "x",
+          new_string: "// This function handles login\nexport function login() {}\n",
+        },
+      }),
+      hard,
+    );
+    expect(deny).toMatch(/OMG_COMMENT_CHECKER|restates|function/i);
+  });
+
   it("PreTool hard deny production path", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"), {

@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.7] — 2026-07-16
+
+### MAGI spiral — hooks exact names + comment/spawn tool norm
+
+- **hooks** PreTool/PostTool matchers add **SearchReplace**, search-replace, MultiEdit, apply-patch, Delete(File), ReadFile (host simple matcher is **exact / case-sensitive**)
+- **fix(comment-checker)** PreDeny scans SearchReplace/apply_patch via `normalizeToolName` (was miss CamelCase)
+- **fix(isSpawnTool)** letters-only so spawn-subagent matches
+- **validate** requires SearchReplace + search_replace in PreTool matcher
+- **test** SearchReplace hard deny; spawn-subagent
+
 ## [1.1.6] — 2026-07-16
 
 ### MAGI spiral — Hashline isReplace for SearchReplace

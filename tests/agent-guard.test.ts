@@ -302,6 +302,7 @@ describe("session-role helpers", () => {
   it("isSpawnTool names", () => {
     expect(isSpawnTool("spawn_subagent")).toBe(true);
     expect(isSpawnTool("SpawnSubagent")).toBe(true);
+    expect(isSpawnTool("spawn-subagent")).toBe(true);
     expect(isSpawnTool("Task")).toBe(true);
     expect(isSpawnTool("call_omo_agent")).toBe(true);
     expect(isSpawnTool("Write")).toBe(false);

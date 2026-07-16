@@ -89,5 +89,13 @@ if (events.includes("SubagentStop")) {
   console.error("SubagentStop is not loaded by plugin adapter — use SubagentEnd");
   ok = false;
 }
+// Host matcher is exact (case-sensitive simple form) — require SearchReplace for compat
+const preToolMatchers = (hooks.hooks?.PreToolUse || [])
+  .map((g) => g.matcher || "")
+  .join("|");
+if (!preToolMatchers.includes("SearchReplace") || !preToolMatchers.includes("search_replace")) {
+  console.error("PreToolUse matcher should list both SearchReplace and search_replace (exact host match)");
+  ok = false;
+}
 
 process.exit(ok ? 0 : 1);

@@ -7,6 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { ensureDir, readJson, writeJsonAtomic } from "../state/fs.js";
 import { pathsFor } from "../state/paths.js";
+import { normalizeToolName } from "./skill-gate.js";
 /** Patterns that typically restate code without adding intent. */
 const SLOP_LINE = /^\s*(?:\/\/|\/\*+|\*|#)\s*(?:this\s+(?:function|method|class|component|variable|constant|code|file|hook|handler|module)|returns?\s+the\s+|gets?\s+the\s+|sets?\s+the\s+|imports?\s+|exports?\s+|defines?\s+|creates?\s+a\s+|implements?\s+the\s+|handles?\s+the\s+|helper\s+function|utility\s+function|main\s+function|entry\s+point|TODO:\s*implement|FIXME:\s*implement)/i;
 const CHINESE_SLOP = /^\s*(?:\/\/|\/\*+|\*|#)\s*(?:这个(?:函数|方法|类|组件|变量|文件|模块)|用于(?:计算|处理|获取|设置|实现)|返回(?:了)?|获取(?:了)?)/;
@@ -125,16 +126,24 @@ export function formatCommentHits(hits, filePath) {
         "</OMG_COMMENT_CHECKER>",
     ].join("\n");
 }
+/** Tools that carry new content we can scan for slop comments. */
+export function isCommentScanTool(toolName) {
+    if (!toolName)
+        return false;
+    const n = normalizeToolName(toolName);
+    return (n.includes("write") ||
+        n.includes("strreplace") ||
+        n.includes("searchreplace") ||
+        n.includes("edit") || // edit, editfile, editnotebook, multiedit
+        n.includes("applypatch"));
+}
 /** PreTool deny when commentCheckerDeny is on. */
 export function commentCheckerPreDeny(input, cfg) {
     if (!cfg.commentChecker || !cfg.commentCheckerDeny)
         return null;
-    const tool = (input.toolName || "").toLowerCase();
-    if (!tool.includes("write") &&
-        !tool.includes("strreplace") &&
-        !tool.includes("edit")) {
+    // v1.1.7: SearchReplace must scan (old lower+strreplace miss CamelCase)
+    if (!isCommentScanTool(input.toolName))
         return null;
-    }
     const { content, filePath } = extractWriteContent(input.toolInput);
     if (!content)
         return null;

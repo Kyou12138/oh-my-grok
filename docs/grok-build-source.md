@@ -82,3 +82,8 @@ Do **not** `setSessionAgentRole(subagentType)` there or on PostTool spawn — st
 `SubagentEnd` means the **child process finished**, not that the parent integrated findings.  
 Clearing spawn follow-through on End lets the parent idle-stop without `get_task_output`.  
 End only marks `childFinished`; clear via recovery tools / progress / recovered language.
+
+## v1.1.7 pitfall (matcher exact / case-sensitive)
+
+Simple-form `matcher` strings (only `[A-Za-z0-9_|]`) are **exact** equality per `|` term — not regex, not case-insensitive.  
+List both `search_replace` and `SearchReplace` (and similar) or the host will skip the hook.
