@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.16] — 2026-07-16
+
+### MAGI spiral — skill-gate path false positives
+
+- **fix(skillGateContext)** only include **test-like** file paths (`.test.` / `.spec.` / `__tests__` / `/test/`) — stop treating `plan_executor.ts` / arbitrary paths as plan/test intent
+- **test** non-test path ignored; test path still drives TDD suggestion
+
 ## [1.1.15] — 2026-07-16
 
 ### MAGI spiral — DONE hedges + empty Write wipe

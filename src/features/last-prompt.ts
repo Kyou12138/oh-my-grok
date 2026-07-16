@@ -31,6 +31,22 @@ export function loadLastPrompt(input: HookInput, cfg: EnvConfig): string {
   return st?.prompt || "";
 }
 
+/**
+ * Paths that imply test intent (safe to include in skill-gate context).
+ * Other paths must NOT enter context — e.g. `plan_executor.ts` / `my-plan.md`
+ * falsely triggered writing-plans (v1.1.16).
+ */
+export function isTestLikePath(filePath: string): boolean {
+  if (!filePath?.trim()) return false;
+  const n = filePath.replace(/\\/g, "/");
+  return (
+    /\.(test|spec)\.[a-z0-9]+$/i.test(n) ||
+    /\/__tests__\//i.test(n) ||
+    /\/tests?\//i.test(n) ||
+    /\/spec\//i.test(n)
+  );
+}
+
 /** Context string for intent-aware skill gate. */
 export function skillGateContext(input: HookInput, cfg: EnvConfig): string {
   const parts: string[] = [];
@@ -45,6 +61,7 @@ export function skillGateContext(input: HookInput, cfg: EnvConfig): string {
       input.toolInput?.target_file ??
       "",
   );
-  if (file) parts.push(file);
+  // Only test-like paths contribute path intent (TDD/verification skills)
+  if (file && isTestLikePath(file)) parts.push(file);
   return parts.join("\n");
 }

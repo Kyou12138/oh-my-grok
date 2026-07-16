@@ -624,7 +624,7 @@ describe("saveLastPrompt + skillGateContext（file_path 影响）", () => {
     expect(fs.existsSync(file)).toBe(false);
   });
 
-  it("skillGateContext 拼装 last prompt + toolInput.file_path", () => {
+  it("skillGateContext 拼装 last prompt + test-like file_path only", () => {
     const ws = tmpWorkspace();
     const data = path.join(ws, "pdata");
     const c = cfg(data);
@@ -645,7 +645,22 @@ describe("saveLastPrompt + skillGateContext（file_path 影响）", () => {
     expect(got.has("test-driven-development")).toBe(true);
   });
 
-  it("skillGateContext 兼容多种 file 字段命名", () => {
+  it("skillGateContext 忽略非 test 路径（v1.1.16 plan_ 假阳性）", () => {
+    const ws = tmpWorkspace();
+    const data = path.join(ws, "pdata");
+    const c = cfg(data);
+    // 仅路径含 plan — 不得触发 writing-plans
+    const ctx = skillGateContext(
+      input(ws, {
+        toolInput: { file_path: "/repo/src/plan_executor.ts" },
+      }),
+      c,
+    );
+    expect(ctx).not.toContain("plan_executor");
+    expect(suggestedSkillsForContext(FULL_CATALOG, ctx)).toEqual([]);
+  });
+
+  it("skillGateContext 兼容多种 test 文件字段命名", () => {
     const ws = tmpWorkspace();
     const data = path.join(ws, "pdata");
     const c = cfg(data);
@@ -658,11 +673,18 @@ describe("saveLastPrompt + skillGateContext（file_path 影响）", () => {
     }
   });
 
-  it("无 prompt 且无 file 时 context 为空字符串", () => {
+  it("无 prompt 且无 test-like file 时 context 为空字符串", () => {
     const ws = tmpWorkspace();
     const data = path.join(ws, "pdata");
     const c = cfg(data);
     expect(skillGateContext(input(ws), c)).toBe("");
+    // non-test path alone still empty
+    expect(
+      skillGateContext(
+        input(ws, { toolInput: { path: "/repo/src/utils.ts" } }),
+        c,
+      ),
+    ).toBe("");
   });
 
   it("end-to-end: prompt 写入 → context 拼装 → 门控决策联动", () => {
