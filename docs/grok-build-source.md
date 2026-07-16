@@ -71,3 +71,8 @@ Plugin: `GROK_PLUGIN_ROOT`, `GROK_PLUGIN_DATA` (+ Claude aliases).
 2. Register **SubagentStart** / **SubagentEnd** → arm / clear spawn follow-through (host lifecycle, not assistant prose).  
 3. Contract docs match source (PreTool = only host-enforced gate).  
 4. Keep Stop/UserPrompt handlers for state + offline tests.
+
+## v1.1.1 pitfall (parent sticky)
+
+`SubagentStart` is fired on the **parent** session (`updates.rs` → `self.fire_hook`).  
+Do **not** `setSessionAgentRole(subagentType)` there or on PostTool spawn — sticky `explore` poisons parent `AGENT_GUARD` when the host omits `agentName` on later Write tools.

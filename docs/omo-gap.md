@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-15 · **omg version:** **1.0.2**  
+**Date:** 2026-07-16 · **omg version:** **1.1.1**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -234,13 +234,28 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | inline spawn result | 实质 toolOutput 不 arm pending |
 | hooks matcher | 注册 get_task_output / get_command_or_subagent_output |
 
+## Closed this spiral (v1.1.0)
+
+| Item | Behavior |
+|------|----------|
+| grok-build 源码对齐 | `toolResult` coerce、`subagentType`、contract PreTool-only 真相 |
+| SubagentStart/End | host 生命周期 arm/clear spawn follow-through（hooks.json 注册 End 非 Stop） |
+
+## Closed this spiral (v1.1.1)
+
+| Item | Behavior |
+|------|----------|
+| **parent sticky poison** | PostTool spawn / SubagentStart **不再**把父会话 sticky 锁成子角色；避免主会话 Write 被 AGENT_GUARD 误拦 |
+| sticky 来源收紧 | 仅 `/agent` 与 host `agentName`；spawn 只 arm follow-through + category mark |
+
 ## Next spiral focus (提升)
 
-- 全量 project-memory（仍 defer）
+- 将更多「仅 Stop 侧效」门禁中 **host 可执行** 的部分迁到 PreTool（Stop stdout 宿主丢弃）
 - Hashline native edit（宿主）
+- 全量 project-memory（仍 defer）
 - marketplace 收录
 
-**推荐**: `grok plugin update` → 1.0.2。
+**推荐**: `grok plugin update` → **1.1.1**。
 
 ## Explicit non-goals
 

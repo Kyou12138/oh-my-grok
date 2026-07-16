@@ -133,11 +133,12 @@ describe("session sticky agent role", () => {
     expect(JSON.stringify(r.output)).toMatch(/AGENT_GUARD|oracle|read-only/i);
   });
 
-  it("PostTool spawn_subagent records sticky role", () => {
+  it("PostTool spawn_subagent does not sticky-lock parent to child role", () => {
+    // v1.1.1: parent session fires spawn/SubagentStart — sticky explore would block parent writes
     const ws = tmpWorkspace();
     const data = path.join(ws, "pdata");
     const c = cfg(data);
-    handlePostToolSpawn(
+    const out = handlePostToolSpawn(
       base(ws, {
         event: "post-tool-write",
         toolName: "spawn_subagent",
@@ -145,7 +146,9 @@ describe("session sticky agent role", () => {
       }),
       c,
     );
-    expect(getSessionAgentRole(base(ws), c)).toBe("explore");
+    expect(getSessionAgentRole(base(ws), c)).toBe("");
+    expect(JSON.stringify(out)).toMatch(/followthrough|OMG_SPAWN/i);
+    expect(JSON.stringify(out)).not.toMatch(/sticky="explore"/i);
   });
 
   it("/agent hephaestus clears read-only lock for writes", () => {

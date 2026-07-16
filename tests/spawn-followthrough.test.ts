@@ -23,6 +23,7 @@ import {
   SPAWN_FOLLOWTHROUGH_MAX_YANKS,
   spawnFollowThroughStopReason,
 } from "../src/features/spawn-followthrough.js";
+import { getSessionAgentRole } from "../src/features/session-role.js";
 
 const tmpRoots: string[] = [];
 
@@ -289,6 +290,21 @@ describe("host SubagentStart / SubagentEnd (v1.1 Grok Build lifecycle)", () => {
       c,
     );
     expect(stop).toMatch(/SPAWN_FOLLOWTHROUGH|explore/i);
+  });
+
+  it("SubagentStart does not sticky parent to child role (v1.1.1)", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    handleSubagentStart(
+      base(ws, {
+        event: "subagent-start",
+        subagentType: "explore",
+        raw: { subagentType: "explore" },
+      }),
+      c,
+    );
+    // sticky empty → parent Write without agentName remains fail-open for agent-guard
+    expect(getSessionAgentRole(base(ws), c)).toBe("");
   });
 
   it("SubagentEnd clears pending (host result recovery)", () => {

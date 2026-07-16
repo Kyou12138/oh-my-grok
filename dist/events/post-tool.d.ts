@@ -9,5 +9,9 @@ export declare function handlePostToolShell(input: HookInput, cfg: EnvConfig): H
  * - get_task_output (etc.) → clear follow-through pending (result recovered)
  * - spawn with empty/short output → arm follow-through
  * - spawn with substantial inline toolOutput → treat as recovered (no yank arm)
+ *
+ * Does NOT sticky-lock parent session to child role (Grok SubagentStart/PostTool
+ * spawn fire on the parent session — sticky explore would AGENT_GUARD parent writes).
+ * Sticky role only via /agent or host agentName (user-prompt / tool envelope).
  */
 export declare function handlePostToolSpawn(input: HookInput, cfg: EnvConfig): HookOutput;

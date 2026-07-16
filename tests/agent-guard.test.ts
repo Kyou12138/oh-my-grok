@@ -346,7 +346,8 @@ describe("production path", () => {
     expect(JSON.stringify(r.output)).toMatch(/AGENT_GUARD/i);
   });
 
-  it("PostTool spawn sticky then PreTool denies without agentName", () => {
+  it("PostTool spawn does NOT sticky parent → Write without agentName allowed", () => {
+    // Parent-session spawn must not AGENT_GUARD the orchestrator as the child role
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));
     handlePostToolSpawn(
@@ -357,7 +358,7 @@ describe("production path", () => {
       }),
       c,
     );
-    expect(getSessionAgentRole(base(ws), c)).toBe("librarian");
+    expect(getSessionAgentRole(base(ws), c)).toBe("");
     const r = handlePreToolUse(
       base(ws, {
         toolName: "Write",
@@ -365,7 +366,7 @@ describe("production path", () => {
       }),
       c,
     );
-    expect(r.exitCode).toBe(2);
+    expect(r.exitCode).toBe(0);
   });
 
   it("/agent hephaestus then host-oracle Write allowed", () => {

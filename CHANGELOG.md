@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.1] — 2026-07-16
+
+### MAGI spiral — parent session sticky poison fix
+
+- **fix(agent-guard)** PostTool `spawn_subagent` / host **SubagentStart** no longer sticky-lock parent session to child role (`explore`/`oracle`/…)
+- Root cause (grok-build `updates.rs`): SubagentStart/PostTool spawn fire on **parent** session; sticky child role → parent Write denied by AGENT_GUARD when host omits `agentName`
+- Sticky role sources remain: `/agent`, host `agentName` on UserPrompt/tools
+- Spawn still arms follow-through + category spawn mark; SubagentEnd still clears pending
+- **test** agent-guard / omo-gap-v07 / spawn-followthrough inverted expectations
+
 ## [1.1.0] — 2026-07-16
 
 ### Source-aligned with xai-org/grok-build

@@ -9,11 +9,7 @@ import {
   noteUlwShell,
   noteUlwWrite,
 } from "../features/ralph.js";
-import {
-  extractSpawnRole,
-  isSpawnTool,
-  setSessionAgentRole,
-} from "../features/session-role.js";
+import { extractSpawnRole, isSpawnTool } from "../features/session-role.js";
 import { markSkillLoaded } from "../features/skill-gate.js";
 import { markSpawnActivity } from "../features/category-discipline.js";
 import {
@@ -131,6 +127,10 @@ export function handlePostToolShell(input: HookInput, cfg: EnvConfig): HookOutpu
  * - get_task_output (etc.) → clear follow-through pending (result recovered)
  * - spawn with empty/short output → arm follow-through
  * - spawn with substantial inline toolOutput → treat as recovered (no yank arm)
+ *
+ * Does NOT sticky-lock parent session to child role (Grok SubagentStart/PostTool
+ * spawn fire on the parent session — sticky explore would AGENT_GUARD parent writes).
+ * Sticky role only via /agent or host agentName (user-prompt / tool envelope).
  */
 export function handlePostToolSpawn(input: HookInput, cfg: EnvConfig): HookOutput {
   // Result recovery tools clear pending even when not a spawn
@@ -148,12 +148,16 @@ export function handlePostToolSpawn(input: HookInput, cfg: EnvConfig): HookOutpu
   const out = String(input.toolOutput || "");
   if (isInlineSubagentResult(out)) {
     clearSpawnFollowThrough(input, cfg);
-  } else {
-    markSpawnFollowThrough(input, cfg, role || undefined);
+    return mergeContext(
+      role
+        ? `<OMG_SPAWN role="${role}" inline="true">Inline subagent result observed — follow-through not armed. Parent session role unchanged.</OMG_SPAWN>`
+        : "",
+    );
   }
-  if (!role) return {};
-  setSessionAgentRole(input, cfg, role, `spawn:${input.toolName || "task"}`);
+  markSpawnFollowThrough(input, cfg, role || undefined);
   return mergeContext(
-    `<OMG_AGENT_ROLE sticky="${role}">Session agent role → **${role}**. Read-only roles cannot mutate files.</OMG_AGENT_ROLE>`,
+    role
+      ? `<OMG_SPAWN role="${role}" followthrough="armed">Spawned **${role}** — recover result before idle stop. Parent session agent role is unchanged (not sticky-locked to child).</OMG_SPAWN>`
+      : `<OMG_SPAWN followthrough="armed">Spawn armed follow-through. Parent session agent role unchanged.</OMG_SPAWN>`,
   );
 }
