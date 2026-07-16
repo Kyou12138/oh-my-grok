@@ -208,6 +208,7 @@ npm run validate
 - [docs/omo-gap.md](./docs/omo-gap.md) — Vanilla / omg / omo map  
 - [docs/acceptance.md](./docs/acceptance.md) — L0 unit · L2 live PreTool  
 - [docs/install-60s.md](./docs/install-60s.md) — 60s install + troubleshooting  
+- [docs/harness-light-architecture.md](./docs/harness-light-architecture.md) — target core/adapter layout  
 - [docs/grok-build-source.md](./docs/grok-build-source.md) — grok-build source notes  
 - **CI:** `npm run ci` ([`scripts/ci.mjs`](./scripts/ci.mjs)). Actions template: [`docs/ci.workflow.yml`](./docs/ci.workflow.yml)
 

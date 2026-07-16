@@ -65,6 +65,7 @@ Reload hooks with a **new session** after changing `hooks/` or `dist/`.
 6. **TDD for harness behavior:** add/adjust tests under `tests/` before claiming new gates.
 7. **Matcher case sensitivity:** host simple matchers are **exact / case-sensitive** — register both `search_replace` and `SearchReplace` (etc.) in `hooks/hooks.json`. Normalize in code via `normalizeToolName` (`[^a-z]` stripped).
 8. **Pure logic vs host I/O:** prefer pure functions in `src/features/*`; stdin/stdout only in `cli` + `events/*`. Do not encode OpenCode-only assumptions (tool-output rewrite, session.prompt yank) as required behavior.
+9. **Target layout (1.2→2.0):** see [docs/harness-light-architecture.md](./docs/harness-light-architecture.md) — `omg-core` (pure) + `omg-adapter-grok` (hooks) + plugin surface. New gates: declare hard vs soft; PreTool “synthetic yank” only for unfinished state + high-risk tools (never end_turn).
 
 ## PR checklist
 

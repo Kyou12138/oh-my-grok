@@ -457,11 +457,12 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 
 ## Next spiral focus (提升)
 
-- **marketplace** 收录（分发转化）
-- Hashline native edit tool（宿主能力）
-- project-memory 仍 defer（omo #74）
+- **marketplace** + 传播资产（GIF）— 安装转化  
+- **Harness Light 架构** → [harness-light-architecture.md](./harness-light-architecture.md)（core / adapter 分层；1.2 = 硬门禁稳定，非功能膨胀）  
+- Hashline native edit tool（宿主能力）  
+- project-memory 仍 defer（omo #74）  
 
-**推荐**: `grok plugin update` → **1.1.26**。
+**推荐**: pin **v1.1.26** · `grok plugin update`。
 
 ## Explicit non-goals
 
