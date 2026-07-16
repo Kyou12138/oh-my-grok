@@ -208,6 +208,7 @@ npm run validate
 - [docs/contract.md](./docs/contract.md) — **宿主契约（权威）**；README 承诺 ⊆ 此文件  
 - [docs/omo-gap.md](./docs/omo-gap.md) — Vanilla / omg / omo 对照  
 - [docs/acceptance.md](./docs/acceptance.md) — 验收：L0 单测 · L2 真机 PreTool  
+- [docs/install-60s.md](./docs/install-60s.md) — 装后 60 秒 + 失败排查  
 - [docs/grok-build-source.md](./docs/grok-build-source.md) — grok-build 源码对齐笔记  
 - **CI：** `npm run ci`（[`scripts/ci.mjs`](./scripts/ci.mjs)）。GitHub Actions 模板：[`docs/ci.workflow.yml`](./docs/ci.workflow.yml)
 

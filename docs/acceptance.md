@@ -61,11 +61,13 @@
 ## 反馈模板
 
 ```
-版本: 1.1.21
+版本: （填 package.json version，当前 ≥1.1.26）
 OS / Grok Build 版本:
 L0: npm run ci → 
 L2 探针 A Hashline deny: ✅/❌
 L2 探针 B plan 锁: ✅/❌
+L2 探针 C Agent Guard（可选）/agent oracle 后 Write 或 task: ✅/❌
 失败项 / 复现:
 期望 / 实际:
+.omg / doctor 输出摘要:
 ```

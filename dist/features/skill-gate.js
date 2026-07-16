@@ -7,8 +7,13 @@ import { pathsFor } from "../state/paths.js";
  * Fixes v1.1.5: SearchReplace → searchreplace was missing while
  * search_replace (underscore kept under old [^a-z_] norm) hit the set.
  */
-const MUTATING = new Set([
+/**
+ * Canonical mutating tool ids after normalizeToolName ([a-z] only).
+ * Keep in sync with hooks.json PreTool/PostTool write matchers — see tests/hooks-matcher.test.ts.
+ */
+export const MUTATING_TOOL_IDS = [
     "write",
+    "writefile",
     "strreplace",
     "searchreplace",
     "editnotebook",
@@ -21,8 +26,8 @@ const MUTATING = new Set([
     "createfile",
     "applypatch",
     "multiedit",
-    "writefile",
-]);
+];
+const MUTATING = new Set(MUTATING_TOOL_IDS);
 /** Normalize tool name for mutating / matcher checks. */
 export function normalizeToolName(name) {
     return name.toLowerCase().replace(/[^a-z]/g, "");

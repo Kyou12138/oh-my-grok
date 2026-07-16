@@ -11,6 +11,13 @@ All notable changes to this project are documented here.
 - **docs** contract PreTool order + CONTRIBUTING order updated
 - **test** prometheus role deny/allow; isPlanModePlanOnlyWrite; PreTool plan Write allows under TDD last-prompt
 
+### Release hygiene (same version)
+
+- **docs** `install-60s.md` L2 path + troubleshooting; acceptance feedback template unpinned from 1.1.21
+- **test** `hooks-matcher.test.ts` — PreTool/PostTool matcher ↔ `MUTATING_TOOL_IDS` / spawn
+- **export** `MUTATING_TOOL_IDS` for matcher single-source guard
+- **GitHub** description → Harness Light; tag **v1.1.26**
+
 ## [1.1.25] — 2026-07-16
 
 ### MAGI spiral — Agent Guard spawn/task PreTool + NotebookEdit post-write
