@@ -16,7 +16,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { collectDirectoryContext } from "../src/features/directory-inject.js";
 
 const tmpRoots: string[] = [];
@@ -28,6 +28,7 @@ function tmpWorkspace(): string {
 }
 
 afterEach(() => {
+  vi.restoreAllMocks();
   for (const d of tmpRoots.splice(0)) {
     fs.rmSync(d, { recursive: true, force: true });
   }
@@ -209,6 +210,33 @@ describe("realpath symlink containment", () => {
 
     const out = collectDirectoryContext(ws, path.join(link, "file.ts"));
     expect(out).toBe("");
+    expect(out).not.toContain("EXTERNAL SECRET content");
+  });
+
+  it("does not read an AGENTS.md file link that resolves outside", () => {
+    const ws = tmpWorkspace();
+    const outside = tmpWorkspace();
+    const target = path.join(ws, "src", "file.ts");
+    const rule = path.join(ws, "src", "AGENTS.md");
+    const outsideRule = path.join(outside, "AGENTS.md");
+    writeFile(target, "export {}");
+    writeFile(outsideRule, "EXTERNAL SECRET content");
+
+    try {
+      fs.symlinkSync(outsideRule, rule, "file");
+    } catch (error) {
+      if (process.platform !== "win32") throw error;
+      writeFile(rule, "EXTERNAL SECRET content");
+      const nativeRealpath = fs.realpathSync.native;
+      const outsideReal = nativeRealpath(outsideRule);
+      vi.spyOn(fs.realpathSync, "native").mockImplementation((candidate) =>
+        path.resolve(String(candidate)) === path.resolve(rule)
+          ? outsideReal
+          : nativeRealpath(candidate),
+      );
+    }
+
+    const out = collectDirectoryContext(ws, target);
     expect(out).not.toContain("EXTERNAL SECRET content");
   });
 });

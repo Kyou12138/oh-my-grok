@@ -692,7 +692,7 @@ describe("planModeDeny", () => {
     expect(denied).toMatch(/plan-mode|Only writes under \.omg\/plans/i);
   });
 
-  it("allows writes under .omg/plans/ and plan-mode.json", () => {
+  it("allows writes under .omg/plans/", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));
     const input = base(ws);

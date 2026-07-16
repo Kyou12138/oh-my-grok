@@ -38,8 +38,10 @@ export function collectDirectoryContext(
       const file = path.join(dir, name);
       if (fs.existsSync(file)) {
         try {
-          const body = truncateByCodePoints(fs.readFileSync(file, "utf8"), 2000);
-          chunks.push(`### ${path.relative(rootReal, file) || name}\n${body}`);
+          const ruleReal = canonicalizeTargetPath(rootReal, file);
+          if (!ruleReal || !isPathInside(rootReal, ruleReal)) break;
+          const body = truncateByCodePoints(fs.readFileSync(ruleReal, "utf8"), 2000);
+          chunks.push(`### ${path.relative(rootReal, ruleReal) || name}\n${body}`);
         } catch {
           /* 忽略不可读的目录规则文件。 */
         }
