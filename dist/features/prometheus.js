@@ -139,6 +139,53 @@ export function planReviewDenyReason(planPath) {
         "4) Re-run /start-work",
     ].join("\n");
 }
+/**
+ * Count machine-readable task checkboxes outside ## Review (omo #6094).
+ * Empty placeholders (`- [ ]` with no label) do not count — Boulder needs
+ * labeled rows like `- [ ] 1. Implement …`.
+ */
+export function countPlanTaskCheckboxes(planPath) {
+    if (!planPath || !fs.existsSync(planPath))
+        return 0;
+    let text = "";
+    try {
+        text = fs.readFileSync(planPath, "utf8");
+    }
+    catch {
+        return 0;
+    }
+    let count = 0;
+    let inReview = false;
+    for (const line of text.split(/\r?\n/)) {
+        const t = line.trim();
+        // ATX headings: enter/leave Review section (case-insensitive)
+        const hm = t.match(/^#{1,6}\s+(.+)$/);
+        if (hm) {
+            inReview = /^review\b/i.test(hm[1].trim());
+            continue;
+        }
+        if (inReview)
+            continue;
+        // Non-empty checkbox label: `- [ ] title` or `- [x] title`
+        if (/^[-*+]\s*\[[ xX]\]\s+\S/.test(t)) {
+            count += 1;
+        }
+    }
+    return count;
+}
+export function planFormatDenyReason(planPath) {
+    return [
+        "[PLAN_FORMAT] /start-work blocked — plan has zero machine-readable task checkboxes (omo #6094).",
+        planPath ? `Plan: ${planPath}` : "No plan path.",
+        "",
+        "Boulder cannot track prose-only task lists. Every implementation task MUST be a GFM checkbox with a label:",
+        "  - [ ] 1. Implement settlement flow",
+        "  - [ ] 2. Add regression coverage",
+        "",
+        "Do not use numbered headings or bold prose as tasks. Empty `- [ ]` placeholders do not count.",
+        "Add labeled rows under ## Steps / ## Todos (outside ## Review), then re-run /start-work.",
+    ].join("\n");
+}
 export function startWorkFromPlan(input, cfg) {
     const pm = loadPlanMode(input, cfg);
     const planPath = pm.planFile || "";
@@ -151,6 +198,10 @@ export function startWorkFromPlan(input, cfg) {
     }
     if (!planFileHasReview(planPath)) {
         return { ok: false, planPath, reason: planReviewDenyReason(planPath) };
+    }
+    // omo #6094: review-only / prose-only plans must not arm boulder at 0/0
+    if (countPlanTaskCheckboxes(planPath) === 0) {
+        return { ok: false, planPath, reason: planFormatDenyReason(planPath) };
     }
     setBoulder(input, cfg, {
         schemaVersion: 1,

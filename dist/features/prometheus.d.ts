@@ -24,6 +24,13 @@ export declare function isHostExitPlanTool(toolName?: string): boolean;
  */
 export declare function planFileHasReview(planPath?: string): boolean;
 export declare function planReviewDenyReason(planPath?: string): string;
+/**
+ * Count machine-readable task checkboxes outside ## Review (omo #6094).
+ * Empty placeholders (`- [ ]` with no label) do not count — Boulder needs
+ * labeled rows like `- [ ] 1. Implement …`.
+ */
+export declare function countPlanTaskCheckboxes(planPath?: string): number;
+export declare function planFormatDenyReason(planPath?: string): string;
 export declare function startWorkFromPlan(input: HookInput, cfg: EnvConfig): {
     ok: boolean;
     planPath: string;

@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-16 · **omg version:** **1.1.16**  
+**Date:** 2026-07-16 · **omg version:** **1.1.17**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -354,14 +354,28 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 |------|----------|
 | **skillGate path 收窄** | 仅 `.test.`/`.spec.` 等 test-like 路径进意图上下文；`plan_*.ts` 不再误触 writing-plans |
 
+## Closed this spiral (v1.1.17) — omo issues
+
+| omo issue / theme | oh-my-grok |
+|-------------------|------------|
+| [#3312](https://github.com/code-yeongyu/oh-my-openagent/issues/3312) substring false positives | INTENT_SKILL_RULES 去掉裸 `tests?`/`plan`/`loop`；保留强短语 |
+| [#6094](https://github.com/code-yeongyu/oh-my-openagent/issues/6094) prose Todos → Boulder 0/0 | `/start-work` 在 review 通过后仍要求 ≥1 带标签 task checkbox（排除 ## Review；空 `- [ ]` 不计）→ 否则 `PLAN_FORMAT` |
+| [#6133](https://github.com/code-yeongyu/oh-my-openagent/issues/6133) continuation config | 已于 v1.1.11 shipped |
+| [#6001](https://github.com/code-yeongyu/oh-my-openagent/issues/6001) skill reminder 污染 | Grok 非 PreTool stdout 丢弃 → 免疫 |
+| [#74](https://github.com/code-yeongyu/oh-my-openagent/issues/74) memory | 仍 **defer** |
+| [#5806](https://github.com/code-yeongyu/oh-my-openagent/issues/5806) ULW edge vs level | Ralph state 已是 session-level（非关键词每轮）— 已 level-triggered |
+| [#4217](https://github.com/code-yeongyu/oh-my-openagent/issues/4217) subagent stall | partial via spawn-followthrough；真 stall timer 需 host task 进度 API |
+| [#5970](https://github.com/code-yeongyu/oh-my-openagent/issues/5970) evidence receipt | Codex-only evidence dir — N/A on Grok |
+
 ## Next spiral focus (提升)
 
 - Hashline native edit tool（宿主能力）
 - marketplace 收录
 - project-memory 仍 defer（对齐 omo #74 共识）
+- omo #4217 stall 深化（若 host 暴露 task progress）
 - 持续扫 omo issues 中 **Grok-feasible** 门禁
 
-**推荐**: `grok plugin update` → **1.1.16**。
+**推荐**: `grok plugin update` → **1.1.17**。
 
 ## Explicit non-goals
 

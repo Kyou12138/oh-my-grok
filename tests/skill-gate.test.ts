@@ -130,10 +130,13 @@ describe("suggestedSkillsForContext — 意图→技能规则矩阵", () => {
   });
 
   // 规则 1: TDD / test / debug 类（注意 TDD 规则在前，debug 单独成条）
-  it("TDD/test/spec 关键词 → test-driven-development + verification-before-completion", () => {
+  // v1.1.17: 收窄 — 裸 "test"/"tests" 不再触发（对齐 omo #3312 假阳性思路）
+  it("TDD/unit test/vitest 等强意图 → test-driven-development + verification-before-completion", () => {
     for (const ctx of [
       "implement feature with TDD",
       "add unit tests for the module",
+      "run the tests after the change",
+      "write tests for the parser",
       "run the spec suite",
       "wire up vitest and jest",
       "pytest the pipeline",
@@ -152,6 +155,19 @@ describe("suggestedSkillsForContext — 意图→技能规则矩阵", () => {
     );
     expect(got.has("test-driven-development")).toBe(true);
     expect(got.has("verification-before-completion")).toBe(true);
+  });
+
+  it("裸 test/tests 与口语 'test later' 不触发 TDD 技能（v1.1.17）", () => {
+    for (const ctx of [
+      "test the network later",
+      "we can test this tomorrow",
+      "tests of patience",
+      "A/B test the copy",
+    ]) {
+      const got = idsOf(suggestedSkillsForContext(FULL_CATALOG, ctx));
+      expect(got.has("test-driven-development")).toBe(false);
+      expect(got.has("verification-before-completion")).toBe(false);
+    }
   });
 
   // 规则 2: debug 类
@@ -182,12 +198,15 @@ describe("suggestedSkillsForContext — 意图→技能规则矩阵", () => {
     }
   });
 
-  // 规则 4: plan / prometheus 类
-  it("plan/roadmap/prometheus → writing-plans + prometheus-plan", () => {
+  // 规则 4: plan / prometheus 类（v1.1.17 收窄裸 "plan" / "I plan to"）
+  it("draft/write plan / roadmap / prometheus → writing-plans + prometheus-plan", () => {
     for (const ctx of [
       "draft a plan for the migration",
+      "write a plan for auth",
+      "plan the feature rollout",
       "build a roadmap",
       "engage prometheus planning",
+      "/plan oauth",
     ]) {
       const got = idsOf(suggestedSkillsForContext(FULL_CATALOG, ctx));
       expect(got.has("writing-plans")).toBe(true);
@@ -195,17 +214,42 @@ describe("suggestedSkillsForContext — 意图→技能规则矩阵", () => {
     }
   });
 
-  // 规则 5: ulw / ralph / ultrawork / loop 类
-  it("ulw/ultrawork/ralph/loop → ulw-loop + ralph-loop", () => {
+  it("口语 'I plan to' / 裸 plan 不触发 planning 技能（v1.1.17）", () => {
+    for (const ctx of [
+      "I plan to refactor tomorrow",
+      "we plan on shipping next week",
+      "airplane mode",
+    ]) {
+      const got = idsOf(suggestedSkillsForContext(FULL_CATALOG, ctx));
+      expect(got.has("writing-plans")).toBe(false);
+      expect(got.has("prometheus-plan")).toBe(false);
+    }
+  });
+
+  // 规则 5: ulw / ralph / ultrawork（v1.1.17 去掉裸 loop — for-loop 假阳性）
+  it("ulw/ultrawork/ralph → ulw-loop + ralph-loop", () => {
     for (const ctx of [
       "run the ULW loop on this",
       "engage ultrawork mode",
       "start ralph for the suite",
-      "loop until green",
+      "activate ralph-loop",
+      "use the ulw-loop skill",
     ]) {
       const got = idsOf(suggestedSkillsForContext(FULL_CATALOG, ctx));
       expect(got.has("ulw-loop")).toBe(true);
       expect(got.has("ralph-loop")).toBe(true);
+    }
+  });
+
+  it("裸 loop / for-loop 不触发 ralph/ulw 技能（v1.1.17）", () => {
+    for (const ctx of [
+      "loop until green",
+      "for loop over the array",
+      "event loop latency",
+    ]) {
+      const got = idsOf(suggestedSkillsForContext(FULL_CATALOG, ctx));
+      expect(got.has("ulw-loop")).toBe(false);
+      expect(got.has("ralph-loop")).toBe(false);
     }
   });
 
@@ -266,7 +310,7 @@ describe("suggestedSkillsForContext — 意图→技能规则矩阵", () => {
 
   // 多规则叠加：同一上下文命中多条规则应合并去重
   it("多规则叠加时合并并去重建议集合", () => {
-    // "plan" + "test" 同现 → test 规则 + plan 规则合集
+    // "plan the …" + "write tests" + TDD → test 规则 + plan 规则合集
     const got = idsOf(
       suggestedSkillsForContext(FULL_CATALOG, "plan the feature then write tests with TDD"),
     );

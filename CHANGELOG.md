@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.17] — 2026-07-16
+
+### MAGI spiral — omo issue parity (skill false positives + plan format)
+
+Benchmarked against [code-yeongyu/oh-my-openagent](https://github.com/code-yeongyu/oh-my-openagent) issues:
+
+- **fix(skill-gate)** INTENT rules: drop bare `tests?` / `plan` / `loop` (omo [#3312](https://github.com/code-yeongyu/oh-my-openagent/issues/3312) class false positives). Keep strong phrases: `TDD`, `unit tests`, `write/run tests`, `draft a plan`, `plan the …`, `ulw`/`ralph`/`ultrawork`
+- **feat(prometheus)** `/start-work` requires ≥1 labeled task checkbox outside `## Review` (omo [#6094](https://github.com/code-yeongyu/oh-my-openagent/issues/6094) prose-only Todos → 0/0 boulder). Empty `- [ ]` placeholders do not count
+- **test** skill negative matrix; `countPlanTaskCheckboxes` + PLAN_FORMAT deny path
+
 ## [1.1.16] — 2026-07-16
 
 ### MAGI spiral — skill-gate path false positives

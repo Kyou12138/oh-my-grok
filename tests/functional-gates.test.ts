@@ -255,7 +255,7 @@ describe("plan-mode + boulder Stop", () => {
     const f = fs.readdirSync(plans).find((n) => n.endsWith(".md"))!;
     fs.appendFileSync(
       path.join(plans, f),
-      "\n## Review\n- [x] Metis gap check done\n- [x] Momus VERDICT: PASS\n",
+      "\n## Steps\n- [ ] 1. Ship API\n\n## Review\n- [x] Metis gap check done\n- [x] Momus VERDICT: PASS\n",
       "utf8",
     );
     handleUserPrompt(base(ws, { event: "user-prompt", prompt: "/start-work" }), c);
@@ -293,7 +293,7 @@ describe("plan-mode + boulder Stop", () => {
     const planPath = path.join(plans, f);
     fs.appendFileSync(
       planPath,
-      "\n## Review\n- [x] Metis done\n- [x] Momus VERDICT: PASS\n",
+      "\n## Steps\n- [ ] 1. Implement feat\n\n## Review\n- [x] Metis done\n- [x] Momus VERDICT: PASS\n",
       "utf8",
     );
     handleUserPrompt(base(ws, { event: "user-prompt", prompt: "/start-work" }), c);
@@ -320,7 +320,7 @@ describe("plan-mode + boulder Stop", () => {
     const f = fs.readdirSync(plans).find((n) => n.endsWith(".md"))!;
     fs.appendFileSync(
       path.join(plans, f),
-      "\n## Review\n- [x] Metis done\n- [x] Momus VERDICT: PASS\n",
+      "\n## Steps\n- [ ] 1. Do work\n\n## Review\n- [x] Metis done\n- [x] Momus VERDICT: PASS\n",
       "utf8",
     );
     handleUserPrompt(base(ws, { event: "user-prompt", prompt: "/start-work" }), c);

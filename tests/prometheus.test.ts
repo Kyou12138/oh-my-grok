@@ -18,7 +18,9 @@ import {
   isHostEnterPlanTool,
   isHostExitPlanTool,
   loadPlanMode,
+  countPlanTaskCheckboxes,
   planFileHasReview,
+  planFormatDenyReason,
   planModeContext,
   planModeDeny,
   planReviewDenyReason,
@@ -267,16 +269,22 @@ describe("startWorkFromPlan", () => {
     expect(loadPlanMode(input, c).active).toBe(true);
   });
 
-  it("review evidence → ok, activates boulder, ends plan mode", () => {
+  it("review evidence + task checkboxes → ok, activates boulder, ends plan mode", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));
     const input = base(ws);
     const pm = startPlanMode(input, c, "oauth");
     writePlan(
       pm.planFile!,
-      ["# Plan: oauth", "## Review", "- [x] Metis gap check", "VERDICT: PASS"].join(
-        "\n",
-      ),
+      [
+        "# Plan: oauth",
+        "## Steps",
+        "- [ ] 1. Implement token refresh",
+        "- [ ] 2. Add regression tests",
+        "## Review",
+        "- [x] Metis gap check",
+        "VERDICT: PASS",
+      ].join("\n"),
     );
     const r = startWorkFromPlan(input, c);
     expect(r.ok).toBe(true);
@@ -288,6 +296,31 @@ describe("startWorkFromPlan", () => {
     expect(loadPlanMode(input, c).active).toBe(false);
   });
 
+  it("review only, zero task checkboxes → PLAN_FORMAT deny (omo #6094)", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    const pm = startPlanMode(input, c, "prose");
+    // omo #6094 shape: review passes but Todos are prose headings, not - [ ] rows
+    writePlan(
+      pm.planFile!,
+      [
+        "# Plan: prose",
+        "## Todos",
+        "1. **Implement settlement flow**",
+        "2. **Add regression coverage**",
+        "## Review",
+        "- [x] Momus approved",
+        "VERDICT: PASS",
+      ].join("\n"),
+    );
+    const r = startWorkFromPlan(input, c);
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/PLAN_FORMAT|checkbox|task row/i);
+    expect(loadBoulder(input, c)).toBeNull();
+    expect(loadPlanMode(input, c).active).toBe(true);
+  });
+
   it("planPath points to deleted file → deny (no review)", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));
@@ -297,6 +330,56 @@ describe("startWorkFromPlan", () => {
     const r = startWorkFromPlan(input, c);
     expect(r.ok).toBe(false);
     expect(r.reason).toMatch(/PLAN_REVIEW|review/i);
+  });
+});
+
+// ─── 3b. countPlanTaskCheckboxes / plan format (omo #6094) ───────────
+
+describe("countPlanTaskCheckboxes (omo #6094 parity)", () => {
+  it("empty / missing → 0", () => {
+    expect(countPlanTaskCheckboxes(undefined)).toBe(0);
+    expect(countPlanTaskCheckboxes("")).toBe(0);
+    expect(countPlanTaskCheckboxes(path.join(os.tmpdir(), "no-omg-plan.md"))).toBe(0);
+  });
+
+  it("empty placeholder - [ ] does not count; labeled tasks do", () => {
+    const ws = tmpWorkspace();
+    const f = path.join(ws, "tasks.md");
+    writePlan(
+      f,
+      [
+        "## Steps",
+        "- [ ] ",
+        "- [ ]",
+        "- [ ] 1. Real work item",
+        "* [x] 2. Done item",
+        "+ [ ] F1. Final verify",
+        "## Review",
+        "- [x] Metis gap analysis",
+        "- [ ] Momus plan review",
+      ].join("\n"),
+    );
+    // Review section excluded; 3 labeled steps outside Review
+    expect(countPlanTaskCheckboxes(f)).toBe(3);
+  });
+
+  it("prose-only Todos section → 0", () => {
+    const ws = tmpWorkspace();
+    const f = path.join(ws, "prose.md");
+    writePlan(
+      f,
+      ["## Todos", "1. **Backend** Implement", "## Final verification wave", "- F1 - audit"].join(
+        "\n",
+      ),
+    );
+    expect(countPlanTaskCheckboxes(f)).toBe(0);
+  });
+
+  it("planFormatDenyReason names grammar", () => {
+    const s = planFormatDenyReason("/p/plan.md");
+    expect(s).toMatch(/PLAN_FORMAT/);
+    expect(s).toMatch(/- \[ \]/);
+    expect(s).toContain("/p/plan.md");
   });
 });
 
@@ -443,7 +526,7 @@ describe("UserPrompt + PreTool production path", () => {
     const pm = loadPlanMode(base(ws), c);
     writePlan(
       pm.planFile!,
-      "# Plan\n## Review\n- [x] Momus review complete\n",
+      "# Plan\n## Steps\n- [ ] 1. Ship ready\n## Review\n- [x] Momus review complete\n",
     );
     const out = handleUserPrompt(base(ws, { prompt: "/start-work" }), c);
     expect("additionalContext" in out && out.additionalContext).toMatch(

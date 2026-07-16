@@ -143,9 +143,14 @@ export function markSkillLoaded(
  * Map task/file context → suggested skill ids (plugin + superpowers).
  * Used so Skill Gate is not satisfied by reading an unrelated skill.
  */
+/**
+ * Intent → skill suggestions. Prefer strong phrases over bare tokens
+ * (omo #3312 class: substring/keyword false positives waste PreTool denies).
+ * v1.1.17: drop bare `tests?` / `plan` / `loop`.
+ */
 const INTENT_SKILL_RULES: { re: RegExp; skills: string[] }[] = [
   {
-    re: /\b(tdd|unit\s*test|tests?|spec|vitest|jest|pytest)\b|\.test\.|\.spec\./i,
+    re: /\b(tdd|test-driven|unit\s*tests?|(?:write|add|run|fix)\s+(?:the\s+)?tests?|spec\s+suite|vitest|jest|pytest)\b|\.test\.|\.spec\./i,
     skills: ["test-driven-development", "verification-before-completion"],
   },
   {
@@ -157,11 +162,13 @@ const INTENT_SKILL_RULES: { re: RegExp; skills: string[] }[] = [
     skills: ["brainstorming", "using-superpowers"],
   },
   {
-    re: /\b(plan|roadmap|prometheus)\b/i,
+    // Avoid "I plan to…" / lone "plan"; require imperative or product names
+    re: /\b(roadmap|prometheus|writing-?plans?|implementation\s+plan)\b|\b(?:draft|write|create|build|make)\s+(?:a\s+|the\s+)?plan\b|\bplan\s+(?:the|a|for|our|this|my)\b|\/plan\b/i,
     skills: ["writing-plans", "prometheus-plan"],
   },
   {
-    re: /\b(ulw|ultrawork|ralph|loop)\b/i,
+    // Drop bare "loop" (for-loop / event loop false positives)
+    re: /\b(ulw|ultrawork|ralph(?:-?loop)?|ulw-?loop)\b/i,
     skills: ["ulw-loop", "ralph-loop"],
   },
   {
