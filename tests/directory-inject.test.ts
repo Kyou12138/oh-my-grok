@@ -10,11 +10,8 @@
  * No real project AGENTS.md is ever consulted because we pass an isolated
  * workspaceRoot and assert no reads escape it.
  *
- * spiral 4 (v0.11 nested-AGENTS 加厚) baseline: see the final it.skip block —
- * it records two known limitations of the current slice/relative-based
- * implementation that the upcoming realpath + code-point safe truncation work
- * must fix. We intentionally do NOT touch src here; the skip is a regression
- * baseline only.
+ * The suite drives real junction/symlink containment and code-point-safe
+ * truncation on every supported platform; no manual-only baseline remains.
  */
 import fs from "node:fs";
 import os from "node:os";
@@ -148,6 +145,25 @@ describe("collectDirectoryContext — upward collection", () => {
     expect(out).toContain("DIR OK content");
   });
 
+  it("accepts a legal directory name beginning with two dots", () => {
+    const ws = tmpWorkspace();
+    writeFile(path.join(ws, "..safe", "AGENTS.md"), "DOT SAFE content");
+    const file = path.join(ws, "..safe", "child", "file.ts");
+    writeFile(file, "export {}");
+
+    const out = collectDirectoryContext(ws, file);
+    expect(out).toContain("DOT SAFE content");
+  });
+
+  it("keeps treating a missing target as a directory", () => {
+    const ws = tmpWorkspace();
+    writeFile(path.join(ws, "a", "AGENTS.md"), "MISSING DIR content");
+    const missingDir = path.join(ws, "a", "missing", "child");
+
+    const out = collectDirectoryContext(ws, missingDir);
+    expect(out).toContain("MISSING DIR content");
+  });
+
   it("collects lowercase agents.md as well as AGENTS.md", () => {
     const ws = tmpWorkspace();
     writeFile(path.join(ws, "a", "b", "agents.md"), "lowercase content");
@@ -181,11 +197,18 @@ describe("code-point safe truncation (v0.11)", () => {
   });
 });
 
-// realpath symlink containment can't run in CI on Windows (symlink creation
-// needs admin / developer-mode). Kept as a skipped manual baseline — verify on
-// Linux/macOS or a symlink-capable host.
-describe.skip("v0.11 baseline — realpath symlink containment (manual / Linux CI)", () => {
-  it("a symlinked external dir is neither collected nor causes an abort", () => {
-    expect(true).toBe(true);
+describe("realpath symlink containment", () => {
+  it("does not collect AGENTS.md through an external directory link", () => {
+    const ws = tmpWorkspace();
+    const outside = tmpWorkspace();
+    writeFile(path.join(ws, "AGENTS.md"), "ROOT SAFE content");
+    writeFile(path.join(outside, "AGENTS.md"), "EXTERNAL SECRET content");
+    writeFile(path.join(outside, "file.ts"), "export {}");
+    const link = path.join(ws, "linked-outside");
+    fs.symlinkSync(outside, link, process.platform === "win32" ? "junction" : "dir");
+
+    const out = collectDirectoryContext(ws, path.join(link, "file.ts"));
+    expect(out).toBe("");
+    expect(out).not.toContain("EXTERNAL SECRET content");
   });
 });

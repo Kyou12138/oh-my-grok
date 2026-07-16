@@ -3,21 +3,8 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+import { canonicalizeTargetPath, isPathInside } from "../state/path-boundary.js";
 const MAX = 6_000;
-/** Realpath with fallback to path.normalize for missing/error paths. */
-function safeRealpath(p) {
-    try {
-        return fs.realpathSync.native(p);
-    }
-    catch {
-        return path.normalize(p);
-    }
-}
-/** Check if child is inside or equal to parent (canonical paths). */
-function isInside(child, parent) {
-    const rel = path.relative(parent, child);
-    return !rel.startsWith("..");
-}
 /** Truncate at a code-point boundary (not UTF-16 code unit) to keep UTF-8 well-formed. */
 function truncateByCodePoints(str, max) {
     if (/^[\x00-\x7F]*$/.test(str))
@@ -27,41 +14,39 @@ function truncateByCodePoints(str, max) {
 export function collectDirectoryContext(workspaceRoot, filePath) {
     if (!filePath || !workspaceRoot)
         return "";
-    const abs = path.isAbsolute(filePath)
-        ? path.normalize(filePath)
-        : path.normalize(path.join(workspaceRoot, filePath));
-    let dir = fs.existsSync(abs) && fs.statSync(abs).isFile() ? path.dirname(abs) : abs;
-    const root = path.normalize(workspaceRoot);
-    const rootReal = safeRealpath(root);
+    const rootReal = canonicalizeTargetPath(workspaceRoot, ".");
+    const targetReal = canonicalizeTargetPath(workspaceRoot, filePath);
+    if (!rootReal || !targetReal || !isPathInside(rootReal, targetReal))
+        return "";
+    let dir = targetReal;
+    try {
+        if (fs.existsSync(targetReal) && fs.statSync(targetReal).isFile()) {
+            dir = path.dirname(targetReal);
+        }
+    }
+    catch {
+        return "";
+    }
     const chunks = [];
     let guard = 0;
-    while (guard++ < 32) {
-        // Containment: never read AGENTS.md from outside the workspace root.
-        // Realpath-aware check prevents symlink bypass/leak.
-        const dirReal = safeRealpath(dir);
-        if (!isInside(dirReal, rootReal))
-            break;
+    while (guard++ < 32 && isPathInside(rootReal, dir)) {
         for (const name of ["AGENTS.md", "agents.md"]) {
-            const f = path.join(dir, name);
-            if (fs.existsSync(f)) {
+            const file = path.join(dir, name);
+            if (fs.existsSync(file)) {
                 try {
-                    const body = truncateByCodePoints(fs.readFileSync(f, "utf8"), 2000);
-                    chunks.push(`### ${path.relative(root, f) || name}\n${body}`);
+                    const body = truncateByCodePoints(fs.readFileSync(file, "utf8"), 2000);
+                    chunks.push(`### ${path.relative(rootReal, file) || name}\n${body}`);
                 }
                 catch {
-                    /* */
+                    /* 忽略不可读的目录规则文件。 */
                 }
                 break;
             }
         }
-        if (path.normalize(dir) === root)
+        if (dir === rootReal)
             break;
         const parent = path.dirname(dir);
-        if (parent === dir)
-            break;
-        // stop if left workspace (realpath-aware)
-        const parentReal = safeRealpath(parent);
-        if (!isInside(parentReal, rootReal))
+        if (parent === dir || !isPathInside(rootReal, parent))
             break;
         dir = parent;
     }
