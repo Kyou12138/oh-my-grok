@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.9] — 2026-07-16
+
+### MAGI spiral — todo_write merge semantics
+
+- **fix(todo)** Grok `todo_write` defaults **merge=true**; PostTool no longer full-replaces mirror with partial patches
+- **fix** status-only updates keep prior content; other todos preserved
+- **fix** enforcer reset only when **all** mirrored todos are closed (not just the update batch)
+- **test** merge / replace / PostTool enforcer path
+
 ## [1.1.8] — 2026-07-16
 
 ### MAGI spiral — Grok native recovery + host plan mode tools

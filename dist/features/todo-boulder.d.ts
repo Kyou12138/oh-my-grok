@@ -28,7 +28,24 @@ export interface StopPauseState {
     updatedAt: string;
 }
 export declare function mirrorTodos(input: HookInput, cfg: EnvConfig, todos: TodoItem[]): void;
+export declare function loadTodosMirror(input: HookInput, cfg: EnvConfig): TodoItem[];
+/**
+ * Grok todo_write defaults merge=true (partial updates by id).
+ * Explicit false → full replace.
+ */
+export declare function isTodoMergeMode(toolInput?: Record<string, unknown>): boolean;
+/**
+ * Extract todo patch from tool input.
+ * Empty content means "content omitted" (merge keeps prior text — Grok semantics).
+ */
 export declare function extractTodosFromToolInput(toolInput?: Record<string, unknown>): TodoItem[];
+/**
+ * Apply todo_write to session mirror (v1.1.9).
+ * merge=true: by-id update; omit content/status → keep previous (Grok default).
+ * merge=false: replace list; empty content falls back to id.
+ */
+export declare function applyTodoUpdates(input: HookInput, cfg: EnvConfig, updates: TodoItem[], merge: boolean): TodoItem[];
+export declare function isTodoOpenStatus(status?: string): boolean;
 export declare function incompleteTodos(input: HookInput, cfg: EnvConfig): TodoItem[];
 export declare function loadBoulder(input: HookInput, cfg: EnvConfig): BoulderState | null;
 export declare function setBoulder(input: HookInput, cfg: EnvConfig, state: BoulderState): void;

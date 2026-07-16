@@ -12,6 +12,27 @@ export function mirrorTodos(input, cfg, todos) {
         updatedAt: new Date().toISOString(),
     });
 }
+export function loadTodosMirror(input, cfg) {
+    const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
+    const mirror = readJson(p.todosFile, null);
+    return mirror?.todos?.length ? mirror.todos : [];
+}
+/**
+ * Grok todo_write defaults merge=true (partial updates by id).
+ * Explicit false → full replace.
+ */
+export function isTodoMergeMode(toolInput) {
+    if (!toolInput)
+        return true;
+    const m = toolInput.merge;
+    if (m === false || m === 0 || m === "false" || m === "0")
+        return false;
+    return true;
+}
+/**
+ * Extract todo patch from tool input.
+ * Empty content means "content omitted" (merge keeps prior text — Grok semantics).
+ */
 export function extractTodosFromToolInput(toolInput) {
     if (!toolInput)
         return [];
@@ -20,27 +41,82 @@ export function extractTodosFromToolInput(toolInput) {
         return [];
     return todos.map((t, i) => {
         if (typeof t === "string")
-            return { content: t, status: "pending" };
+            return { id: String(i), content: t, status: "pending" };
         if (t && typeof t === "object") {
             const o = t;
+            const id = typeof o.id === "string" && o.id.trim() ? o.id.trim() : String(i);
+            const rawContent = o.content ?? o.text ?? o.title;
+            const content = typeof rawContent === "string" && rawContent.trim().length > 0
+                ? rawContent
+                : "";
+            const hasStatus = o.status !== undefined && o.status !== null && String(o.status) !== "";
             return {
-                id: typeof o.id === "string" ? o.id : String(i),
-                content: String(o.content ?? o.text ?? o.title ?? `todo-${i}`),
-                status: String(o.status ?? "pending"),
+                id,
+                content,
+                status: hasStatus ? String(o.status) : "",
             };
         }
-        return { content: String(t), status: "pending" };
+        return { id: String(i), content: String(t), status: "pending" };
     });
 }
+/**
+ * Apply todo_write to session mirror (v1.1.9).
+ * merge=true: by-id update; omit content/status → keep previous (Grok default).
+ * merge=false: replace list; empty content falls back to id.
+ */
+export function applyTodoUpdates(input, cfg, updates, merge) {
+    if (!updates.length)
+        return loadTodosMirror(input, cfg);
+    if (!merge) {
+        const replaced = updates.map((u, i) => {
+            const id = (u.id && String(u.id).trim()) || String(i);
+            return {
+                id,
+                content: u.content?.trim() ? u.content : id,
+                status: u.status?.trim() ? u.status : "pending",
+            };
+        });
+        mirrorTodos(input, cfg, replaced);
+        return replaced;
+    }
+    const existing = loadTodosMirror(input, cfg);
+    const order = [];
+    const byId = new Map();
+    for (const t of existing) {
+        const id = (t.id && String(t.id).trim()) || t.content;
+        if (!byId.has(id))
+            order.push(id);
+        byId.set(id, { ...t, id });
+    }
+    for (const u of updates) {
+        const id = (u.id && String(u.id).trim()) || u.content || `todo-${order.length}`;
+        const prev = byId.get(id);
+        if (prev) {
+            byId.set(id, {
+                id,
+                content: u.content?.trim() ? u.content : prev.content,
+                status: u.status?.trim() ? u.status : prev.status || "pending",
+            });
+        }
+        else {
+            order.push(id);
+            byId.set(id, {
+                id,
+                content: u.content?.trim() ? u.content : id,
+                status: u.status?.trim() ? u.status : "pending",
+            });
+        }
+    }
+    const merged = order.map((id) => byId.get(id)).filter(Boolean);
+    mirrorTodos(input, cfg, merged);
+    return merged;
+}
+export function isTodoOpenStatus(status) {
+    const s = (status || "").toLowerCase();
+    return s !== "completed" && s !== "done" && s !== "cancelled" && s !== "canceled";
+}
 export function incompleteTodos(input, cfg) {
-    const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
-    const mirror = readJson(p.todosFile, null);
-    if (!mirror?.todos?.length)
-        return [];
-    return mirror.todos.filter((t) => {
-        const s = (t.status || "").toLowerCase();
-        return s !== "completed" && s !== "done" && s !== "cancelled" && s !== "canceled";
-    });
+    return loadTodosMirror(input, cfg).filter((t) => isTodoOpenStatus(t.status));
 }
 export function loadBoulder(input, cfg) {
     const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);

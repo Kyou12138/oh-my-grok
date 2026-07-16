@@ -8,7 +8,7 @@ import { extractSpawnRole, isSpawnTool } from "../features/session-role.js";
 import { markSkillLoaded } from "../features/skill-gate.js";
 import { markSpawnActivity } from "../features/category-discipline.js";
 import { clearSpawnFollowThrough, isInlineSubagentResult, isResultRecoveryTool, markSpawnFollowThrough, } from "../features/spawn-followthrough.js";
-import { extractTodosFromToolInput, mirrorTodos, resetTodoEnforcer, } from "../features/todo-boulder.js";
+import { applyTodoUpdates, extractTodosFromToolInput, incompleteTodos, isTodoMergeMode, resetTodoEnforcer, } from "../features/todo-boulder.js";
 function fileFromInput(input) {
     return String(input.toolInput?.file_path ??
         input.toolInput?.path ??
@@ -48,15 +48,15 @@ export function handlePostToolRead(input, cfg) {
     return mergeContext(...parts);
 }
 export function handlePostToolTodo(input, cfg) {
-    const todos = extractTodosFromToolInput(input.toolInput);
-    if (todos.length) {
-        mirrorTodos(input, cfg, todos);
-        const open = todos.filter((t) => {
-            const s = t.status.toLowerCase();
-            return s !== "completed" && s !== "done" && s !== "cancelled" && s !== "canceled";
-        });
-        if (open.length === 0)
-            resetTodoEnforcer(input, cfg);
+    const updates = extractTodosFromToolInput(input.toolInput);
+    if (!updates.length)
+        return {};
+    // Grok todo_write defaults merge=true — partial id+status must not wipe mirror
+    const merge = isTodoMergeMode(input.toolInput);
+    applyTodoUpdates(input, cfg, updates, merge);
+    // Reset enforcer only when *all* mirrored todos are closed (not just this batch)
+    if (incompleteTodos(input, cfg).length === 0) {
+        resetTodoEnforcer(input, cfg);
     }
     return {};
 }

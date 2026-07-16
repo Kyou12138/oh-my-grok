@@ -8,14 +8,18 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { handleStop } from "../src/events/stop.js";
 import type { EnvConfig, HookInput } from "../src/protocol/types.js";
+import { handlePostToolTodo } from "../src/events/post-tool.js";
 import {
+  applyTodoUpdates,
   clearBoulder,
   extractTodosFromToolInput,
   hasOpenPlanCheckboxes,
   incompleteTodos,
   isAbortLikeStopReason,
   isStopPaused,
+  isTodoMergeMode,
   loadBoulder,
+  loadTodosMirror,
   markTodoContinued,
   mirrorTodos,
   resetTodoEnforcer,
@@ -101,8 +105,8 @@ describe("hasOpenPlanCheckboxes boulder planPath first", () => {
 describe("extractTodosFromToolInput", () => {
   it("reads todos / items / todo keys and string entries", () => {
     expect(extractTodosFromToolInput({ todos: ["a", "b"] })).toEqual([
-      { content: "a", status: "pending" },
-      { content: "b", status: "pending" },
+      { id: "0", content: "a", status: "pending" },
+      { id: "1", content: "b", status: "pending" },
     ]);
     expect(
       extractTodosFromToolInput({
@@ -112,10 +116,95 @@ describe("extractTodosFromToolInput", () => {
     expect(extractTodosFromToolInput({ todo: [{ title: "t" }] })[0].content).toBe(
       "t",
     );
+    // status-only patch: empty content (merge keeps prior text)
+    expect(
+      extractTodosFromToolInput({
+        todos: [{ id: "a", status: "completed" }],
+      }),
+    ).toEqual([{ id: "a", content: "", status: "completed" }]);
     expect(extractTodosFromToolInput(undefined)).toEqual([]);
     expect(extractTodosFromToolInput({ todos: "nope" as unknown as string[] })).toEqual(
       [],
     );
+  });
+});
+
+describe("applyTodoUpdates merge (v1.1.9 Grok todo_write default)", () => {
+  it("isTodoMergeMode defaults true; false only when explicit", () => {
+    expect(isTodoMergeMode(undefined)).toBe(true);
+    expect(isTodoMergeMode({})).toBe(true);
+    expect(isTodoMergeMode({ merge: true })).toBe(true);
+    expect(isTodoMergeMode({ merge: false })).toBe(false);
+    expect(isTodoMergeMode({ merge: "false" })).toBe(false);
+  });
+
+  it("merge keeps prior content and other items on status-only patch", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    mirrorTodos(input, c, [
+      { id: "1", content: "Explore codebase", status: "in_progress" },
+      { id: "2", content: "Write tests", status: "pending" },
+    ]);
+    applyTodoUpdates(
+      input,
+      c,
+      [{ id: "1", content: "", status: "completed" }],
+      true,
+    );
+    const all = loadTodosMirror(input, c);
+    expect(all).toHaveLength(2);
+    expect(all.find((t) => t.id === "1")).toMatchObject({
+      content: "Explore codebase",
+      status: "completed",
+    });
+    expect(all.find((t) => t.id === "2")?.status).toBe("pending");
+    expect(incompleteTodos(input, c).map((t) => t.id)).toEqual(["2"]);
+  });
+
+  it("merge=false replaces entire list", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    mirrorTodos(input, c, [
+      { id: "old", content: "gone", status: "pending" },
+    ]);
+    applyTodoUpdates(
+      input,
+      c,
+      [{ id: "new", content: "only", status: "pending" }],
+      false,
+    );
+    expect(loadTodosMirror(input, c)).toEqual([
+      { id: "new", content: "only", status: "pending" },
+    ]);
+  });
+
+  it("PostTool todo merge does not reset enforcer when other todos open", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    mirrorTodos(input, c, [
+      { id: "1", content: "A", status: "in_progress" },
+      { id: "2", content: "B", status: "pending" },
+    ]);
+    markTodoContinued(input, c, 1_000_000);
+    handlePostToolTodo(
+      base(ws, {
+        event: "post-tool-todo",
+        toolName: "todo_write",
+        toolInput: {
+          merge: true,
+          todos: [{ id: "1", status: "completed" }],
+        },
+      }),
+      c,
+    );
+    // enforcer should still have lastContinueAt (not reset) because todo 2 open
+    const gate = todoEnforcerAllows(input, c, 1_000_000 + 100);
+    expect(gate.allow).toBe(false);
+    expect(gate.reason).toBe("todo-enforcer-cooldown");
+    expect(incompleteTodos(input, c)).toHaveLength(1);
   });
 });
 
