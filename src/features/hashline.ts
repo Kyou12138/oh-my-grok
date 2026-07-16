@@ -183,10 +183,69 @@ export function hashlinePreToolDeny(
   }
 
   // Batch tools: require Read on every existing path (v1.1.22 MultiEdit bypass fix)
-  const checkOldString = paths.length === 1;
+  // Single-path top-level old_string only when not MultiEdit (edits[] handled below)
+  const isMulti =
+    toolNorm.includes("multiedit") ||
+    (Array.isArray(input.toolInput?.edits) &&
+      (input.toolInput!.edits as unknown[]).length > 0);
+  const checkOldString = paths.length === 1 && !isMulti;
   for (const file of paths) {
     const deny = hashlineDenyOneFile(input, cfg, file, toolNorm, checkOldString);
     if (deny) return deny;
+  }
+  // v1.1.24: MultiEdit must not skip per-entry old_string freshness
+  if (isMulti) {
+    const batchDeny = hashlineDenyBatchEdits(input, cfg);
+    if (batchDeny) return batchDeny;
+  }
+  return null;
+}
+
+/** Per-entry old_string validation for MultiEdit / batch tools. */
+function hashlineDenyBatchEdits(
+  input: HookInput,
+  cfg: EnvConfig,
+): string | null {
+  const ti = input.toolInput;
+  if (!ti) return null;
+  const batches = [ti.edits, ti.files, ti.operations, ti.changes];
+  for (const batch of batches) {
+    if (!Array.isArray(batch)) continue;
+    for (const item of batch) {
+      if (!item || typeof item !== "object") continue;
+      const o = item as Record<string, unknown>;
+      const file = String(
+        o.file_path ?? o.path ?? o.filePath ?? o.target_file ?? o.targetFile ?? "",
+      );
+      if (!file) continue;
+      const abs = resolvePath(input, file);
+      let current = "";
+      try {
+        if (fs.existsSync(abs)) current = fs.readFileSync(abs, "utf8");
+      } catch {
+        /* new */
+      }
+      if (!current) continue; // new file create entry
+
+      const oldRaw = String(
+        o.old_string ?? o.oldString ?? o.old_str ?? o.search ?? "",
+      );
+      if (!oldRaw.trim()) {
+        return [
+          "[Hashline] MultiEdit empty old_string on existing file.",
+          `File: ${file}`,
+          "How to fix: set edits[].old_string to exact disk bytes (after Read).",
+        ].join("\n");
+      }
+      const oldPlain = stripHashlinePrefixes(oldRaw);
+      if (oldPlain && !current.includes(oldPlain)) {
+        return [
+          "[Hashline] MultiEdit old_string not found (stale edit).",
+          `File: ${file}`,
+          "How to fix: **Read** the file; set edits[].old_string to exact disk bytes.",
+        ].join("\n");
+      }
+    }
   }
   return null;
 }

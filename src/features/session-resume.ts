@@ -67,13 +67,16 @@ export function sessionResumeSummary(
   }
 
   const body = lines.filter(Boolean);
-  if (!body.length) return "";
-
+  // v1.1.24: always emit resume banner (wow path) — even empty state reminds hard gates
   return [
     "<OMG_SESSION_RESUME>",
-    "Workspace state from previous turns / sessions (oh-my-grok):",
+    body.length
+      ? "Workspace state from previous turns / sessions (oh-my-grok):"
+      : "No active ULW/boulder/todos yet — start with /plan, ultrawork, or a concrete edit.",
     ...body,
-    "Continue unfinished work; do not re-plan from zero if a loop/boulder is already active.",
+    body.length
+      ? "Continue unfinished work; do not re-plan from zero if a loop/boulder is already active."
+      : "PreTool will deny blind edits (Hashline) and plan-mode writes outside `.omg/plans/`.",
     "</OMG_SESSION_RESUME>",
   ].join("\n");
 }

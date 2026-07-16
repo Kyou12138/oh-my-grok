@@ -86,6 +86,10 @@ export function sisyphusBootstrap() {
         "Before creative work: Read using-superpowers / brainstorming SKILL.md when applicable.",
         "Loops: /ralph-loop, /ulw-loop (ultrawork), /cancel-ralph, /handoff, /plan, /start-work,",
         "/init-deep, /stop-continuation, /resume-continuation.",
+        "",
+        "**Hard gates (PreTool — host-enforced):** Read before edit (Hashline); plan-mode only `.omg/plans/`;",
+        "read-only agents (oracle/explore/…) cannot Write; MultiEdit each path needs Read + exact old_string.",
+        "Stop does **not** auto re-prompt on current Grok — state lives in `.omg` / next PreTool.",
         "</OMG_SISYPHUS>",
     ].join("\n");
 }

@@ -92,6 +92,10 @@ export function pathsFromToolInput(toolInput) {
     push(toolInput.targetFile);
     push(toolInput.filename);
     push(toolInput.file);
+    // NotebookEdit / Jupyter
+    push(toolInput.notebook_path);
+    push(toolInput.notebookPath);
+    push(toolInput.notebook);
     const batches = [toolInput.edits, toolInput.files, toolInput.operations, toolInput.changes];
     for (const batch of batches) {
         if (!Array.isArray(batch))

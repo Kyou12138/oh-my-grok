@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.24] — 2026-07-16
+
+### MAGI spiral — MultiEdit old_string gate + SessionStart hard-gate tip
+
+- **fix(hashline)** MultiEdit validates each `edits[].old_string` (empty/stale deny) — closes bypass of single-path old_string checks
+- **fix(post-tool)** `markDirty` for every path in MultiEdit/apply_patch batch
+- **feat(session-resume)** always emit `OMG_SESSION_RESUME` (empty-state still reminds PreTool/Hashline)
+- **docs(sisyphus)** bootstrap lists host-enforced PreTool hard gates
+- **feat(tool-paths)** `notebook_path` for NotebookEdit
+- **test** MultiEdit stale/empty/allow matrix; resume empty banner
+
 ## [1.1.23] — 2026-07-16
 
 ### MAGI spiral — apply_patch paths + MultiEdit comment scan

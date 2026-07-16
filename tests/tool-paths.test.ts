@@ -144,6 +144,81 @@ describe("hashline apply_patch paths (v1.1.23)", () => {
   });
 });
 
+describe("hashline MultiEdit per-entry old_string (v1.1.24)", () => {
+  it("denies MultiEdit when edits[].old_string is stale after Read", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const a = path.join(ws, "a.ts");
+    fs.writeFileSync(a, "export const a = 1;\n", "utf8");
+    const input = base(ws);
+    recordRead(input, c, a);
+    const deny = hashlinePreToolDeny(
+      {
+        ...input,
+        toolName: "MultiEdit",
+        toolInput: {
+          edits: [
+            {
+              path: a,
+              old_string: "export const a = 999;",
+              new_string: "export const a = 2;",
+            },
+          ],
+        },
+      },
+      c,
+    );
+    expect(deny).toMatch(/old_string not found|stale/i);
+  });
+
+  it("denies MultiEdit empty old_string on existing file even after Read", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const a = path.join(ws, "a.ts");
+    fs.writeFileSync(a, "export const a = 1;\n", "utf8");
+    const input = base(ws);
+    recordRead(input, c, a);
+    const deny = hashlinePreToolDeny(
+      {
+        ...input,
+        toolName: "MultiEdit",
+        toolInput: {
+          edits: [{ path: a, old_string: "", new_string: "export const a = 2;\n" }],
+        },
+      },
+      c,
+    );
+    expect(deny).toMatch(/empty old_string/i);
+  });
+
+  it("allows MultiEdit with exact edits[].old_string after Read", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const a = path.join(ws, "a.ts");
+    fs.writeFileSync(a, "export const a = 1;\n", "utf8");
+    const input = base(ws);
+    recordRead(input, c, a);
+    expect(
+      hashlinePreToolDeny(
+        {
+          ...input,
+          toolName: "MultiEdit",
+          toolInput: {
+            edits: [
+              {
+                path: a,
+                old_string: "export const a = 1;",
+                new_string: "export const a = 2;",
+              },
+            ],
+          },
+        },
+        c,
+      ),
+    ).toBeNull();
+  });
+});
+
 describe("comment-checker MultiEdit (v1.1.23)", () => {
   it("PreTool deny scans edits[] new_string for slop", () => {
     const ws = tmpWorkspace();

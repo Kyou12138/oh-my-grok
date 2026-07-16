@@ -65,11 +65,11 @@ function base(ws: string, over: Partial<HookInput> = {}): HookInput {
 }
 
 describe("sessionResumeSummary", () => {
-  it("empty when no workspace state", () => {
+  it("always emits banner when no workspace state (v1.1.24 wow path)", () => {
     const ws = tmpWorkspace();
-    expect(sessionResumeSummary(base(ws), cfg(path.join(ws, "pdata")))).toBe(
-      "",
-    );
+    const s = sessionResumeSummary(base(ws), cfg(path.join(ws, "pdata")));
+    expect(s).toMatch(/OMG_SESSION_RESUME/);
+    expect(s).toMatch(/Hashline|PreTool|plan-mode/i);
   });
 
   it("lists active ULW + boulder + open checkboxes + todos + handoff", () => {

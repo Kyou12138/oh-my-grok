@@ -74,9 +74,16 @@ export function handlePostToolTodo(input, cfg) {
 export function handlePostToolWrite(input, cfg) {
     const files = filesFromInput(input);
     const primary = files[0] || "";
-    markDirty(input, cfg, primary || undefined);
+    // v1.1.24: mark every touched path dirty (diag), not only primary
+    if (files.length) {
+        for (const file of files)
+            markDirty(input, cfg, file);
+    }
+    else {
+        markDirty(input, cfg, primary || undefined);
+    }
     noteUlwWrite(input, cfg, primary || undefined);
-    // v1.1.23: MultiEdit / apply_patch — recache every touched path
+    // MultiEdit / apply_patch — recache every touched path
     for (const file of files) {
         recordRead(input, cfg, file);
         if (isPlanMarkdownPath(file, input, cfg)) {
