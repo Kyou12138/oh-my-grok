@@ -76,11 +76,21 @@
         ]
       },
       {
-        "matcher": "spawn_subagent|Task|task|call_omo_agent|SpawnSubagent|get_task_output|get_command_or_subagent_output|GetTaskOutput",
+        "matcher": "spawn_subagent|Task|task|call_omo_agent|SpawnSubagent|get_task_output|GetTaskOutput|task_output|get_command_or_subagent_output|wait_tasks|WaitTasks|get_terminal_command_output|GetTerminalCommandOutput",
         "hooks": [
           {
             "type": "command",
             "command": "node \"${GROK_PLUGIN_ROOT}/dist/cli.js\" post-tool-spawn",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "enter_plan_mode|EnterPlanMode|exit_plan_mode|ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${GROK_PLUGIN_ROOT}/dist/cli.js\" post-tool-plan",
             "timeout": 10
           }
         ]

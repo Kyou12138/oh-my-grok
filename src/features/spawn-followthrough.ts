@@ -155,12 +155,14 @@ export function isSpawnFollowThroughPending(
 /** Tools that fetch subagent/shell task output → result recovered. */
 export function isResultRecoveryTool(toolName?: string): boolean {
   if (!toolName) return false;
-  // strip separators so get_command_or_subagent_output → getcommandorsubagentoutput
+  // strip separators: get_task_output → gettaskoutput; get_command_or_subagent_output → …
   const n = toolName.toLowerCase().replace(/[^a-z]/g, "");
+  // v1.1.8: cover Grok native + Claude aliases (task_output, wait_tasks, terminal output)
   return (
-    n.includes("gettaskoutput") ||
-    n.includes("getcommandorsubagentoutput") ||
-    n.includes("getsubagentoutput") ||
+    n.includes("taskoutput") || // get_task_output, task_output, GetTaskOutput
+    n.includes("subagentoutput") || // get_command_or_subagent_output, get_subagent_output
+    n.includes("waittasks") ||
+    n.includes("getterminalcommandoutput") ||
     n.includes("awaitsubagent")
   );
 }

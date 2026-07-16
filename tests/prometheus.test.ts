@@ -7,12 +7,16 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import { handlePostToolPlan } from "../src/events/post-tool.js";
 import { handleUserPrompt } from "../src/events/user-prompt.js";
 import { handlePreToolUse } from "../src/events/pre-tool-use.js";
 import type { EnvConfig, HookInput } from "../src/protocol/types.js";
 import {
+  activateHostPlanMode,
   detectPlanCommand,
   endPlanMode,
+  isHostEnterPlanTool,
+  isHostExitPlanTool,
   loadPlanMode,
   planFileHasReview,
   planModeContext,
@@ -463,5 +467,85 @@ describe("UserPrompt + PreTool production path", () => {
     );
     expect(r.exitCode).toBe(2);
     expect(JSON.stringify(r)).toMatch(/plan-mode|\.omg\/plans/i);
+  });
+});
+
+// ─── 7. Host enter_plan_mode / exit_plan_mode (v1.1.8) ────────────────
+
+describe("host enter_plan_mode / exit_plan_mode sync", () => {
+  it("detects host tool name variants", () => {
+    expect(isHostEnterPlanTool("enter_plan_mode")).toBe(true);
+    expect(isHostEnterPlanTool("EnterPlanMode")).toBe(true);
+    expect(isHostExitPlanTool("exit_plan_mode")).toBe(true);
+    expect(isHostExitPlanTool("ExitPlanMode")).toBe(true);
+    expect(isHostEnterPlanTool("Write")).toBe(false);
+  });
+
+  it("activateHostPlanMode arms planModeDeny without new plan file", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    const st = activateHostPlanMode(input, c);
+    expect(st.active).toBe(true);
+    expect(loadPlanMode(input, c).active).toBe(true);
+    const denied = planModeDeny(
+      {
+        ...input,
+        toolName: "Write",
+        toolInput: { path: path.join(ws, "src", "x.ts"), contents: "1\n" },
+      },
+      c,
+    );
+    expect(denied).toMatch(/plan-mode|\.omg\/plans/i);
+    // second call idempotent
+    expect(activateHostPlanMode(input, c).active).toBe(true);
+  });
+
+  it("PostTool enter then exit production path", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const enter = handlePostToolPlan(
+      base(ws, {
+        event: "post-tool-plan",
+        toolName: "enter_plan_mode",
+        toolInput: {},
+      }),
+      c,
+    );
+    expect(JSON.stringify(enter)).toMatch(/enter_plan_mode|plan-mode|PROMETHEUS/i);
+    expect(loadPlanMode(base(ws), c).active).toBe(true);
+    const r = handlePreToolUse(
+      base(ws, {
+        event: "pre-tool-use",
+        toolName: "Write",
+        toolInput: {
+          path: path.join(ws, "leak.ts"),
+          contents: "export {}\n",
+        },
+      }),
+      c,
+    );
+    expect(r.exitCode).toBe(2);
+    handlePostToolPlan(
+      base(ws, {
+        event: "post-tool-plan",
+        toolName: "exit_plan_mode",
+        toolInput: {},
+      }),
+      c,
+    );
+    expect(loadPlanMode(base(ws), c).active).toBe(false);
+    const r2 = handlePreToolUse(
+      base(ws, {
+        event: "pre-tool-use",
+        toolName: "Write",
+        toolInput: {
+          path: path.join(ws, "ok.ts"),
+          contents: "export {}\n",
+        },
+      }),
+      c,
+    );
+    expect(r2.exitCode).toBe(0);
   });
 });

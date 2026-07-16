@@ -2,6 +2,7 @@ import { commentCheckerPostWarn } from "../features/comment-checker.js";
 import { collectDirectoryContext } from "../features/directory-inject.js";
 import { markDirty, runDiagCommand } from "../features/diagnostics.js";
 import { recordRead } from "../features/hashline.js";
+import { activateHostPlanMode, endPlanMode, isHostEnterPlanTool, isHostExitPlanTool, } from "../features/prometheus.js";
 import { isVerifyShellCommand, noteUlwRead, noteUlwShell, noteUlwWrite, } from "../features/ralph.js";
 import { extractSpawnRole, isSpawnTool } from "../features/session-role.js";
 import { markSkillLoaded } from "../features/skill-gate.js";
@@ -126,5 +127,26 @@ export function handlePostToolSpawn(input, cfg) {
     return mergeContext(role
         ? `<OMG_SPAWN role="${role}" followthrough="armed">Spawned **${role}** — recover result before idle stop. Parent session agent role is unchanged (not sticky-locked to child).</OMG_SPAWN>`
         : `<OMG_SPAWN followthrough="armed">Spawn armed follow-through. Parent session agent role unchanged.</OMG_SPAWN>`);
+}
+/**
+ * Host enter_plan_mode / exit_plan_mode — sync oh-my-grok plan-mode gate (v1.1.8).
+ * Grok Build ships these tools natively; without sync, PreTool planModeDeny never arms.
+ */
+export function handlePostToolPlan(input, cfg) {
+    if (isHostEnterPlanTool(input.toolName)) {
+        const st = activateHostPlanMode(input, cfg, "enter_plan_mode");
+        return mergeContext([
+            "<OMG_PROMETHEUS host=\"enter_plan_mode\">",
+            "Host plan mode entered — oh-my-grok plan-mode gate is **active**.",
+            "Write only under `.omg/plans/` until exit_plan_mode or /start-work.",
+            st.planFile ? `Existing planFile: ${st.planFile}` : "No plan file yet — create under .omg/plans/.",
+            "</OMG_PROMETHEUS>",
+        ].join("\n"));
+    }
+    if (isHostExitPlanTool(input.toolName)) {
+        endPlanMode(input, cfg);
+        return mergeContext("<OMG_PROMETHEUS host=\"exit_plan_mode\">Host exited plan mode — plan-mode write gate cleared.</OMG_PROMETHEUS>");
+    }
+    return {};
 }
 //# sourceMappingURL=post-tool.js.map

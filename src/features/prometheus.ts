@@ -76,6 +76,45 @@ export function endPlanMode(input: HookInput, cfg: EnvConfig): void {
 }
 
 /**
+ * Host enter_plan_mode tool — arm plan-mode gate without forcing a new plan file.
+ * If already active, keep existing planFile/topic.
+ */
+export function activateHostPlanMode(
+  input: HookInput,
+  cfg: EnvConfig,
+  topic = "enter_plan_mode",
+): PlanModeState {
+  const existing = loadPlanMode(input, cfg);
+  if (existing.active) {
+    return existing;
+  }
+  const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
+  ensureDir(p.plansDir);
+  const state: PlanModeState = {
+    schemaVersion: 1,
+    active: true,
+    topic: topic.slice(0, 80) || "enter_plan_mode",
+    planFile: existing.planFile,
+    updatedAt: new Date().toISOString(),
+  };
+  writeJsonAtomic(p.planMode, state);
+  return state;
+}
+
+/** Normalize host plan tool names (enter_plan_mode / exit_plan_mode / CamelCase). */
+export function isHostEnterPlanTool(toolName?: string): boolean {
+  if (!toolName) return false;
+  const n = toolName.toLowerCase().replace(/[^a-z]/g, "");
+  return n === "enterplanmode" || n.includes("enterplanmode");
+}
+
+export function isHostExitPlanTool(toolName?: string): boolean {
+  if (!toolName) return false;
+  const n = toolName.toLowerCase().replace(/[^a-z]/g, "");
+  return n === "exitplanmode" || n.includes("exitplanmode");
+}
+
+/**
  * Plan must show real review evidence before boulder execution.
  * Only checked markdown items or VERDICT:PASS on a non-unchecked line count.
  * Unchecked template prose (e.g. "- [ ] Momus … VERDICT") must NOT pass.

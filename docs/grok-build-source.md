@@ -87,3 +87,13 @@ End only marks `childFinished`; clear via recovery tools / progress / recovered 
 
 Simple-form `matcher` strings (only `[A-Za-z0-9_|]`) are **exact** equality per `|` term — not regex, not case-insensitive.  
 List both `search_replace` and `SearchReplace` (and similar) or the host will skip the hook.
+
+## v1.1.8 Grok native tools (xai-grok-tools)
+
+| Host tool id | oh-my-grok |
+|--------------|------------|
+| `task` | spawn matcher + isSpawnTool |
+| `get_task_output` / recovery aliases | clear spawn follow-through |
+| `enter_plan_mode` / `exit_plan_mode` | activateHostPlanMode / endPlanMode |
+| `todo_write` | post-tool-todo |
+| `search_replace` / `read_file` | Pre/Post matchers |

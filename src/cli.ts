@@ -11,6 +11,7 @@ import {
 } from "./protocol/parse.js";
 import type { HookEvent, HookOutput } from "./protocol/types.js";
 import {
+  handlePostToolPlan,
   handlePostToolRead,
   handlePostToolShell,
   handlePostToolSpawn,
@@ -36,6 +37,7 @@ const EVENTS = new Set<string>([
   "post-tool-write",
   "post-tool-shell",
   "post-tool-spawn",
+  "post-tool-plan",
   "subagent-start",
   "subagent-end",
   "stop",
@@ -81,6 +83,9 @@ async function main(): Promise<void> {
         break;
       case "post-tool-spawn":
         emit(handlePostToolSpawn(input, cfg) as HookOutput, 0);
+        break;
+      case "post-tool-plan":
+        emit(handlePostToolPlan(input, cfg) as HookOutput, 0);
         break;
       case "subagent-start":
         emit(handleSubagentStart(input, cfg), 0);

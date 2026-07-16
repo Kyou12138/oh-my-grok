@@ -10,6 +10,14 @@ export declare function loadPlanMode(input: HookInput, cfg: EnvConfig): PlanMode
 export declare function startPlanMode(input: HookInput, cfg: EnvConfig, topic: string): PlanModeState;
 export declare function endPlanMode(input: HookInput, cfg: EnvConfig): void;
 /**
+ * Host enter_plan_mode tool — arm plan-mode gate without forcing a new plan file.
+ * If already active, keep existing planFile/topic.
+ */
+export declare function activateHostPlanMode(input: HookInput, cfg: EnvConfig, topic?: string): PlanModeState;
+/** Normalize host plan tool names (enter_plan_mode / exit_plan_mode / CamelCase). */
+export declare function isHostEnterPlanTool(toolName?: string): boolean;
+export declare function isHostExitPlanTool(toolName?: string): boolean;
+/**
  * Plan must show real review evidence before boulder execution.
  * Only checked markdown items or VERDICT:PASS on a non-unchecked line count.
  * Unchecked template prose (e.g. "- [ ] Momus … VERDICT") must NOT pass.

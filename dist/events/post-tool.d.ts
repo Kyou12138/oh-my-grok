@@ -15,3 +15,8 @@ export declare function handlePostToolShell(input: HookInput, cfg: EnvConfig): H
  * Sticky role only via /agent or host agentName (user-prompt / tool envelope).
  */
 export declare function handlePostToolSpawn(input: HookInput, cfg: EnvConfig): HookOutput;
+/**
+ * Host enter_plan_mode / exit_plan_mode — sync oh-my-grok plan-mode gate (v1.1.8).
+ * Grok Build ships these tools natively; without sync, PreTool planModeDeny never arms.
+ */
+export declare function handlePostToolPlan(input: HookInput, cfg: EnvConfig): HookOutput;

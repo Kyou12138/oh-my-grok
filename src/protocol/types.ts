@@ -9,6 +9,7 @@ export type HookEvent =
   | "post-tool-write"
   | "post-tool-shell"
   | "post-tool-spawn"
+  | "post-tool-plan"
   | "subagent-start"
   | "subagent-end"
   | "stop"

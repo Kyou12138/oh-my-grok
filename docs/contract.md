@@ -14,7 +14,7 @@ node "${GROK_PLUGIN_ROOT}/dist/cli.js" <event>
 | SessionStart | `session-start` |
 | UserPromptSubmit | `user-prompt` |
 | PreToolUse | `pre-tool-use` |
-| PostToolUse (matchers) | `post-tool-read` / `post-tool-write` / `post-tool-shell` / `post-tool-todo` / `post-tool-spawn` |
+| PostToolUse (matchers) | `post-tool-read` / `post-tool-write` / `post-tool-shell` / `post-tool-todo` / `post-tool-spawn` / `post-tool-plan` |
 | Stop | `stop` |
 | SessionEnd | `session-end` |
 | SubagentStart | `subagent-start` |

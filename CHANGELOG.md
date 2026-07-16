@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.8] — 2026-07-16
+
+### MAGI spiral — Grok native recovery + host plan mode tools
+
+- **fix(isResultRecoveryTool)** match `task_output` / `wait_tasks` / `get_terminal_command_output` / `*subagentoutput*` (not only get_task_output prefix)
+- **hooks** PostTool spawn matcher expands recovery tool exact names
+- **feat** `enter_plan_mode` / `exit_plan_mode` PostTool → `activateHostPlanMode` / `endPlanMode` so PreTool plan-mode gate arms with host tools
+- **test** recovery aliases; host enter→deny Write→exit→allow
+
 ## [1.1.7] — 2026-07-16
 
 ### MAGI spiral — hooks exact names + comment/spawn tool norm

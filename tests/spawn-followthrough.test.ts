@@ -216,6 +216,17 @@ describe("production path PostTool + Stop", () => {
     }
   });
 
+  it("isResultRecoveryTool covers Grok native aliases (v1.1.8)", () => {
+    expect(isResultRecoveryTool("get_task_output")).toBe(true);
+    expect(isResultRecoveryTool("GetTaskOutput")).toBe(true);
+    expect(isResultRecoveryTool("task_output")).toBe(true);
+    expect(isResultRecoveryTool("get_command_or_subagent_output")).toBe(true);
+    expect(isResultRecoveryTool("wait_tasks")).toBe(true);
+    expect(isResultRecoveryTool("get_terminal_command_output")).toBe(true);
+    expect(isResultRecoveryTool("Write")).toBe(false);
+    expect(isResultRecoveryTool("task")).toBe(false);
+  });
+
   it("get_task_output clears pending (v1.0.2 tool-path recovery)", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));

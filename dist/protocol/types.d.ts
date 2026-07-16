@@ -1,5 +1,5 @@
 /** Normalized hook I/O — Grok Build open-source envelope (xai-grok-hooks). */
-export type HookEvent = "session-start" | "user-prompt" | "pre-tool-use" | "post-tool-read" | "post-tool-todo" | "post-tool-write" | "post-tool-shell" | "post-tool-spawn" | "subagent-start" | "subagent-end" | "stop" | "session-end";
+export type HookEvent = "session-start" | "user-prompt" | "pre-tool-use" | "post-tool-read" | "post-tool-todo" | "post-tool-write" | "post-tool-shell" | "post-tool-spawn" | "post-tool-plan" | "subagent-start" | "subagent-end" | "stop" | "session-end";
 export interface HookInput {
     raw: Record<string, unknown>;
     event: HookEvent;
