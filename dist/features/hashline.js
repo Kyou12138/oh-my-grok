@@ -105,12 +105,24 @@ export function getCached(input, cfg, filePath) {
 }
 /** Expand LINE#ID refs in old_string to plain text for matching, or validate tags. */
 const LINE_REF = /^(\d+)#([A-Z0-9]{2})\|\s?(.*)$/;
+/** Grok read_file line format: LINE_NUMBER→LINE_CONTENT (not part of file bytes). */
+const GROK_READ_LINE = /^(\d+)→(.*)$/;
+/**
+ * Strip display prefixes from old_string before disk match:
+ * - Hashline anchors: `N#TAG| body`
+ * - Grok read_file: `N→body` (v1.1.10 — agents often paste tool output into old_string)
+ */
 export function stripHashlinePrefixes(text) {
     return text
         .split(/\r?\n/)
         .map((line) => {
-        const m = line.match(LINE_REF);
-        return m ? m[3] : line;
+        const hl = line.match(LINE_REF);
+        if (hl)
+            return hl[3];
+        const grok = line.match(GROK_READ_LINE);
+        if (grok)
+            return grok[2];
+        return line;
     })
         .join("\n");
 }
@@ -232,13 +244,13 @@ export function hashlinePreToolDeny(input, cfg) {
             }
         }
         const oldPlain = stripHashlinePrefixes(oldRaw);
-        if (current && !current.includes(oldPlain)) {
+        if (current && oldPlain && !current.includes(oldPlain)) {
             return [
                 "[Hashline] old_string not found in current file (stale edit).",
                 `File: ${file}`,
                 hasTags
                     ? "LINE#ID anchors were used but plain content no longer matches. Re-Read and retry."
-                    : "How to fix: **Read** the file; set old_string to an exact contiguous snippet from disk (not memory).",
+                    : "How to fix: **Read** the file; set old_string to exact disk bytes (no `N→` Grok prefixes, no paraphrasing).",
             ].join("\n");
         }
     }

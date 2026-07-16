@@ -25,6 +25,7 @@ import {
   getCached,
   hashlinePreToolDeny,
   recordRead,
+  stripHashlinePrefixes,
 } from "../src/features/hashline.js";
 import type { EnvConfig, HookInput } from "../src/protocol/types.js";
 
@@ -228,6 +229,62 @@ describe("hashline — SearchReplace isReplace branch (v1.1.6)", () => {
       cfg,
     );
     expect(deny).toBeNull();
+  });
+});
+
+describe("hashline — Grok read_file N→ prefix strip (v1.1.10)", () => {
+  it("stripHashlinePrefixes removes Grok LINE_NUMBER→ and LINE#TAG|", () => {
+    expect(stripHashlinePrefixes("1→hello\n2→world")).toBe("hello\nworld");
+    expect(stripHashlinePrefixes("3#AB| body")).toBe("body");
+    expect(stripHashlinePrefixes("plain")).toBe("plain");
+  });
+
+  it("search_replace allows old_string pasted from Grok read_file output", () => {
+    const ws = tmpWorkspace();
+    const fileAbs = path.join(ws, "main.ts");
+    fs.writeFileSync(fileAbs, "export function main() {\n  return 1;\n}\n", "utf8");
+    const cfg = makeCfg();
+    recordRead(
+      makeInput(ws, { toolName: "read_file", toolInput: { file_path: "main.ts" } }),
+      cfg,
+      "main.ts",
+    );
+    // Agent pasted tool output including N→ prefixes (common mistake)
+    const deny = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "search_replace",
+        toolInput: {
+          file_path: "main.ts",
+          old_string: "1→export function main() {\n2→  return 1;\n3→}",
+          new_string: "export function main() {\n  return 2;\n}",
+        },
+      }),
+      cfg,
+    );
+    expect(deny).toBeNull();
+  });
+
+  it("still denies when body after stripping does not match disk", () => {
+    const ws = tmpWorkspace();
+    fs.writeFileSync(path.join(ws, "x.ts"), "const a = 1;\n", "utf8");
+    const cfg = makeCfg();
+    recordRead(
+      makeInput(ws, { toolName: "read_file", toolInput: { file_path: "x.ts" } }),
+      cfg,
+      "x.ts",
+    );
+    const deny = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "search_replace",
+        toolInput: {
+          file_path: "x.ts",
+          old_string: "1→const a = 999;",
+          new_string: "const a = 2;",
+        },
+      }),
+      cfg,
+    );
+    expect(deny).toMatch(/old_string not found/i);
   });
 });
 

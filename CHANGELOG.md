@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.10] — 2026-07-16
+
+### MAGI spiral — Hashline accepts Grok read_file prefixes
+
+- **fix(hashline)** `stripHashlinePrefixes` also strips Grok `read_file` display format `N→line` before old_string disk match
+- Prevents false "stale edit" when agents paste tool output into `search_replace.old_string`
+- **test** strip unit + allow-with-prefix + still-deny-wrong-body
+
 ## [1.1.9] — 2026-07-16
 
 ### MAGI spiral — todo_write merge semantics

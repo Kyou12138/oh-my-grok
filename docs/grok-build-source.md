@@ -97,3 +97,4 @@ List both `search_replace` and `SearchReplace` (and similar) or the host will sk
 | `enter_plan_mode` / `exit_plan_mode` | activateHostPlanMode / endPlanMode |
 | `todo_write` | post-tool-todo |
 | `search_replace` / `read_file` | Pre/Post matchers |
+| `read_file` line format `N→…` | Hashline strips before old_string match (v1.1.10) |

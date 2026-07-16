@@ -26,6 +26,11 @@ export declare function annotateLines(text: string, maxLines?: number): {
 };
 export declare function recordRead(input: HookInput, cfg: EnvConfig, filePath: string): HashlineFileCache | null;
 export declare function getCached(input: HookInput, cfg: EnvConfig, filePath: string): HashlineFileCache | undefined;
+/**
+ * Strip display prefixes from old_string before disk match:
+ * - Hashline anchors: `N#TAG| body`
+ * - Grok read_file: `N→body` (v1.1.10 — agents often paste tool output into old_string)
+ */
 export declare function stripHashlinePrefixes(text: string): string;
 export declare function hashlinePreToolDeny(input: HookInput, cfg: EnvConfig): string | null;
 export declare function hashlineUserContext(input: HookInput, cfg: EnvConfig): string;
