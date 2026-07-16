@@ -46,6 +46,12 @@ export declare function applyGoalDoneMarkers(state: RalphState, msg?: string): R
 export declare function serializeRalphMd(state: RalphState): string;
 export declare function loadRalph(input: HookInput, cfg: EnvConfig): RalphState | null;
 export declare function startRalph(input: HookInput, cfg: EnvConfig, task: string, mode: "ralph" | "ulw"): RalphState;
+/**
+ * omo-style ULW opening ceremony (soft inject + disk file).
+ * Requires first assistant reply to open with ULTRAWORK MODE ENABLED!
+ */
+export declare function ulwCeremonyBanner(task: string, kind?: "start" | "active" | "upgrade"): string;
+export declare function writeUlwCeremonyFile(input: HookInput, cfg: EnvConfig, task: string, kind?: "start" | "active" | "upgrade"): string;
 export declare function cancelRalph(input: HookInput, cfg: EnvConfig): void;
 export declare function bumpRalph(input: HookInput, cfg: EnvConfig, state: RalphState): RalphState;
 export declare function saveRalph(input: HookInput, cfg: EnvConfig, state: RalphState): void;

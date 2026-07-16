@@ -27,6 +27,8 @@ import {
   detectRalphCommand,
   loadRalph,
   startRalph,
+  ulwCeremonyBanner,
+  writeUlwCeremonyFile,
 } from "../features/ralph.js";
 import {
   loadInjectedRules,
@@ -130,14 +132,17 @@ export function handleUserPrompt(input: HookInput, cfg: EnvConfig): HookOutput {
     const isSlash = /^\/(ulw|ulw-loop|ultrawork)\b/i.test(prompt.trim());
     if (isSlash || !existingLoop) {
       startRalph(input, cfg, ralphCmd.task, "ulw");
-      parts.push(`<OMG_CTRL>ULW/ultrawork loop started: ${ralphCmd.task}</OMG_CTRL>`);
+      // omo-style ceremony: loud opener + CEREMONY.md on disk (Grok may drop inject)
+      parts.push(ulwCeremonyBanner(ralphCmd.task, "start"));
     } else if (existingLoop.mode === "ulw") {
+      writeUlwCeremonyFile(input, cfg, existingLoop.task, "active");
+      parts.push(ulwCeremonyBanner(existingLoop.task, "active"));
       parts.push(
         `<OMG_CTRL>ULW already active (phase=${existingLoop.phase}). Task: ${existingLoop.task}</OMG_CTRL>`,
       );
     } else {
       startRalph(input, cfg, ralphCmd.task, "ulw");
-      parts.push(`<OMG_CTRL>ULW/ultrawork loop started (upgraded from ralph): ${ralphCmd.task}</OMG_CTRL>`);
+      parts.push(ulwCeremonyBanner(ralphCmd.task, "upgrade"));
     }
   }
 

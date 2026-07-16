@@ -16,6 +16,19 @@ fix flaky tests ulw
 
 Also: `/ultrawork`, `/ulw`, bare or **mid-sentence** `ulw` / `ultrawork`.
 
+## Opening ceremony (required)
+
+When ULW **starts** (or you re-enter an active ULW session), your **first** assistant message MUST open with:
+
+```text
+ULTRAWORK MODE ENABLED!
+```
+
+or Chinese: `ULTRAWORK 模式已启动！`
+
+Then one line restating the goal, then begin **explore**.  
+Do not open with only `ok` / `继续`. Disk reminder: `.omg/ulw-loop/CEREMONY.md`.
+
 ## Phases (state machine)
 
 | Phase | You must |

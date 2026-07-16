@@ -12,6 +12,9 @@ export function sessionResumeSummary(input, cfg) {
                 ? " all goals marked done"
                 : "";
         lines.push(`- **${ralph.mode.toUpperCase()}** active: ${ralph.task.slice(0, 120)}${ralph.task.length > 120 ? "…" : ""}`, `  iter ${ralph.iteration}/${ralph.maxIterations} phase=${ralph.phase}${goalBit}`);
+        if (ralph.mode === "ulw") {
+            lines.push("  **ULTRAWORK MODE ENABLED** — open replies with `ULTRAWORK MODE ENABLED!` if restarting work; see `.omg/ulw-loop/CEREMONY.md`");
+        }
     }
     const boulder = loadBoulder(input, cfg);
     if (boulder?.active) {

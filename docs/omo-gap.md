@@ -1,6 +1,6 @@
 # oh-my-grok capability map (vs Vanilla Grok / omo)
 
-**Date:** 2026-07-16 · **omg version:** **1.1.26**  
+**Date:** 2026-07-16 · **omg version:** **1.1.27**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 **Product peer:** omo **Codex Light** 同温层（纪律 + 状态），**不是** Ultimate 全量 OS。  
@@ -454,6 +454,14 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 |------|----------|
 | **prometheus role lock** | sticky/host prometheus 仅允许写 `.omg/plans/`（与 plan-mode 独立） |
 | **skill-gate plan skip** | plan-mode 下纯 plan 路径写入不触发 Skill Gate（避免 TDD 意图卡写作 plan） |
+
+## Closed this spiral (v1.1.27) — ULW ceremony
+
+| Item | Behavior |
+|------|----------|
+| **omo-style opener** | ULW 启动注入 `ULTRAWORK MODE ENABLED!` 开场要求 + `<ultrawork-mode>` |
+| **CEREMONY.md** | 落盘 `.omg/ulw-loop/CEREMONY.md`（宿主丢 inject 时仍可读） |
+| **resume** | SessionStart 活跃 ULW 时提醒开场白 |
 
 ## Next spiral focus (提升)
 

@@ -37,9 +37,12 @@ import {
   resetUlwActivity,
   saveRalph,
   startRalph,
+  ulwCeremonyBanner,
   ulwDoneGate,
+  writeUlwCeremonyFile,
   type RalphState,
 } from "../src/features/ralph.js";
+import { handleUserPrompt } from "../src/events/user-prompt.js";
 import type { EnvConfig, HookInput } from "../src/protocol/types.js";
 
 const tmpRoots: string[] = [];
@@ -803,5 +806,52 @@ describe("noteUlwShell 联动 + activity 累积", () => {
     expect(loadRalph(input0, ctx.cfg)?.mode).toBe("ulw");
     cancelRalph(input0, ctx.cfg);
     expect(loadRalph(input0, ctx.cfg)).toBeNull();
+  });
+});
+
+// ─── ULW opening ceremony (omo-style) ────────────────────────────────
+describe("ulwCeremonyBanner (v1.1.27)", () => {
+  it("start banner requires ULTRAWORK MODE ENABLED opener", () => {
+    const b = ulwCeremonyBanner("fix auth", "start");
+    expect(b).toMatch(/ultrawork-mode/);
+    expect(b).toMatch(/ULTRAWORK MODE ENABLED!/);
+    expect(b).toMatch(/模式已启动/);
+    expect(b).toMatch(/fix auth/);
+    expect(b).toMatch(/FIRST|first/i);
+  });
+
+  it("active banner keeps mode on without full re-bootstrap", () => {
+    const b = ulwCeremonyBanner("keep going", "active");
+    expect(b).toMatch(/STILL ON|active="true"/i);
+    expect(b).toMatch(/keep going/);
+  });
+
+  it("startRalph writes CEREMONY.md under .omg/ulw-loop", () => {
+    const ctx = makeCtx(18);
+    const input0 = stopInput(ctx, "");
+    startRalph(input0, ctx.cfg, "ship oauth", "ulw");
+    const ceremony = path.join(ctx.ws, ".omg", "ulw-loop", "CEREMONY.md");
+    expect(fs.existsSync(ceremony)).toBe(true);
+    expect(fs.readFileSync(ceremony, "utf8")).toMatch(/ULTRAWORK MODE ENABLED/);
+  });
+
+  it("UserPrompt ultrawork injects ceremony banner", () => {
+    const ctx = makeCtx(19);
+    const out = handleUserPrompt(
+      {
+        raw: {},
+        event: "user-prompt",
+        sessionId: ctx.sessionId,
+        cwd: ctx.ws,
+        workspaceRoot: ctx.ws,
+        prompt: "ultrawork fix the login bug",
+      },
+      ctx.cfg,
+    );
+    const ctxText =
+      "additionalContext" in out ? String(out.additionalContext || "") : "";
+    expect(ctxText).toMatch(/ULTRAWORK MODE ENABLED!/);
+    expect(ctxText).toMatch(/ultrawork-mode/);
+    expect(ctxText).toMatch(/login|fix/i);
   });
 });

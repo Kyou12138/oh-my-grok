@@ -252,8 +252,71 @@ export function startRalph(
   resetUlwActivity(input, cfg);
   if (mode === "ulw") {
     writeProgressLog(input, cfg, state, "start", "ULW loop started");
+    writeUlwCeremonyFile(input, cfg, task, "start");
   }
   return state;
+}
+
+/**
+ * omo-style ULW opening ceremony (soft inject + disk file).
+ * Requires first assistant reply to open with ULTRAWORK MODE ENABLED!
+ */
+export function ulwCeremonyBanner(
+  task: string,
+  kind: "start" | "active" | "upgrade" = "start",
+): string {
+  const goal = (task || "ultrawork until fully done").trim().slice(0, 400);
+  if (kind === "active") {
+    return [
+      '<ultrawork-mode active="true">',
+      "**ULTRAWORK MODE STILL ON.**",
+      `Goal: ${goal}`,
+      "Continue explore → implement → verify. Do not idle or claim DONE without VERIFIED.",
+      "State: `.omg/ulw-loop/` · ceremony: `.omg/ulw-loop/CEREMONY.md`",
+      "</ultrawork-mode>",
+    ].join("\n");
+  }
+  const title =
+    kind === "upgrade"
+      ? "**ULTRAWORK MODE ENABLED!** (upgraded from Ralph)"
+      : "**ULTRAWORK MODE ENABLED!**";
+  return [
+    "<ultrawork-mode>",
+    title,
+    "",
+    "Your **FIRST** assistant message in this turn MUST open with exactly one of:",
+    "  `ULTRAWORK MODE ENABLED!`",
+    "  `ULTRAWORK 模式已启动！`",
+    "Then one short line restating the goal, then begin **explore** (Read/search or task explore).",
+    "Do not reply with only ok/继续. Do not skip the opener.",
+    "",
+    `Goal: ${goal}`,
+    "Phases: explore → implement → verify. DONE only after VERIFIED + evidence.",
+    "Prefer host **task** (explore / hephaestus) when useful. Logs: `.omg/ulw-loop/log/`",
+    "Full reminder on disk: `.omg/ulw-loop/CEREMONY.md`",
+    "</ultrawork-mode>",
+  ].join("\n");
+}
+
+export function writeUlwCeremonyFile(
+  input: HookInput,
+  cfg: EnvConfig,
+  task: string,
+  kind: "start" | "active" | "upgrade" = "start",
+): string {
+  const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
+  ensureDir(p.ulwDir);
+  const file = path.join(p.ulwDir, "CEREMONY.md");
+  const body = [
+    "# ULW ceremony",
+    "",
+    ulwCeremonyBanner(task, kind).replace(/<\/?ultrawork-mode[^>]*>/g, "").trim(),
+    "",
+    `updatedAt: ${new Date().toISOString()}`,
+    "",
+  ].join("\n");
+  writeTextAtomic(file, body);
+  return file;
 }
 
 export function cancelRalph(input: HookInput, cfg: EnvConfig): void {

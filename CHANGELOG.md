@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.27] — 2026-07-16
+
+### ULW opening ceremony (omo-style)
+
+- **feat(ulw)** on start: inject `<ultrawork-mode>` with **`ULTRAWORK MODE ENABLED!`** opener requirement (+ Chinese variant)
+- **feat** write `.omg/ulw-loop/CEREMONY.md` so ceremony survives if UserPrompt inject is dropped
+- **feat** SessionStart resume line when ULW active; `skills/ulw-loop` documents opener
+- **soft** — does not hard-block end_turn; model is instructed to open loudly
+
 ## [1.1.26] — 2026-07-16
 
 ### MAGI spiral — Prometheus role lock + plan-mode Skill Gate skip
