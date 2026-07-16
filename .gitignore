@@ -1,4 +1,5 @@
 node_modules/
+.worktrees/
 # dist/ is committed so grok plugin install works without a local build
 .omg/
 .tmp-plugin-data/
