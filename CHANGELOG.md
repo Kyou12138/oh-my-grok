@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.22] — 2026-07-16
+
+### MAGI spiral — MultiEdit path gates + doctor PreTool probe
+
+Hard PreTool (host-enforced), not Stop vanity:
+
+- **fix(hashline)** `pathsFromToolInput` — MultiEdit `edits[]` / `files[]` no longer bypass Read-before-edit; empty MultiEdit fails closed
+- **fix(plan-mode)** plan lock checks **all** paths in a batch (mixed plans + `src/` denied)
+- **feat(doctor)** live PreTool probe: spawn `dist/cli.js pre-tool-use` blind edit → expect Hashline deny (L2 wow path without Grok TUI)
+- **test** `tests/tool-paths.test.ts`
+
 ## [1.1.21] — 2026-07-16
 
 ### Docs honesty — README ⊆ contract (Harness Light)

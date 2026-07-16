@@ -135,6 +135,72 @@ else ok("no workspace .omg/config.json (using env defaults)");
 console.log("\n[Conflicts]");
 ok("Do not dual-enable mihazs/oh-my-grok with this plugin");
 
+// PreTool live probe (L2 wow path) — host-independent: spawn dist/cli.js
+console.log("\n[PreTool probe]");
+if (fs.existsSync(cli)) {
+  const { spawnSync } = await import("node:child_process");
+  const { mkdtempSync, writeFileSync, rmSync } = fs;
+  const { tmpdir } = await import("node:os");
+  const { join } = path;
+  let probeDir = "";
+  try {
+    probeDir = mkdtempSync(join(tmpdir(), "omg-doctor-probe-"));
+    const target = join(probeDir, "existing.ts");
+    writeFileSync(target, "export const n = 1;\n", "utf8");
+    const envelope = {
+      sessionId: "doctor-probe",
+      workspaceRoot: probeDir,
+      cwd: probeDir,
+      toolName: "search_replace",
+      toolInput: {
+        path: target,
+        old_string: "export const n = 1;",
+        new_string: "export const n = 2;",
+      },
+    };
+    const r = spawnSync(process.execPath, [cli, "pre-tool-use"], {
+      input: JSON.stringify(envelope),
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        GROK_PLUGIN_ROOT: root,
+        GROK_PLUGIN_DATA: join(probeDir, "pdata"),
+        OMG_HASHLINE: "1",
+        OMG_SKILL_GATE: "0",
+        OMG_AGENT_GUARD: "0",
+        OMG_PLAN_MODE: "1",
+        OMG_COMMENT_CHECKER: "0",
+        OMG_CATEGORY_DISCIPLINE: "0",
+      },
+      timeout: 15_000,
+    });
+    const out = (r.stdout || "") + (r.stderr || "");
+    const denied =
+      r.status === 2 ||
+      /"decision"\s*:\s*"deny"/i.test(out) ||
+      /Hashline/i.test(out);
+    if (denied) {
+      ok("PreTool Hashline denies blind edit (exit/stdout deny)");
+    } else {
+      err(
+        `PreTool probe expected deny on unread file (status=${r.status} out=${out.slice(0, 200)})`,
+      );
+    }
+  } catch (e) {
+    warn(`PreTool probe skipped: ${e?.message || e}`);
+  } finally {
+    if (probeDir) {
+      try {
+        rmSync(probeDir, { recursive: true, force: true });
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+} else {
+  warn("PreTool probe skipped — dist/cli.js missing");
+}
+
 // Summary
 console.log("\n---");
 if (errors === 0 && warnings === 0) {

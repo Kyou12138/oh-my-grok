@@ -3,6 +3,7 @@ import path from "node:path";
 import { ensureDir, readJson, removeFile, writeJsonAtomic, writeTextAtomic } from "../state/fs.js";
 import { pathsFor } from "../state/paths.js";
 import { parsePlanTaskCheckboxes, seedTodosFromPlanIfEmpty, setBoulder, } from "./todo-boulder.js";
+import { pathsFromToolInput } from "./tool-paths.js";
 export function loadPlanMode(input, cfg) {
     const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
     return readJson(p.planMode, {
@@ -209,27 +210,29 @@ export function detectPlanCommand(prompt) {
         return { action: "plan", topic: (m[1] || "untitled plan").trim() };
     return { action: null, topic: "" };
 }
+function isPlanWritePath(file) {
+    const norm = file.replace(/\\/g, "/");
+    return (norm.includes("/.omg/plans/") ||
+        norm.includes(".omg/plans/") ||
+        norm.endsWith("plan-mode.json"));
+}
 export function planModeDeny(input, cfg) {
     if (!cfg.planMode)
         return null;
     const pm = loadPlanMode(input, cfg);
     if (!pm.active)
         return null;
-    const file = String(input.toolInput?.file_path ??
-        input.toolInput?.path ??
-        input.toolInput?.filePath ??
-        input.toolInput?.target_file ??
-        "");
-    if (!file) {
+    // v1.1.22: MultiEdit may hide business paths under edits[] — check all
+    const paths = pathsFromToolInput(input.toolInput);
+    if (!paths.length) {
         return "[Prometheus plan-mode] Specify a path under .omg/plans/ while planning. Other writes denied.";
     }
-    const norm = file.replace(/\\/g, "/");
-    if (norm.includes("/.omg/plans/") || norm.includes(".omg/plans/") || norm.endsWith("plan-mode.json")) {
+    const blocked = paths.filter((f) => !isPlanWritePath(f));
+    if (!blocked.length)
         return null;
-    }
     return [
         "[Prometheus plan-mode] Only writes under .omg/plans/ are allowed.",
-        `Blocked path: ${file}`,
+        `Blocked path: ${blocked[0]}${blocked.length > 1 ? ` (+${blocked.length - 1} more)` : ""}`,
         "Finish the plan, then /start-work to execute (Atlas/boulder).",
     ].join("\n");
 }

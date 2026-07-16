@@ -4,6 +4,7 @@ import path from "node:path";
 import { ensureDir, readJson, writeJsonAtomic } from "../state/fs.js";
 import { pathsFor } from "../state/paths.js";
 import { normalizeToolName } from "./skill-gate.js";
+import { pathsFromToolInput } from "./tool-paths.js";
 function cachePath(input, cfg) {
     const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
     ensureDir(p.session);
@@ -132,13 +133,27 @@ export function hashlinePreToolDeny(input, cfg) {
     // Letters-only normalize so SearchReplace / search-replace hit replace branch
     // (v1.1.6: old lower-only + search_replace underscore check missed CamelCase)
     const toolNorm = normalizeToolName(input.toolName || "");
-    const file = String(input.toolInput?.file_path ??
-        input.toolInput?.path ??
-        input.toolInput?.filePath ??
-        input.toolInput?.target_file ??
-        "");
-    if (!file)
+    const paths = pathsFromToolInput(input.toolInput);
+    // MultiEdit with no resolvable paths would skip all gates — fail closed
+    if (!paths.length) {
+        if (toolNorm.includes("multiedit")) {
+            return [
+                "[Hashline] MultiEdit has no file path(s).",
+                "How to fix: set edits[].path (or file_path) for every edit entry.",
+            ].join("\n");
+        }
         return null;
+    }
+    // Batch tools: require Read on every existing path (v1.1.22 MultiEdit bypass fix)
+    const checkOldString = paths.length === 1;
+    for (const file of paths) {
+        const deny = hashlineDenyOneFile(input, cfg, file, toolNorm, checkOldString);
+        if (deny)
+            return deny;
+    }
+    return null;
+}
+function hashlineDenyOneFile(input, cfg, file, toolNorm, checkOldString) {
     const abs = resolvePath(input, file);
     let current = "";
     let mtimeMs = 0;
@@ -213,7 +228,7 @@ export function hashlinePreToolDeny(input, cfg) {
             }
         }
     }
-    if (isReplace) {
+    if (isReplace && checkOldString) {
         const oldRaw = String(input.toolInput?.old_string ??
             input.toolInput?.oldString ??
             input.toolInput?.old_str ??
