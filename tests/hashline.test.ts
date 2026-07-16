@@ -71,6 +71,8 @@ function makeCfg(): EnvConfig {
     commentCheckerDeny: false,
     agentGuard: true,
     categoryDiscipline: true,
+    todoMaxContinues: 20,
+    todoMaxStagnation: 3,
   };
 }
 

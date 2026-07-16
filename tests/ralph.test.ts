@@ -95,6 +95,8 @@ function makeCtx(idx: number, over: Partial<EnvConfig> = {}): Ctx {
     commentCheckerDeny: false,
     agentGuard: false,
     categoryDiscipline: false,
+    todoMaxContinues: 20,
+    todoMaxStagnation: 3,
     ...over,
   };
   return { ws, data, cfg, sessionId };

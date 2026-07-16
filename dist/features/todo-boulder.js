@@ -2,6 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { ensureDir, readJson, readText, removeFile, writeJsonAtomic } from "../state/fs.js";
 import { pathsFor } from "../state/paths.js";
+export function fingerprintOpenTodos(todos) {
+    return todos
+        .map((t) => `${t.id || ""}|${(t.status || "").toLowerCase()}|${t.content || ""}`)
+        .sort()
+        .join("\n");
+}
 export function mirrorTodos(input, cfg, todos) {
     const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
     ensureDir(p.todosDir);
@@ -159,11 +165,21 @@ export function isAbortLikeStopReason(stopReason) {
 export function todoEnforcerAllows(input, cfg, now = Date.now()) {
     const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
     const st = readJson(p.todoEnforcer, {
-        schemaVersion: 1,
+        schemaVersion: 2,
         lastContinueAt: 0,
         consecutiveContinues: 0,
+        stagnationCount: 0,
     });
     const since = st.lastContinueAt ? now - st.lastContinueAt : Number.POSITIVE_INFINITY;
+    const maxContinues = cfg.todoMaxContinues > 0 ? cfg.todoMaxContinues : 20;
+    const maxStag = cfg.todoMaxStagnation > 0 ? cfg.todoMaxStagnation : 3;
+    // Circuit open: stop nagging (omo MAX_STAGNATION / max continues)
+    if ((st.stagnationCount || 0) >= maxStag) {
+        return { allow: false, reason: "todo-enforcer-stagnation" };
+    }
+    if (st.consecutiveContinues >= maxContinues) {
+        return { allow: false, reason: "todo-enforcer-max" };
+    }
     // Abort window: if agent aborted/errored soon after a continue, re-yank despite cooldown
     if (isAbortLikeStopReason(input.stopReason) &&
         st.lastContinueAt > 0 &&
@@ -173,28 +189,47 @@ export function todoEnforcerAllows(input, cfg, now = Date.now()) {
     if (st.lastContinueAt && since < cfg.todoCooldownMs) {
         return { allow: false, reason: "todo-enforcer-cooldown" };
     }
-    if (st.consecutiveContinues >= 20) {
-        return { allow: false, reason: "todo-enforcer-max" };
-    }
     return { allow: true };
 }
-export function markTodoContinued(input, cfg, now = Date.now()) {
+/** Circuit open = do not re-yank (stagnation or max continues). */
+export function isTodoEnforcerCircuitOpen(reason) {
+    return (reason === "todo-enforcer-stagnation" || reason === "todo-enforcer-max");
+}
+export function markTodoContinued(input, cfg, now = Date.now(), openTodos) {
     const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
     const st = readJson(p.todoEnforcer, {
-        schemaVersion: 1,
+        schemaVersion: 2,
         lastContinueAt: 0,
         consecutiveContinues: 0,
+        stagnationCount: 0,
     });
+    const open = openTodos ?? incompleteTodos(input, cfg);
+    const fp = fingerprintOpenTodos(open);
+    // Count consecutive yanks with unchanged open set (omo MAX_STAGNATION_COUNT)
+    if (open.length === 0) {
+        st.stagnationCount = 0;
+        st.lastOpenFingerprint = "";
+    }
+    else if (st.lastOpenFingerprint === fp) {
+        st.stagnationCount = (st.stagnationCount || 0) + 1;
+    }
+    else {
+        st.stagnationCount = 1;
+    }
+    st.lastOpenFingerprint = open.length ? fp : "";
     st.lastContinueAt = now;
     st.consecutiveContinues += 1;
+    st.schemaVersion = 2;
     writeJsonAtomic(p.todoEnforcer, st);
 }
 export function resetTodoEnforcer(input, cfg) {
     const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
     writeJsonAtomic(p.todoEnforcer, {
-        schemaVersion: 1,
+        schemaVersion: 2,
         lastContinueAt: 0,
         consecutiveContinues: 0,
+        stagnationCount: 0,
+        lastOpenFingerprint: "",
     });
 }
 export function boulderStopReason(b) {

@@ -133,6 +133,8 @@ describe("wow path still backed by shipped harness", () => {
       maxRalphIter: 10,
       todoCooldownMs: 0,
       todoAbortWindowMs: 0,
+    todoMaxContinues: 20,
+    todoMaxStagnation: 3,
       diagCommand: "",
       diagTimeoutMs: 5000,
       hashlineTtlMs: 30 * 60 * 1000,

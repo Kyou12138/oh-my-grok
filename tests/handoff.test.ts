@@ -63,6 +63,8 @@ function cfg(wsOrOver: string | Partial<EnvConfig> = {}, maybeOver: Partial<EnvC
     commentCheckerDeny: false,
     agentGuard: false,
     categoryDiscipline: false,
+    todoMaxContinues: 20,
+    todoMaxStagnation: 3,
     ...over,
   };
 }

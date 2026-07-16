@@ -55,6 +55,8 @@ function cfg(pluginData: string, over: Partial<EnvConfig> = {}): EnvConfig {
     maxRalphIter: 20,
     todoCooldownMs: 60_000,
     todoAbortWindowMs: 5_000,
+    todoMaxContinues: 20,
+    todoMaxStagnation: 3,
     diagCommand: "",
     diagTimeoutMs: 5000,
     hashlineTtlMs: 30 * 60 * 1000,

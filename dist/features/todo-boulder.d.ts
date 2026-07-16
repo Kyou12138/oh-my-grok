@@ -19,10 +19,14 @@ export interface BoulderState {
     updatedAt: string;
 }
 export interface TodoEnforcerState {
-    schemaVersion: 1;
+    schemaVersion: 1 | 2;
     lastContinueAt: number;
     consecutiveContinues: number;
+    /** Fingerprint of open todos at last yank — omo-style stagnation (issue #6133 parity). */
+    lastOpenFingerprint?: string;
+    stagnationCount?: number;
 }
+export declare function fingerprintOpenTodos(todos: TodoItem[]): string;
 export interface StopPauseState {
     paused: boolean;
     updatedAt: string;
@@ -58,7 +62,9 @@ export declare function todoEnforcerAllows(input: HookInput, cfg: EnvConfig, now
     allow: boolean;
     reason?: string;
 };
-export declare function markTodoContinued(input: HookInput, cfg: EnvConfig, now?: number): void;
+/** Circuit open = do not re-yank (stagnation or max continues). */
+export declare function isTodoEnforcerCircuitOpen(reason?: string): boolean;
+export declare function markTodoContinued(input: HookInput, cfg: EnvConfig, now?: number, openTodos?: TodoItem[]): void;
 export declare function resetTodoEnforcer(input: HookInput, cfg: EnvConfig): void;
 export declare function boulderStopReason(b: BoulderState): string;
 export declare function todoStopReason(todos: TodoItem[]): string;

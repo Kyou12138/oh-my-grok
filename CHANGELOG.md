@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.11] — 2026-07-16
+
+### MAGI spiral — omo issue parity (todo continuation config + stagnation)
+
+Benchmarked against [code-yeongyu/oh-my-openagent](https://github.com/code-yeongyu/oh-my-openagent) issues:
+
+- **#6133** Make todo-continuation timing configurable → `todoAbortWindowMs` / `todoMaxContinues` / `todoMaxStagnation` in `.omg/config.json` + env
+- **omo constants** `MAX_STAGNATION_COUNT=3` → stop re-yanking when open-todo fingerprint unchanged for N continues (circuit open even on idle)
+- **#6001** tool-output skill pollution → Grok host discards non-PreTool stdout (already immune); documented in omo-gap
+- Defaults unchanged: cooldown 5s, abort window 3s, max continues 20, max stagnation 3
+
 ## [1.1.10] — 2026-07-16
 
 ### MAGI spiral — Hashline accepts Grok read_file prefixes

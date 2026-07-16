@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-16 · **omg version:** **1.1.10**  
+**Date:** 2026-07-16 · **omg version:** **1.1.11**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -16,7 +16,7 @@
 | omo capability | oh-my-grok | Status |
 |----------------|------------|--------|
 | Ralph / ultrawork / ULW loop | ULW v3 multi-goal, shell→verify, stall | **shipped** |
-| Todo continuation enforcer | cooldown + **abort-window** | **shipped** (partial) |
+| Todo continuation enforcer | cooldown + abort-window + **stagnation** + configurable (omo #6133) | **shipped** |
 | Prometheus plan-mode | write lock + **plan-review gate** before start-work | **shipped** |
 | IntentGate / think-mode | keywords + ultrathink | **shipped** |
 | Hashline LINE#ID | PreTool tag+body + Read inject + 文案/matcher v1.0 | **shipped** (partial vs native edit tool) |
@@ -310,14 +310,24 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 |------|----------|
 | **Hashline Grok N→** | old_string 匹配前剥离 `read_file` 的 `N→` 前缀，减少误报 stale |
 
+## Closed this spiral (v1.1.11) — omo issues
+
+| omo issue / constant | oh-my-grok |
+|----------------------|------------|
+| [#6133](https://github.com/code-yeongyu/oh-my-openagent/issues/6133) continuation config | `todoCooldownMs` / `todoAbortWindowMs` / `todoMaxContinues` / `todoMaxStagnation` 可配置 |
+| `MAX_STAGNATION_COUNT=3` | 相同 open-todo 指纹连续 yank ≥N → circuit open（idle 也不再 nag） |
+| [#6001](https://github.com/code-yeongyu/oh-my-openagent/issues/6001) skill reminder 污染 tool output | Grok 非 PreTool stdout 被丢弃 → **天然免疫**；不把 reminder 拼进 toolResult |
+| [#74](https://github.com/code-yeongyu/oh-my-openagent/issues/74) memory | 仍 **defer**（作者亦认为易冗余） |
+| Team/tmux, multi-model, container subagents | **blocked** / non-goal on Grok |
+
 ## Next spiral focus (提升)
 
 - Hashline native edit tool（宿主能力）
-- todo abort 窄场景是否 PreTool（默认仍偏 Stop 状态机）
-- 全量 project-memory（仍 defer）
+- omo skill-reminder 类文案：仅 SessionStart/UserPrompt 状态机，禁止假装注入 tool 结果
 - marketplace 收录
+- project-memory 仍 defer（对齐 omo #74 共识）
 
-**推荐**: `grok plugin update` → **1.1.10**。
+**推荐**: `grok plugin update` → **1.1.11**。
 
 ## Explicit non-goals
 

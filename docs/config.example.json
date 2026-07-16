@@ -11,6 +11,9 @@
   "agentGuard": true,
   "maxRalphIter": 50,
   "todoCooldownMs": 5000,
+  "todoAbortWindowMs": 3000,
+  "todoMaxContinues": 20,
+  "todoMaxStagnation": 3,
   "hashlineTtlMs": 1800000,
   "diagCommand": "npm test",
   "diagTimeoutMs": 60000

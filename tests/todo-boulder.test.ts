@@ -65,6 +65,8 @@ function cfg(pluginData: string, over: Partial<EnvConfig> = {}): EnvConfig {
     commentCheckerDeny: false,
     agentGuard: false,
     categoryDiscipline: false,
+    todoMaxContinues: 20,
+    todoMaxStagnation: 3,
     ...over,
   };
 }
@@ -178,6 +180,45 @@ describe("applyTodoUpdates merge (v1.1.9 Grok todo_write default)", () => {
     expect(loadTodosMirror(input, c)).toEqual([
       { id: "new", content: "only", status: "pending" },
     ]);
+  });
+
+  it("stagnation circuit opens after N identical open-todo yanks (omo #6133)", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"), {
+      todoCooldownMs: 0,
+      todoMaxStagnation: 3,
+      todoMaxContinues: 50,
+    });
+    const input = base(ws);
+    const open = [{ id: "1", content: "stuck", status: "pending" }];
+    mirrorTodos(input, c, open);
+    // three continues with same fingerprint
+    markTodoContinued(input, c, 1000, open);
+    markTodoContinued(input, c, 2000, open);
+    markTodoContinued(input, c, 3000, open);
+    const gate = todoEnforcerAllows(input, c, 4000);
+    expect(gate.allow).toBe(false);
+    expect(gate.reason).toBe("todo-enforcer-stagnation");
+    // progress resets stagnation
+    const progressed = [{ id: "1", content: "stuck", status: "in_progress" }];
+    mirrorTodos(input, c, progressed);
+    markTodoContinued(input, c, 5000, progressed);
+    expect(todoEnforcerAllows(input, c, 6000).allow).toBe(true);
+  });
+
+  it("todoMaxContinues is configurable (omo #6133)", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"), {
+      todoCooldownMs: 0,
+      todoMaxContinues: 2,
+      todoMaxStagnation: 99,
+    });
+    const input = base(ws);
+    const open = [{ content: "x", status: "pending" }];
+    mirrorTodos(input, c, open);
+    markTodoContinued(input, c, 1, open);
+    markTodoContinued(input, c, 2, [{ content: "y", status: "pending" }]);
+    expect(todoEnforcerAllows(input, c, 3).reason).toBe("todo-enforcer-max");
   });
 
   it("PostTool todo merge does not reset enforcer when other todos open", () => {

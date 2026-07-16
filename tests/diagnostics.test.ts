@@ -62,6 +62,8 @@ function makeCfg(overrides: Partial<EnvConfig> = {}): EnvConfig {
     commentCheckerDeny: false,
     agentGuard: true,
     categoryDiscipline: true,
+    todoMaxContinues: 20,
+    todoMaxStagnation: 3,
     ...overrides,
   };
 }
@@ -190,6 +192,8 @@ describe("diagnostics — diagPreDeny (v1.1.5 host-enforced)", () => {
       planMode: false,
       agentGuard: false,
       categoryDiscipline: false,
+    todoMaxContinues: 20,
+    todoMaxStagnation: 3,
     });
     const input = makeInput(ws);
     markDirty(input, cfg, "src/a.ts");

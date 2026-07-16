@@ -10,6 +10,10 @@ export interface OmgFileConfig {
     hardOrchestration?: boolean;
     maxRalphIter?: number;
     todoCooldownMs?: number;
+    /** omo #6133-style continuation timing */
+    todoAbortWindowMs?: number;
+    todoMaxContinues?: number;
+    todoMaxStagnation?: number;
     diagCommand?: string;
     diagTimeoutMs?: number;
     hashlineTtlMs?: number;

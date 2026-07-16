@@ -14,6 +14,10 @@ export interface OmgFileConfig {
   hardOrchestration?: boolean;
   maxRalphIter?: number;
   todoCooldownMs?: number;
+  /** omo #6133-style continuation timing */
+  todoAbortWindowMs?: number;
+  todoMaxContinues?: number;
+  todoMaxStagnation?: number;
   diagCommand?: string;
   diagTimeoutMs?: number;
   hashlineTtlMs?: number;
@@ -72,7 +76,13 @@ export function loadConfig(workspaceRoot?: string): EnvConfig {
     hardOrchestration: file.hardOrchestration ?? envBool("OMG_HARD_ORCH", true),
     maxRalphIter: file.maxRalphIter ?? envNum("OMG_MAX_RALPH_ITER", 50),
     todoCooldownMs: file.todoCooldownMs ?? envNum("OMG_TODO_COOLDOWN_MS", 5000),
-    todoAbortWindowMs: envNum("OMG_TODO_ABORT_WINDOW_MS", 3000),
+    // omo issue #6133: continuation timings configurable (file or env)
+    todoAbortWindowMs:
+      file.todoAbortWindowMs ?? envNum("OMG_TODO_ABORT_WINDOW_MS", 3000),
+    todoMaxContinues:
+      file.todoMaxContinues ?? envNum("OMG_TODO_MAX_CONTINUES", 20),
+    todoMaxStagnation:
+      file.todoMaxStagnation ?? envNum("OMG_TODO_MAX_STAGNATION", 3),
     diagCommand: (
       file.diagCommand ??
       process.env.OMG_DIAG_CMD ??

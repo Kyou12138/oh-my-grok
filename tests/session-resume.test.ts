@@ -48,6 +48,8 @@ function cfg(pluginData: string): EnvConfig {
     commentCheckerDeny: false,
     agentGuard: false,
     categoryDiscipline: false,
+    todoMaxContinues: 20,
+    todoMaxStagnation: 3,
   };
 }
 

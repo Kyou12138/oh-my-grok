@@ -64,6 +64,7 @@ Snake_case aliases still accepted.
 
 - Host: `GROK_PLUGIN_ROOT`, `GROK_PLUGIN_DATA`, `GROK_SESSION_ID`, `GROK_WORKSPACE_ROOT`, `GROK_HOOK_EVENT`, `GROK_HOOK_NAME`
 - Plugin: `OMG_*` toggles — see `docs/config.example.json`
+- Todo continuation (omo #6133): `OMG_TODO_COOLDOWN_MS`, `OMG_TODO_ABORT_WINDOW_MS`, `OMG_TODO_MAX_CONTINUES`, `OMG_TODO_MAX_STAGNATION`
 
 ## Doctor
 

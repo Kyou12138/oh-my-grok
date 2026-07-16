@@ -63,6 +63,8 @@ function cfg(pluginData: string, over: Partial<EnvConfig> = {}): EnvConfig {
     commentCheckerDeny: false,
     agentGuard: false,
     categoryDiscipline: false,
+    todoMaxContinues: 20,
+    todoMaxStagnation: 3,
     ...over,
   };
 }
@@ -420,6 +422,8 @@ describe("spawnFollowThroughPreDeny (v1.1.4 host-enforced)", () => {
       planMode: false,
       agentGuard: false,
       categoryDiscipline: false,
+    todoMaxContinues: 20,
+    todoMaxStagnation: 3,
     });
     handleSubagentStart(
       base(ws, {

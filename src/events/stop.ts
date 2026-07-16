@@ -21,6 +21,7 @@ import {
   hasOpenPlanCheckboxes,
   incompleteTodos,
   isStopPaused,
+  isTodoEnforcerCircuitOpen,
   loadBoulder,
   markTodoContinued,
   todoEnforcerAllows,
@@ -99,9 +100,10 @@ export function handleStop(input: HookInput, cfg: EnvConfig): HookOutput {
   const todos = incompleteTodos(input, cfg);
   if (todos.length > 0) {
     const gate = todoEnforcerAllows(input, cfg);
-    if (gate.allow || idle) {
+    // omo-style circuit: stagnation / max continues → stop nagging (even on idle)
+    if (!isTodoEnforcerCircuitOpen(gate.reason) && (gate.allow || idle)) {
       // Idle fluff bypasses cooldown; abort-window already sets allow=true
-      if (gate.allow || idle) markTodoContinued(input, cfg);
+      if (gate.allow || idle) markTodoContinued(input, cfg, Date.now(), todos);
       const parts: string[] = [];
       if (idle) parts.push(idleTurnStopReason("Incomplete todos remain."), "");
       if (gate.reason === "todo-enforcer-abort-window") {

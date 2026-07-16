@@ -53,6 +53,8 @@ function cfg(pluginData: string, over: Partial<EnvConfig> = {}): EnvConfig {
     commentCheckerDeny: false,
     agentGuard: false,
     categoryDiscipline: false,
+    todoMaxContinues: 20,
+    todoMaxStagnation: 3,
     ...over,
   };
 }

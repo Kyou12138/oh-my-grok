@@ -57,6 +57,10 @@ export interface EnvConfig {
   maxRalphIter: number;
   todoCooldownMs: number;
   todoAbortWindowMs: number;
+  /** Max todo Stop yanks per session before circuit open (omo-style). Default 20. */
+  todoMaxContinues: number;
+  /** Same incomplete-todo fingerprint yanks before stop nagging (omo MAX_STAGNATION). Default 3. */
+  todoMaxStagnation: number;
   /** Shell command for post-edit diagnostics; empty = off */
   diagCommand: string;
   diagTimeoutMs: number;

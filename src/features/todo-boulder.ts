@@ -27,9 +27,19 @@ export interface BoulderState {
 }
 
 export interface TodoEnforcerState {
-  schemaVersion: 1;
+  schemaVersion: 1 | 2;
   lastContinueAt: number;
   consecutiveContinues: number;
+  /** Fingerprint of open todos at last yank — omo-style stagnation (issue #6133 parity). */
+  lastOpenFingerprint?: string;
+  stagnationCount?: number;
+}
+
+export function fingerprintOpenTodos(todos: TodoItem[]): string {
+  return todos
+    .map((t) => `${t.id || ""}|${(t.status || "").toLowerCase()}|${t.content || ""}`)
+    .sort()
+    .join("\n");
 }
 
 export interface StopPauseState {
@@ -215,11 +225,22 @@ export function todoEnforcerAllows(
 ): { allow: boolean; reason?: string } {
   const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
   const st = readJson<TodoEnforcerState>(p.todoEnforcer, {
-    schemaVersion: 1,
+    schemaVersion: 2,
     lastContinueAt: 0,
     consecutiveContinues: 0,
+    stagnationCount: 0,
   });
   const since = st.lastContinueAt ? now - st.lastContinueAt : Number.POSITIVE_INFINITY;
+  const maxContinues = cfg.todoMaxContinues > 0 ? cfg.todoMaxContinues : 20;
+  const maxStag = cfg.todoMaxStagnation > 0 ? cfg.todoMaxStagnation : 3;
+
+  // Circuit open: stop nagging (omo MAX_STAGNATION / max continues)
+  if ((st.stagnationCount || 0) >= maxStag) {
+    return { allow: false, reason: "todo-enforcer-stagnation" };
+  }
+  if (st.consecutiveContinues >= maxContinues) {
+    return { allow: false, reason: "todo-enforcer-max" };
+  }
 
   // Abort window: if agent aborted/errored soon after a continue, re-yank despite cooldown
   if (
@@ -233,30 +254,55 @@ export function todoEnforcerAllows(
   if (st.lastContinueAt && since < cfg.todoCooldownMs) {
     return { allow: false, reason: "todo-enforcer-cooldown" };
   }
-  if (st.consecutiveContinues >= 20) {
-    return { allow: false, reason: "todo-enforcer-max" };
-  }
   return { allow: true };
 }
 
-export function markTodoContinued(input: HookInput, cfg: EnvConfig, now = Date.now()): void {
+/** Circuit open = do not re-yank (stagnation or max continues). */
+export function isTodoEnforcerCircuitOpen(reason?: string): boolean {
+  return (
+    reason === "todo-enforcer-stagnation" || reason === "todo-enforcer-max"
+  );
+}
+
+export function markTodoContinued(
+  input: HookInput,
+  cfg: EnvConfig,
+  now = Date.now(),
+  openTodos?: TodoItem[],
+): void {
   const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
   const st = readJson<TodoEnforcerState>(p.todoEnforcer, {
-    schemaVersion: 1,
+    schemaVersion: 2,
     lastContinueAt: 0,
     consecutiveContinues: 0,
+    stagnationCount: 0,
   });
+  const open = openTodos ?? incompleteTodos(input, cfg);
+  const fp = fingerprintOpenTodos(open);
+  // Count consecutive yanks with unchanged open set (omo MAX_STAGNATION_COUNT)
+  if (open.length === 0) {
+    st.stagnationCount = 0;
+    st.lastOpenFingerprint = "";
+  } else if (st.lastOpenFingerprint === fp) {
+    st.stagnationCount = (st.stagnationCount || 0) + 1;
+  } else {
+    st.stagnationCount = 1;
+  }
+  st.lastOpenFingerprint = open.length ? fp : "";
   st.lastContinueAt = now;
   st.consecutiveContinues += 1;
+  st.schemaVersion = 2;
   writeJsonAtomic(p.todoEnforcer, st);
 }
 
 export function resetTodoEnforcer(input: HookInput, cfg: EnvConfig): void {
   const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
   writeJsonAtomic(p.todoEnforcer, {
-    schemaVersion: 1,
+    schemaVersion: 2,
     lastContinueAt: 0,
     consecutiveContinues: 0,
+    stagnationCount: 0,
+    lastOpenFingerprint: "",
   } satisfies TodoEnforcerState);
 }
 

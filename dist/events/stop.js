@@ -5,7 +5,7 @@ import { categoryDisciplineStopReason } from "../features/category-discipline.js
 import { spawnFollowThroughStopReason } from "../features/spawn-followthrough.js";
 import { loadRalph, processLoopStop } from "../features/ralph.js";
 import { isDoneMessage } from "../features/ralph.js";
-import { boulderStopReason, clearBoulder, hasOpenPlanCheckboxes, incompleteTodos, isStopPaused, loadBoulder, markTodoContinued, todoEnforcerAllows, todoStopReason, } from "../features/todo-boulder.js";
+import { boulderStopReason, clearBoulder, hasOpenPlanCheckboxes, incompleteTodos, isStopPaused, isTodoEnforcerCircuitOpen, loadBoulder, markTodoContinued, todoEnforcerAllows, todoStopReason, } from "../features/todo-boulder.js";
 export function handleStop(input, cfg) {
     if (isVerifiedMessage(input.lastAssistantMessage)) {
         markVerified(input, cfg);
@@ -70,10 +70,11 @@ export function handleStop(input, cfg) {
     const todos = incompleteTodos(input, cfg);
     if (todos.length > 0) {
         const gate = todoEnforcerAllows(input, cfg);
-        if (gate.allow || idle) {
+        // omo-style circuit: stagnation / max continues → stop nagging (even on idle)
+        if (!isTodoEnforcerCircuitOpen(gate.reason) && (gate.allow || idle)) {
             // Idle fluff bypasses cooldown; abort-window already sets allow=true
             if (gate.allow || idle)
-                markTodoContinued(input, cfg);
+                markTodoContinued(input, cfg, Date.now(), todos);
             const parts = [];
             if (idle)
                 parts.push(idleTurnStopReason("Incomplete todos remain."), "");
