@@ -18,6 +18,8 @@ export interface SpawnFollowThroughState {
   lastRole?: string;
   /** How many times we blocked this wave. */
   yankCount: number;
+  /** Host SubagentEnd fired — child done; parent still must integrate. */
+  childFinished?: boolean;
   updatedAt: string;
 }
 
@@ -44,6 +46,7 @@ function load(input: HookInput, cfg: EnvConfig): SpawnFollowThroughState {
     pending: !!raw.pending,
     lastRole: raw.lastRole,
     yankCount: typeof raw.yankCount === "number" ? raw.yankCount : 0,
+    childFinished: !!raw.childFinished,
     updatedAt: raw.updatedAt || "",
   };
 }
@@ -56,7 +59,7 @@ function save(input: HookInput, cfg: EnvConfig, st: SpawnFollowThroughState): vo
   });
 }
 
-/** PostTool spawn — arm / re-arm follow-through for result recovery. */
+/** PostTool spawn / SubagentStart — arm / re-arm follow-through for result recovery. */
 export function markSpawnFollowThrough(
   input: HookInput,
   cfg: EnvConfig,
@@ -67,6 +70,28 @@ export function markSpawnFollowThrough(
     pending: true,
     lastRole: role || undefined,
     yankCount: 0,
+    childFinished: false,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+/**
+ * SubagentEnd: child exited — keep pending so parent still integrates.
+ * Does not clear follow-through (v1.1.3).
+ */
+export function markSubagentChildFinished(
+  input: HookInput,
+  cfg: EnvConfig,
+  role?: string,
+): void {
+  const st = load(input, cfg);
+  // If Start was missed, still arm so parent is nudged to recover
+  save(input, cfg, {
+    schemaVersion: 2,
+    pending: true,
+    lastRole: role || st.lastRole,
+    yankCount: st.pending ? st.yankCount || 0 : 0,
+    childFinished: true,
     updatedAt: new Date().toISOString(),
   });
 }
@@ -74,12 +99,13 @@ export function markSpawnFollowThrough(
 /** Clear pending after get_task_output / inline subagent result / real progress. */
 export function clearSpawnFollowThrough(input: HookInput, cfg: EnvConfig): void {
   const st = load(input, cfg);
-  if (!st.pending && !st.yankCount) return;
+  if (!st.pending && !st.yankCount && !st.childFinished) return;
   save(input, cfg, {
     schemaVersion: 2,
     pending: false,
     lastRole: st.lastRole,
     yankCount: 0,
+    childFinished: false,
     updatedAt: new Date().toISOString(),
   });
 }
@@ -157,13 +183,21 @@ export function isSpawnResultRecoveredMessage(msg?: string): boolean {
   );
 }
 
-function reasonForYank(role: string | undefined, yankCount: number, max: number): string {
+function reasonForYank(
+  role: string | undefined,
+  yankCount: number,
+  max: number,
+  childFinished?: boolean,
+): string {
   const roleBit = role ? ` (**${role}**)` : "";
   const wave = `yank ${yankCount}/${max}`;
+  const finishedBit = childFinished
+    ? " Host reports the subagent **finished** — recover and integrate its output now."
+    : "";
   if (yankCount >= max) {
     return [
       "<OMG_SPAWN_FOLLOWTHROUGH>",
-      `Subagent follow-through${roleBit} — final reminder (${wave}).`,
+      `Subagent follow-through${roleBit} — final reminder (${wave}).${finishedBit}`,
       "",
       "You still have not shown result recovery after spawn. Do this now:",
       "1) **get_task_output** (or read the spawn tool reply) for the subagent id,",
@@ -175,7 +209,7 @@ function reasonForYank(role: string | undefined, yankCount: number, max: number)
   }
   return [
     "<OMG_SPAWN_FOLLOWTHROUGH>",
-    `Subagent spawn armed follow-through${roleBit} (${wave}).`,
+    `Subagent spawn armed follow-through${roleBit} (${wave}).${finishedBit}`,
     "Last reply was idle or spawn-announce only — recover the result before stopping.",
     "",
     "Continue the parent loop:",
@@ -203,7 +237,12 @@ export function spawnFollowThroughStopReason(
   const recovered = isSpawnResultRecoveredMessage(msg);
 
   if (recovered || (!idle && !announce)) {
-    save(input, cfg, { ...st, pending: false, yankCount: 0 });
+    save(input, cfg, {
+      ...st,
+      pending: false,
+      yankCount: 0,
+      childFinished: false,
+    });
     return null;
   }
 
@@ -214,6 +253,7 @@ export function spawnFollowThroughStopReason(
     ...st,
     pending: keepPending,
     yankCount: nextYank,
+    childFinished: keepPending ? st.childFinished : false,
   });
-  return reasonForYank(st.lastRole, nextYank, max);
+  return reasonForYank(st.lastRole, nextYank, max, st.childFinished);
 }

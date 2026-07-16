@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.3] — 2026-07-16
+
+### MAGI spiral — SubagentEnd must not clear follow-through
+
+- **fix(spawn-followthrough)** host **SubagentEnd** no longer clears pending: child finished ≠ parent integrated
+- **feat** `markSubagentChildFinished` keeps/re-arms pending + `childFinished` flag for yank copy
+- Clear paths remain: `get_task_output` / inline spawn result / recovered or progress Stop language
+- **test** End keeps pending; End-alone arms; get_task_output still clears after End
+
 ## [1.1.2] — 2026-07-16
 
 ### MAGI spiral — category discipline on PreTool (host-enforced)

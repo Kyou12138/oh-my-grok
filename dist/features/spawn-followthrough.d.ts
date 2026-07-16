@@ -7,10 +7,17 @@ export interface SpawnFollowThroughState {
     lastRole?: string;
     /** How many times we blocked this wave. */
     yankCount: number;
+    /** Host SubagentEnd fired — child done; parent still must integrate. */
+    childFinished?: boolean;
     updatedAt: string;
 }
-/** PostTool spawn — arm / re-arm follow-through for result recovery. */
+/** PostTool spawn / SubagentStart — arm / re-arm follow-through for result recovery. */
 export declare function markSpawnFollowThrough(input: HookInput, cfg: EnvConfig, role?: string): void;
+/**
+ * SubagentEnd: child exited — keep pending so parent still integrates.
+ * Does not clear follow-through (v1.1.3).
+ */
+export declare function markSubagentChildFinished(input: HookInput, cfg: EnvConfig, role?: string): void;
 /** Clear pending after get_task_output / inline subagent result / real progress. */
 export declare function clearSpawnFollowThrough(input: HookInput, cfg: EnvConfig): void;
 export declare function isSpawnFollowThroughPending(input: HookInput, cfg: EnvConfig): boolean;

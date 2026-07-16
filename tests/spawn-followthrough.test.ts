@@ -307,7 +307,7 @@ describe("host SubagentStart / SubagentEnd (v1.1 Grok Build lifecycle)", () => {
     expect(getSessionAgentRole(base(ws), c)).toBe("");
   });
 
-  it("SubagentEnd clears pending (host result recovery)", () => {
+  it("SubagentEnd keeps pending — child done ≠ parent integrated (v1.1.3)", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));
     handleSubagentStart(
@@ -324,12 +324,49 @@ describe("host SubagentStart / SubagentEnd (v1.1 Grok Build lifecycle)", () => {
       c,
     );
     expect(end).toEqual({});
+    // still pending so idle Stop still yanks
+    expect(isSpawnFollowThroughPending(base(ws), c)).toBe(true);
+    const yank = spawnFollowThroughStopReason(
+      base(ws, { lastAssistantMessage: "ok" }),
+      c,
+    );
+    expect(yank).toMatch(/SPAWN_FOLLOWTHROUGH|finished|oracle/i);
+  });
+
+  it("SubagentEnd alone still arms when Start was missed", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    handleSubagentEnd(
+      base(ws, { event: "subagent-end", subagentType: "explore" }),
+      c,
+    );
+    expect(isSpawnFollowThroughPending(base(ws), c)).toBe(true);
+  });
+
+  it("get_task_output still clears after SubagentEnd", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    handleSubagentStart(
+      base(ws, {
+        event: "subagent-start",
+        subagentType: "explore",
+        raw: { subagentType: "explore" },
+      }),
+      c,
+    );
+    handleSubagentEnd(
+      base(ws, { event: "subagent-end", subagentType: "explore" }),
+      c,
+    );
+    handlePostToolSpawn(
+      base(ws, {
+        event: "post-tool-write",
+        toolName: "get_task_output",
+        toolInput: { task_ids: ["x"] },
+        toolOutput: "findings…",
+      }),
+      c,
+    );
     expect(isSpawnFollowThroughPending(base(ws), c)).toBe(false);
-    expect(
-      spawnFollowThroughStopReason(
-        base(ws, { lastAssistantMessage: "ok" }),
-        c,
-      ),
-    ).toBeNull();
   });
 });

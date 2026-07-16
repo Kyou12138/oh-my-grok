@@ -76,3 +76,9 @@ Plugin: `GROK_PLUGIN_ROOT`, `GROK_PLUGIN_DATA` (+ Claude aliases).
 
 `SubagentStart` is fired on the **parent** session (`updates.rs` → `self.fire_hook`).  
 Do **not** `setSessionAgentRole(subagentType)` there or on PostTool spawn — sticky `explore` poisons parent `AGENT_GUARD` when the host omits `agentName` on later Write tools.
+
+## v1.1.3 pitfall (SubagentEnd ≠ recovery)
+
+`SubagentEnd` means the **child process finished**, not that the parent integrated findings.  
+Clearing spawn follow-through on End lets the parent idle-stop without `get_task_output`.  
+End only marks `childFinished`; clear via recovery tools / progress / recovered language.
