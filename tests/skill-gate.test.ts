@@ -265,16 +265,28 @@ describe("suggestedSkillsForContext — 意图→技能规则矩阵", () => {
     }
   });
 
-  // 规则 6: review / PR 类
-  it("review/PR/code review → requesting + receiving code-review", () => {
+  // 规则 6: review / PR 类（v1.1.23 收窄裸 review）
+  it("code review / PR review → requesting + receiving code-review", () => {
     for (const ctx of [
-      "open a review for this PR",
       "do a code review of the diff",
-      "request review from the team",
+      "request review of the PR",
+      "open a pr for the feature",
+      "review this pr please",
     ]) {
       const got = idsOf(suggestedSkillsForContext(FULL_CATALOG, ctx));
       expect(got.has("requesting-code-review")).toBe(true);
       expect(got.has("receiving-code-review")).toBe(true);
+    }
+  });
+
+  it("裸 review / product review 不触发 code-review 技能（v1.1.23）", () => {
+    for (const ctx of [
+      "please review later",
+      "product review meeting notes",
+      "literature review section",
+    ]) {
+      const got = idsOf(suggestedSkillsForContext(FULL_CATALOG, ctx));
+      expect(got.has("requesting-code-review")).toBe(false);
     }
   });
 

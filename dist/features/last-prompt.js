@@ -1,6 +1,7 @@
 import { ensureDir, readJson, writeJsonAtomic } from "../state/fs.js";
 import { pathsFor } from "../state/paths.js";
 import { loadRalph } from "./ralph.js";
+import { pathsFromToolInput } from "./tool-paths.js";
 export function saveLastPrompt(input, cfg, prompt) {
     if (!prompt?.trim())
         return;
@@ -40,14 +41,12 @@ export function skillGateContext(input, cfg) {
     const ralph = loadRalph(input, cfg);
     if (ralph?.task)
         parts.push(ralph.task);
-    const file = String(input.toolInput?.file_path ??
-        input.toolInput?.path ??
-        input.toolInput?.filePath ??
-        input.toolInput?.target_file ??
-        "");
     // Only test-like paths contribute path intent (TDD/verification skills)
-    if (file && isTestLikePath(file))
-        parts.push(file);
+    // v1.1.23: MultiEdit may touch several test files
+    for (const file of pathsFromToolInput(input.toolInput)) {
+        if (isTestLikePath(file))
+            parts.push(file);
+    }
     return parts.join("\n");
 }
 //# sourceMappingURL=last-prompt.js.map

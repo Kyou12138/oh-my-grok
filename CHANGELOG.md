@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.23] — 2026-07-16
+
+### MAGI spiral — apply_patch paths + MultiEdit comment scan
+
+- **feat(tool-paths)** parse `*** Update/Add/Delete File:` from apply_patch bodies; `contentSnippetsFromToolInput` for MultiEdit
+- **fix(hashline/plan-mode)** apply_patch paths enter PreTool path gates
+- **fix(comment-checker)** scan MultiEdit `edits[].new_string` for slop (deny mode)
+- **fix(post-tool)** recache + plan-todo sync for **all** written paths
+- **fix(skill-gate)** bare `review` no longer forces code-review skills
+- **test** apply_patch deny; MultiEdit slop; review negatives
+
 ## [1.1.22] — 2026-07-16
 
 ### MAGI spiral — MultiEdit path gates + doctor PreTool probe

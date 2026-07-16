@@ -1,6 +1,6 @@
 # oh-my-grok capability map (vs Vanilla Grok / omo)
 
-**Date:** 2026-07-16 · **omg version:** **1.1.22**  
+**Date:** 2026-07-16 · **omg version:** **1.1.23**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 **Product peer:** omo **Codex Light** 同温层（纪律 + 状态），**不是** Ultimate 全量 OS。  
@@ -423,15 +423,23 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **MultiEdit path bypass** | `pathsFromToolInput` → Hashline / plan-mode 扫描 `edits[]`；无 path 的 MultiEdit fail-closed |
 | **doctor PreTool probe** | `npm run doctor` 子进程跑 blind `search_replace`，断言 Hashline deny（不依赖 Grok TUI） |
 
+## Closed this spiral (v1.1.23) — PreTool hard
+
+| Item | Behavior |
+|------|----------|
+| **apply_patch paths** | `*** Update/Add/Delete File:` 进入 Hashline / plan-mode |
+| **comment MultiEdit** | `edits[].new_string` slop 进入 PreTool deny / PostTool warn |
+| **post-tool multi-path** | 每个写入路径 recache + plan checkbox sync |
+| **skill review 收窄** | 裸 `review` 不再触发 code-review 技能 |
+
 ## Next spiral focus (提升)
 
 - **marketplace** 收录（分发转化）
 - SessionStart resume 默认 wow path
 - Hashline native edit tool（宿主能力）
 - project-memory 仍 defer（omo #74）
-- apply_patch 结构化路径（若宿主暴露）
 
-**推荐**: `grok plugin update` → **1.1.22**。
+**推荐**: `grok plugin update` → **1.1.23**。
 
 ## Explicit non-goals
 

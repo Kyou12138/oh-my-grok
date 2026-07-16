@@ -9,6 +9,7 @@ import type { EnvConfig, HookInput } from "../protocol/types.js";
 import { ensureDir, readJson, writeJsonAtomic } from "../state/fs.js";
 import { pathsFor } from "../state/paths.js";
 import { normalizeToolName } from "./skill-gate.js";
+import { contentSnippetsFromToolInput } from "./tool-paths.js";
 
 export interface CommentHit {
   line: number;
@@ -75,24 +76,16 @@ function extractWriteContent(toolInput?: Record<string, unknown>): {
   content: string;
   filePath: string;
 } {
-  if (!toolInput) return { content: "", filePath: "" };
-  const filePath = String(
-    toolInput.file_path ??
-      toolInput.path ??
-      toolInput.filePath ??
-      toolInput.target_file ??
-      "",
-  );
-  const content = String(
-    toolInput.contents ??
-      toolInput.content ??
-      toolInput.new_string ??
-      toolInput.newString ??
-      toolInput.new_str ??
-      toolInput.replace ??
-      "",
-  );
-  return { content, filePath };
+  const snippets = contentSnippetsFromToolInput(toolInput);
+  if (!snippets.length) return { content: "", filePath: "" };
+  // PreTool: first sloppy snippet wins; join for multi-scan helpers
+  if (snippets.length === 1) {
+    return { content: snippets[0].content, filePath: snippets[0].filePath };
+  }
+  return {
+    content: snippets.map((s) => s.content).join("\n"),
+    filePath: snippets.map((s) => s.filePath).filter(Boolean).join(", "),
+  };
 }
 
 function aggregatePath(input: HookInput, cfg: EnvConfig): string {
@@ -191,11 +184,14 @@ export function commentCheckerPreDeny(
   if (!cfg.commentChecker || !cfg.commentCheckerDeny) return null;
   // v1.1.7: SearchReplace must scan (old lower+strreplace miss CamelCase)
   if (!isCommentScanTool(input.toolName)) return null;
-  const { content, filePath } = extractWriteContent(input.toolInput);
-  if (!content) return null;
-  const hits = findCommentSlop(content, filePath);
-  if (!hits.length) return null;
-  return formatCommentHits(hits, filePath);
+  // v1.1.23: scan MultiEdit edits[] snippets individually
+  const snippets = contentSnippetsFromToolInput(input.toolInput);
+  for (const sn of snippets) {
+    if (!sn.content) continue;
+    const hits = findCommentSlop(sn.content, sn.filePath);
+    if (hits.length) return formatCommentHits(hits, sn.filePath || "edit");
+  }
+  return null;
 }
 
 /** PostTool soft warning context + aggregate. */
@@ -204,21 +200,55 @@ export function commentCheckerPostWarn(
   cfg: EnvConfig,
 ): string {
   if (!cfg.commentChecker) return "";
-  const { content, filePath } = extractWriteContent(input.toolInput);
-  let text = content;
-  if (!text && filePath) {
-    try {
-      const abs = path.isAbsolute(filePath)
-        ? filePath
-        : path.join(input.workspaceRoot || input.cwd, filePath);
-      if (fs.existsSync(abs)) text = fs.readFileSync(abs, "utf8");
-    } catch {
-      /* ignore */
+  const snippets = contentSnippetsFromToolInput(input.toolInput);
+  const parts: string[] = [];
+  let totalHits = 0;
+  let lastPath = "";
+
+  for (const sn of snippets) {
+    let text = sn.content;
+    if (!text && sn.filePath) {
+      try {
+        const abs = path.isAbsolute(sn.filePath)
+          ? sn.filePath
+          : path.join(input.workspaceRoot || input.cwd, sn.filePath);
+        if (fs.existsSync(abs)) text = fs.readFileSync(abs, "utf8");
+      } catch {
+        /* ignore */
+      }
+    }
+    if (!text) continue;
+    const hits = findCommentSlop(text, sn.filePath);
+    if (!hits.length) continue;
+    totalHits += hits.length;
+    lastPath = sn.filePath || lastPath;
+    recordCommentSlop(input, cfg, sn.filePath || lastPath, hits.length);
+    parts.push(formatCommentHits(hits, sn.filePath || "edit"));
+  }
+
+  // Fallback: single-path Write already on disk, no content in toolInput
+  if (!parts.length && !snippets.length) {
+    const { content, filePath } = extractWriteContent(input.toolInput);
+    let text = content;
+    if (!text && filePath) {
+      try {
+        const abs = path.isAbsolute(filePath)
+          ? filePath
+          : path.join(input.workspaceRoot || input.cwd, filePath);
+        if (fs.existsSync(abs)) text = fs.readFileSync(abs, "utf8");
+      } catch {
+        /* ignore */
+      }
+    }
+    if (text) {
+      const hits = findCommentSlop(text, filePath);
+      if (hits.length) {
+        recordCommentSlop(input, cfg, filePath, hits.length);
+        return formatCommentHits(hits, filePath);
+      }
     }
   }
-  if (!text) return "";
-  const hits = findCommentSlop(text, filePath);
-  if (!hits.length) return "";
-  recordCommentSlop(input, cfg, filePath, hits.length);
-  return formatCommentHits(hits, filePath);
+
+  if (!totalHits) return "";
+  return parts.join("\n\n");
 }

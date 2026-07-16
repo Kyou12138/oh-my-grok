@@ -173,7 +173,8 @@ const INTENT_SKILL_RULES: { re: RegExp; skills: string[] }[] = [
     skills: ["ulw-loop", "ralph-loop"],
   },
   {
-    re: /\b(review|pr\b|code\s*review)\b/i,
+    // v1.1.23: drop bare "review" (code review only)
+    re: /\b(code\s*review|request(?:ing)?\s+review|pr\s+review|review\s+(?:this\s+)?(?:pr|diff|code|change|pull\s*request))\b|\b(?:open|submit)\s+(?:a\s+)?pr\b/i,
     skills: ["requesting-code-review", "receiving-code-review"],
   },
   {

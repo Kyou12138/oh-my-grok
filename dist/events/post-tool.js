@@ -9,12 +9,23 @@ import { markSkillLoaded } from "../features/skill-gate.js";
 import { markSpawnActivity } from "../features/category-discipline.js";
 import { clearSpawnFollowThrough, isInlineSubagentResult, isResultRecoveryTool, markSpawnFollowThrough, } from "../features/spawn-followthrough.js";
 import { applyTodoUpdates, extractTodosFromToolInput, incompleteTodos, isPlanMarkdownPath, isTodoMergeMode, resetTodoEnforcer, syncTodosFromPlanCheckboxes, } from "../features/todo-boulder.js";
+import { pathsFromToolInput } from "../features/tool-paths.js";
 function fileFromInput(input) {
+    const paths = pathsFromToolInput(input.toolInput);
+    if (paths.length)
+        return paths[0];
     return String(input.toolInput?.file_path ??
         input.toolInput?.path ??
         input.toolInput?.filePath ??
         input.toolInput?.target_file ??
         "");
+}
+function filesFromInput(input) {
+    const paths = pathsFromToolInput(input.toolInput);
+    if (paths.length)
+        return paths;
+    const one = fileFromInput(input);
+    return one ? [one] : [];
 }
 function mergeContext(...parts) {
     const additionalContext = parts.filter(Boolean).join("\n\n");
@@ -61,15 +72,16 @@ export function handlePostToolTodo(input, cfg) {
     return {};
 }
 export function handlePostToolWrite(input, cfg) {
-    const file = fileFromInput(input);
-    markDirty(input, cfg, file || undefined);
-    noteUlwWrite(input, cfg, file || undefined);
-    // Refresh hashline cache after successful write so next edit sees new content
-    if (file)
+    const files = filesFromInput(input);
+    const primary = files[0] || "";
+    markDirty(input, cfg, primary || undefined);
+    noteUlwWrite(input, cfg, primary || undefined);
+    // v1.1.23: MultiEdit / apply_patch — recache every touched path
+    for (const file of files) {
         recordRead(input, cfg, file);
-    // v1.1.20: plan checkbox flips → complete matching seeded todos (avoid stale yank)
-    if (file && isPlanMarkdownPath(file, input, cfg)) {
-        syncTodosFromPlanCheckboxes(input, cfg, file);
+        if (isPlanMarkdownPath(file, input, cfg)) {
+            syncTodosFromPlanCheckboxes(input, cfg, file);
+        }
     }
     if (cfg.diagCommand) {
         runDiagCommand(input, cfg);

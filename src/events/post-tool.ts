@@ -33,8 +33,11 @@ import {
   resetTodoEnforcer,
   syncTodosFromPlanCheckboxes,
 } from "../features/todo-boulder.js";
+import { pathsFromToolInput } from "../features/tool-paths.js";
 
 function fileFromInput(input: HookInput): string {
+  const paths = pathsFromToolInput(input.toolInput);
+  if (paths.length) return paths[0];
   return String(
     input.toolInput?.file_path ??
       input.toolInput?.path ??
@@ -42,6 +45,13 @@ function fileFromInput(input: HookInput): string {
       input.toolInput?.target_file ??
       "",
   );
+}
+
+function filesFromInput(input: HookInput): string[] {
+  const paths = pathsFromToolInput(input.toolInput);
+  if (paths.length) return paths;
+  const one = fileFromInput(input);
+  return one ? [one] : [];
 }
 
 function mergeContext(...parts: string[]): HookOutput {
@@ -92,14 +102,16 @@ export function handlePostToolTodo(input: HookInput, cfg: EnvConfig): HookOutput
 }
 
 export function handlePostToolWrite(input: HookInput, cfg: EnvConfig): HookOutput {
-  const file = fileFromInput(input);
-  markDirty(input, cfg, file || undefined);
-  noteUlwWrite(input, cfg, file || undefined);
-  // Refresh hashline cache after successful write so next edit sees new content
-  if (file) recordRead(input, cfg, file);
-  // v1.1.20: plan checkbox flips → complete matching seeded todos (avoid stale yank)
-  if (file && isPlanMarkdownPath(file, input, cfg)) {
-    syncTodosFromPlanCheckboxes(input, cfg, file);
+  const files = filesFromInput(input);
+  const primary = files[0] || "";
+  markDirty(input, cfg, primary || undefined);
+  noteUlwWrite(input, cfg, primary || undefined);
+  // v1.1.23: MultiEdit / apply_patch — recache every touched path
+  for (const file of files) {
+    recordRead(input, cfg, file);
+    if (isPlanMarkdownPath(file, input, cfg)) {
+      syncTodosFromPlanCheckboxes(input, cfg, file);
+    }
   }
   if (cfg.diagCommand) {
     runDiagCommand(input, cfg);

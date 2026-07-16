@@ -11,7 +11,12 @@ import {
   planModeDeny,
   startPlanMode,
 } from "../src/features/prometheus.js";
-import { pathsFromToolInput } from "../src/features/tool-paths.js";
+import {
+  contentSnippetsFromToolInput,
+  pathsFromApplyPatchText,
+  pathsFromToolInput,
+} from "../src/features/tool-paths.js";
+import { commentCheckerPreDeny } from "../src/features/comment-checker.js";
 import type { EnvConfig, HookInput } from "../src/protocol/types.js";
 
 const tmpRoots: string[] = [];
@@ -89,6 +94,83 @@ describe("pathsFromToolInput", () => {
   it("returns empty for missing input", () => {
     expect(pathsFromToolInput(undefined)).toEqual([]);
     expect(pathsFromToolInput({})).toEqual([]);
+  });
+
+  it("extracts paths from apply_patch body (v1.1.23)", () => {
+    const patch = [
+      "*** Begin Patch",
+      "*** Update File: src/a.ts",
+      "@@",
+      "-old",
+      "+new",
+      "*** Add File: src/b.ts",
+      "+export const b = 1",
+      "*** End Patch",
+    ].join("\n");
+    expect(pathsFromApplyPatchText(patch)).toEqual(["src/a.ts", "src/b.ts"]);
+    expect(pathsFromToolInput({ patch })).toEqual(["src/a.ts", "src/b.ts"]);
+    expect(pathsFromToolInput({ diff: patch })).toEqual(["src/a.ts", "src/b.ts"]);
+  });
+
+  it("contentSnippetsFromToolInput covers MultiEdit new_string", () => {
+    const sn = contentSnippetsFromToolInput({
+      edits: [
+        { path: "a.ts", new_string: "// This function does x\nexport const a = 1\n" },
+        { path: "b.ts", new_string: "export const b = 2\n" },
+      ],
+    });
+    expect(sn).toHaveLength(2);
+    expect(sn[0].filePath).toBe("a.ts");
+    expect(sn[0].content).toMatch(/This function/);
+  });
+});
+
+describe("hashline apply_patch paths (v1.1.23)", () => {
+  it("denies apply_patch Update File when path was never Read", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const target = path.join(ws, "src", "hit.ts");
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, "export const n = 1;\n", "utf8");
+    const patch = `*** Begin Patch\n*** Update File: ${target}\n@@\n-export const n = 1;\n+export const n = 2;\n*** End Patch\n`;
+    const deny = hashlinePreToolDeny(
+      base(ws, {
+        toolName: "ApplyPatch",
+        toolInput: { patch },
+      }),
+      c,
+    );
+    expect(deny).toMatch(/Hashline|Read cache/i);
+  });
+});
+
+describe("comment-checker MultiEdit (v1.1.23)", () => {
+  it("PreTool deny scans edits[] new_string for slop", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"), {
+      commentChecker: true,
+      commentCheckerDeny: true,
+      hashline: false,
+    });
+    const deny = commentCheckerPreDeny(
+      base(ws, {
+        toolName: "MultiEdit",
+        toolInput: {
+          edits: [
+            {
+              path: "clean.ts",
+              new_string: "export const ok = 1;\n",
+            },
+            {
+              path: "slop.ts",
+              new_string: "// This function calculates the total\nexport const t = 0;\n",
+            },
+          ],
+        },
+      }),
+      c,
+    );
+    expect(deny).toMatch(/COMMENT|slop|This function/i);
   });
 });
 
