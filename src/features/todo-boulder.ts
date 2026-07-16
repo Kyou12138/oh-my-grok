@@ -498,6 +498,96 @@ export function seedTodosFromPlanIfEmpty(
   return todos;
 }
 
+/** True when path looks like a plan markdown we should sync (boulder / .omg/plans / plan.md). */
+export function isPlanMarkdownPath(
+  filePath: string,
+  input: HookInput,
+  cfg: EnvConfig,
+): boolean {
+  if (!filePath?.trim()) return false;
+  const n = path.resolve(filePath).replace(/\\/g, "/").toLowerCase();
+  if (!n.endsWith(".md")) return false;
+  const base = path.basename(n);
+  if (base === "plan.md") return true;
+  const plans = path
+    .resolve(pathsFor(input.workspaceRoot, input.sessionId, cfg).plansDir)
+    .replace(/\\/g, "/")
+    .toLowerCase();
+  if (n.includes("/.omg/plans/") || n.startsWith(plans + "/") || n.includes(plans + "/")) {
+    return true;
+  }
+  const boulder = loadBoulder(input, cfg);
+  if (boulder?.planPath) {
+    const bp = path.resolve(boulder.planPath).replace(/\\/g, "/").toLowerCase();
+    if (bp === n) return true;
+  }
+  return false;
+}
+
+/**
+ * Align todo mirror with plan checkbox progress (v1.1.20).
+ * After start-work seed, agents often only flip `- [ ]` → `- [x]` in the plan
+ * and never call todo_write — Stop then yanks forever on stale pending todos.
+ * Match by exact label or plan-N id order.
+ * @returns number of todos whose status changed
+ */
+export function syncTodosFromPlanCheckboxes(
+  input: HookInput,
+  cfg: EnvConfig,
+  planPath?: string,
+): number {
+  const boulder = loadBoulder(input, cfg);
+  const target =
+    planPath ||
+    boulder?.planPath ||
+    "";
+  if (!target || !fs.existsSync(target)) return 0;
+  const text = readText(target);
+  if (!text) return 0;
+  const tasks = parsePlanTaskCheckboxes(text);
+  if (!tasks.length) return 0;
+
+  const existing = loadTodosMirror(input, cfg);
+  if (!existing.length) return 0;
+
+  const byLabel = new Map(tasks.map((t) => [t.label, t]));
+  let changed = 0;
+  const next = existing.map((todo) => {
+    let task: PlanTaskCheckbox | undefined;
+    // plan-N ids from seedTodosFromPlanIfEmpty
+    const planIdx = /^plan-(\d+)$/i.exec(todo.id || "");
+    if (planIdx) {
+      const idx = Number(planIdx[1]) - 1;
+      task = tasks[idx];
+    }
+    if (!task) task = byLabel.get(todo.content);
+    if (!task) return todo;
+    // Only promote open → completed when plan row is checked; do not reopen completed
+    if (task.checked && isTodoOpenStatus(todo.status)) {
+      changed += 1;
+      return { ...todo, content: todo.content || task.label, status: "completed" };
+    }
+    // Keep content in sync if empty
+    if (!todo.content?.trim() && task.label) {
+      changed += 1;
+      return {
+        ...todo,
+        content: task.label,
+        status: todo.status || (task.checked ? "completed" : "pending"),
+      };
+    }
+    return todo;
+  });
+
+  if (changed > 0) {
+    mirrorTodos(input, cfg, next);
+    if (incompleteTodos(input, cfg).length === 0) {
+      resetTodoEnforcer(input, cfg);
+    }
+  }
+  return changed;
+}
+
 export function hasOpenPlanCheckboxes(input: HookInput, cfg: EnvConfig): string | null {
   const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
   const files: string[] = [];

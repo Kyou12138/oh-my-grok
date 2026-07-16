@@ -8,7 +8,7 @@
 
 **中文** | [English](./README.en.md)
 
-**Grok Build 上的 omo 式 harness + Superpowers 方法论。** · **v1.1.19**（对齐 [grok-build](https://github.com/xai-org/grok-build) + omo issues）
+**Grok Build 上的 omo 式 harness + Superpowers 方法论。** · **v1.1.20**（对齐 [grok-build](https://github.com/xai-org/grok-build) + omo issues）
 
 装一次，输入 `ultrawork`。Hooks 强制 agent 走完 **探索 → 实现 → 验证**，直到真正做完。
 

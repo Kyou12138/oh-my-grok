@@ -185,16 +185,28 @@ describe("suggestedSkillsForContext — 意图→技能规则矩阵", () => {
   });
 
   // 规则 3: brainstorming / design 类
-  it("brainstorm/design/architect/ambiguous → brainstorming + using-superpowers", () => {
+  it("brainstorm/design the/architect/ambiguous → brainstorming + using-superpowers", () => {
     for (const ctx of [
       "let's brainstorm the API shape",
       "design the new module",
+      "api design for checkout",
       "act as architect for the system",
       "this requirement is ambiguous",
     ]) {
       const got = idsOf(suggestedSkillsForContext(FULL_CATALOG, ctx));
       expect(got.has("brainstorming")).toBe(true);
       expect(got.has("using-superpowers")).toBe(true);
+    }
+  });
+
+  it("裸 design / design system 不触发 brainstorming（v1.1.20）", () => {
+    for (const ctx of [
+      "tweak design system tokens",
+      "update the design tokens file",
+      "read design.md",
+    ]) {
+      const got = idsOf(suggestedSkillsForContext(FULL_CATALOG, ctx));
+      expect(got.has("brainstorming")).toBe(false);
     }
   });
 

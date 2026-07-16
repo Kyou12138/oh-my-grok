@@ -8,7 +8,7 @@ import { extractSpawnRole, isSpawnTool } from "../features/session-role.js";
 import { markSkillLoaded } from "../features/skill-gate.js";
 import { markSpawnActivity } from "../features/category-discipline.js";
 import { clearSpawnFollowThrough, isInlineSubagentResult, isResultRecoveryTool, markSpawnFollowThrough, } from "../features/spawn-followthrough.js";
-import { applyTodoUpdates, extractTodosFromToolInput, incompleteTodos, isTodoMergeMode, resetTodoEnforcer, } from "../features/todo-boulder.js";
+import { applyTodoUpdates, extractTodosFromToolInput, incompleteTodos, isPlanMarkdownPath, isTodoMergeMode, resetTodoEnforcer, syncTodosFromPlanCheckboxes, } from "../features/todo-boulder.js";
 function fileFromInput(input) {
     return String(input.toolInput?.file_path ??
         input.toolInput?.path ??
@@ -67,6 +67,10 @@ export function handlePostToolWrite(input, cfg) {
     // Refresh hashline cache after successful write so next edit sees new content
     if (file)
         recordRead(input, cfg, file);
+    // v1.1.20: plan checkbox flips → complete matching seeded todos (avoid stale yank)
+    if (file && isPlanMarkdownPath(file, input, cfg)) {
+        syncTodosFromPlanCheckboxes(input, cfg, file);
+    }
     if (cfg.diagCommand) {
         runDiagCommand(input, cfg);
     }

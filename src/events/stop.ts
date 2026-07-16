@@ -25,6 +25,7 @@ import {
   isTodoEnforcerCircuitOpen,
   loadBoulder,
   markTodoContinued,
+  syncTodosFromPlanCheckboxes,
   todoEnforcerAllows,
   todoStopReason,
 } from "../features/todo-boulder.js";
@@ -61,6 +62,8 @@ export function handleStop(input: HookInput, cfg: EnvConfig): HookOutput {
   // 2. Boulder — stay active until plan checkboxes closed + DONE, or /cancel-boulder
   const boulder = loadBoulder(input, cfg);
   if (boulder) {
+    // Keep seeded todos aligned with plan checkbox progress before gates
+    syncTodosFromPlanCheckboxes(input, cfg, boulder.planPath);
     const openPlan = hasOpenPlanCheckboxes(input, cfg);
     if (openPlan) {
       return {

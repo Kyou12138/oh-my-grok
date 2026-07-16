@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-16 · **omg version:** **1.1.19**  
+**Date:** 2026-07-16 · **omg version:** **1.1.20**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -383,6 +383,13 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | [#4111](https://github.com/code-yeongyu/oh-my-openagent/issues/4111) all todos complete silent stop | Stop 一次性 `ALL_TODOS_COMPLETE` 要求用户向摘要；非 idle 长回复直接标记已 signal |
 | [#4744](https://github.com/code-yeongyu/oh-my-openagent/issues/4744) Atlas loop after complete | 受益于 #1775 状态 + stagnation（v1.1.11）+ #4111 完成信号 |
 
+## Closed this spiral (v1.1.20)
+
+| Item | Behavior |
+|------|----------|
+| **plan↔todo sync** | 写 plan / boulder Stop 时 `syncTodosFromPlanCheckboxes`：plan 行 `[x]` → 对应 `plan-N`/同标签 todo 完成；避免只改 markdown 不改 todo_write 的永久 yank |
+| **skill design 收窄** | 裸 `design` / design system 不再触发 brainstorming |
+
 ## Next spiral focus (提升)
 
 - Hashline native edit tool（宿主能力）
@@ -391,7 +398,7 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 - omo #4217 stall 深化（若 host 暴露 task progress）
 - 持续扫 omo issues 中 **Grok-feasible** 门禁
 
-**推荐**: `grok plugin update` → **1.1.19**。
+**推荐**: `grok plugin update` → **1.1.20**。
 
 ## Explicit non-goals
 

@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.20] — 2026-07-16
+
+### MAGI spiral — plan↔todo sync + design skill narrow
+
+- **fix(start-work flow)** after seed todos (v1.1.18), flipping plan `- [x]` without `todo_write` left mirror pending forever → Stop yank loop. **`syncTodosFromPlanCheckboxes`** promotes matching `plan-N` / label todos on plan write + boulder Stop
+- **fix(skill-gate)** drop bare `design` (design tokens / design system false positives); keep `design the/a…`, `api design`, brainstorm/architect
+- **test** sync promote / no-reopen / PostTool write path; design negative matrix
+
 ## [1.1.19] — 2026-07-16
 
 ### MAGI spiral — todo complete signal + blocked status (omo #4111 / #1775)

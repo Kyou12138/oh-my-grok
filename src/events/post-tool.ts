@@ -28,8 +28,10 @@ import {
   applyTodoUpdates,
   extractTodosFromToolInput,
   incompleteTodos,
+  isPlanMarkdownPath,
   isTodoMergeMode,
   resetTodoEnforcer,
+  syncTodosFromPlanCheckboxes,
 } from "../features/todo-boulder.js";
 
 function fileFromInput(input: HookInput): string {
@@ -95,6 +97,10 @@ export function handlePostToolWrite(input: HookInput, cfg: EnvConfig): HookOutpu
   noteUlwWrite(input, cfg, file || undefined);
   // Refresh hashline cache after successful write so next edit sees new content
   if (file) recordRead(input, cfg, file);
+  // v1.1.20: plan checkbox flips → complete matching seeded todos (avoid stale yank)
+  if (file && isPlanMarkdownPath(file, input, cfg)) {
+    syncTodosFromPlanCheckboxes(input, cfg, file);
+  }
   if (cfg.diagCommand) {
     runDiagCommand(input, cfg);
   }

@@ -102,4 +102,14 @@ export declare function planTasksToTodos(tasks: PlanTaskCheckbox[]): TodoItem[];
  * Does not overwrite an existing non-empty todo list.
  */
 export declare function seedTodosFromPlanIfEmpty(input: HookInput, cfg: EnvConfig, planPath: string): TodoItem[];
+/** True when path looks like a plan markdown we should sync (boulder / .omg/plans / plan.md). */
+export declare function isPlanMarkdownPath(filePath: string, input: HookInput, cfg: EnvConfig): boolean;
+/**
+ * Align todo mirror with plan checkbox progress (v1.1.20).
+ * After start-work seed, agents often only flip `- [ ]` → `- [x]` in the plan
+ * and never call todo_write — Stop then yanks forever on stale pending todos.
+ * Match by exact label or plan-N id order.
+ * @returns number of todos whose status changed
+ */
+export declare function syncTodosFromPlanCheckboxes(input: HookInput, cfg: EnvConfig, planPath?: string): number;
 export declare function hasOpenPlanCheckboxes(input: HookInput, cfg: EnvConfig): string | null;

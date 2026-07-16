@@ -5,7 +5,7 @@ import { categoryDisciplineStopReason } from "../features/category-discipline.js
 import { spawnFollowThroughStopReason } from "../features/spawn-followthrough.js";
 import { loadRalph, processLoopStop } from "../features/ralph.js";
 import { isDoneMessage } from "../features/ralph.js";
-import { allTodosCompleteStopReason, boulderStopReason, clearBoulder, hasOpenPlanCheckboxes, incompleteTodos, isStopPaused, isTodoEnforcerCircuitOpen, loadBoulder, markTodoContinued, todoEnforcerAllows, todoStopReason, } from "../features/todo-boulder.js";
+import { allTodosCompleteStopReason, boulderStopReason, clearBoulder, hasOpenPlanCheckboxes, incompleteTodos, isStopPaused, isTodoEnforcerCircuitOpen, loadBoulder, markTodoContinued, syncTodosFromPlanCheckboxes, todoEnforcerAllows, todoStopReason, } from "../features/todo-boulder.js";
 export function handleStop(input, cfg) {
     if (isVerifiedMessage(input.lastAssistantMessage)) {
         markVerified(input, cfg);
@@ -34,6 +34,8 @@ export function handleStop(input, cfg) {
     // 2. Boulder — stay active until plan checkboxes closed + DONE, or /cancel-boulder
     const boulder = loadBoulder(input, cfg);
     if (boulder) {
+        // Keep seeded todos aligned with plan checkbox progress before gates
+        syncTodosFromPlanCheckboxes(input, cfg, boulder.planPath);
         const openPlan = hasOpenPlanCheckboxes(input, cfg);
         if (openPlan) {
             return {

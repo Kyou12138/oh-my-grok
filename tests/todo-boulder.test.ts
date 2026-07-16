@@ -31,9 +31,11 @@ import {
   seedTodosFromPlanIfEmpty,
   setBoulder,
   setStopPaused,
+  syncTodosFromPlanCheckboxes,
   todoEnforcerAllows,
   todoStopReason,
 } from "../src/features/todo-boulder.js";
+import { handlePostToolWrite } from "../src/events/post-tool.js";
 
 const tmpRoots: string[] = [];
 
@@ -579,6 +581,59 @@ describe("parsePlanTaskCheckboxes + seedTodosFromPlanIfEmpty (omo #6066)", () =>
     const again = seedTodosFromPlanIfEmpty(input, c, plan);
     expect(again).toHaveLength(1);
     expect(again[0].content).toBe("user todo");
+  });
+});
+
+describe("syncTodosFromPlanCheckboxes (v1.1.20)", () => {
+  it("promotes plan-N todos when plan rows become checked", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    const plan = path.join(ws, ".omg", "plans", "exec.md");
+    fs.mkdirSync(path.dirname(plan), { recursive: true });
+    fs.writeFileSync(plan, "## Steps\n- [ ] alpha\n- [ ] beta\n", "utf8");
+    seedTodosFromPlanIfEmpty(input, c, plan);
+    expect(incompleteTodos(input, c)).toHaveLength(2);
+
+    fs.writeFileSync(plan, "## Steps\n- [x] alpha\n- [ ] beta\n", "utf8");
+    const n = syncTodosFromPlanCheckboxes(input, c, plan);
+    expect(n).toBe(1);
+    expect(incompleteTodos(input, c).map((t) => t.content)).toEqual(["beta"]);
+    expect(loadTodosMirror(input, c).find((t) => t.content === "alpha")?.status).toBe(
+      "completed",
+    );
+  });
+
+  it("does not reopen completed todos when plan row still open", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    const plan = path.join(ws, "plan.md");
+    fs.writeFileSync(plan, "## Steps\n- [ ] only\n", "utf8");
+    mirrorTodos(input, c, [{ id: "plan-1", content: "only", status: "completed" }]);
+    expect(syncTodosFromPlanCheckboxes(input, c, plan)).toBe(0);
+    expect(loadTodosMirror(input, c)[0].status).toBe("completed");
+  });
+
+  it("PostTool write on plan file syncs mirror", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"), { hashline: false, commentChecker: false });
+    const input = base(ws, { event: "post-tool-write", sessionId: "todo-sess" });
+    const plan = path.join(ws, ".omg", "plans", "w.md");
+    fs.mkdirSync(path.dirname(plan), { recursive: true });
+    fs.writeFileSync(plan, "## Steps\n- [ ] ship\n", "utf8");
+    seedTodosFromPlanIfEmpty(input, c, plan);
+    fs.writeFileSync(plan, "## Steps\n- [x] ship\n", "utf8");
+    handlePostToolWrite(
+      {
+        ...input,
+        event: "post-tool-write",
+        toolName: "Write",
+        toolInput: { path: plan, contents: "## Steps\n- [x] ship\n" },
+      },
+      c,
+    );
+    expect(incompleteTodos(input, c)).toHaveLength(0);
   });
 });
 

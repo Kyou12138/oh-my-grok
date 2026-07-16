@@ -132,7 +132,8 @@ const INTENT_SKILL_RULES = [
         skills: ["systematic-debugging"],
     },
     {
-        re: /\b(brainstorm|design|architect|ambiguous)\b/i,
+        // v1.1.20: drop bare "design" (UI design tokens / design system false positives)
+        re: /\b(brainstorm(?:ing)?|architect|ambiguous|system\s+design|api\s+design|design\s+(?:the|a|an|our|this|for))\b/i,
         skills: ["brainstorming", "using-superpowers"],
     },
     {
