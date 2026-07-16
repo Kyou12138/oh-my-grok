@@ -4,7 +4,12 @@ import { categoryDisciplinePreDeny } from "../features/category-discipline.js";
 import { commentCheckerPreDeny } from "../features/comment-checker.js";
 import { diagPreDeny } from "../features/diagnostics.js";
 import { hashlinePreToolDeny } from "../features/hashline.js";
-import { planModeDeny } from "../features/prometheus.js";
+import {
+  isPlanModePlanOnlyWrite,
+  planModeDeny,
+  prometheusRoleDeny,
+} from "../features/prometheus.js";
+import { resolveAgentRole } from "../features/agent-guard.js";
 import { skillGateContext } from "../features/last-prompt.js";
 import {
   isMutatingTool,
@@ -29,6 +34,16 @@ export function handlePreToolUse(
 
   if (!isMutatingTool(input.toolName)) {
     return { output: { decision: "allow" }, exitCode: 0 };
+  }
+
+  // 0.5) Prometheus sticky role — plan paths only (v1.1.26)
+  const roleDeny = prometheusRoleDeny(
+    input,
+    cfg,
+    resolveAgentRole(input, cfg),
+  );
+  if (roleDeny) {
+    return { output: { decision: "deny", reason: roleDeny }, exitCode: 2 };
   }
 
   // 1) Prometheus plan-mode
@@ -67,8 +82,9 @@ export function handlePreToolUse(
     return { output: { decision: "deny", reason: cc }, exitCode: 2 };
   }
 
-  // 4) Skill gate (intent-aware when last prompt/task matches known skills)
-  if (cfg.skillGate) {
+  // 4) Skill gate — skip pure .omg/plans writes while plan-mode active (v1.1.26)
+  //    so /plan drafting is not blocked by unrelated TDD/design intent keywords
+  if (cfg.skillGate && !isPlanModePlanOnlyWrite(input, cfg)) {
     let state = loadSkillGateState(input, cfg);
     if (!state.catalog.length) state = refreshCatalog(input, cfg);
     const ctx = skillGateContext(input, cfg);

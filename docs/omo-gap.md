@@ -1,6 +1,6 @@
 # oh-my-grok capability map (vs Vanilla Grok / omo)
 
-**Date:** 2026-07-16 · **omg version:** **1.1.25**  
+**Date:** 2026-07-16 · **omg version:** **1.1.26**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 **Product peer:** omo **Codex Light** 同温层（纪律 + 状态），**不是** Ultimate 全量 OS。  
@@ -448,13 +448,20 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **NotebookEdit PostTool** | write matcher 补齐 recache/dirty |
 | **createfile** | isMutatingTool + PreTool matcher |
 
+## Closed this spiral (v1.1.26) — PreTool hard
+
+| Item | Behavior |
+|------|----------|
+| **prometheus role lock** | sticky/host prometheus 仅允许写 `.omg/plans/`（与 plan-mode 独立） |
+| **skill-gate plan skip** | plan-mode 下纯 plan 路径写入不触发 Skill Gate（避免 TDD 意图卡写作 plan） |
+
 ## Next spiral focus (提升)
 
 - **marketplace** 收录（分发转化）
 - Hashline native edit tool（宿主能力）
 - project-memory 仍 defer（omo #74）
 
-**推荐**: `grok plugin update` → **1.1.25**。
+**推荐**: `grok plugin update` → **1.1.26**。
 
 ## Explicit non-goals
 

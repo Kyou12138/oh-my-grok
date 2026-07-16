@@ -34,14 +34,15 @@ oh-my-grok still **writes** `additionalContext` / Stop `decision:block` for test
 
 ## PreToolUse order (enforced)
 
-1. Agent guard (read-only roles)  
-2. Prometheus plan-mode path deny  
-3. Category discipline (specialist work + zero spawns, once per session)  
-4. Spawn follow-through (child finished + still pending, once per wave)  
-5. Diagnostics hard fail (`lastErrors` from diagCommand — until clean)  
-6. Hashline (fresh Read + old_string + LINE#ID)  
-7. Comment checker hard deny (when deny mode)  
-8. Skill Gate  
+1. Agent guard (read-only roles + spawn/task deny for read-only / no-redelegate)  
+2. Prometheus **role** path deny (sticky prometheus → only `.omg/plans/`)  
+3. Prometheus plan-mode path deny  
+4. Category discipline (specialist work + zero spawns, once per session)  
+5. Spawn follow-through (child finished + still pending, once per wave)  
+6. Diagnostics hard fail (`lastErrors` from diagCommand — until clean)  
+7. Hashline (fresh Read + old_string + LINE#ID)  
+8. Comment checker hard deny (when deny mode)  
+9. Skill Gate (skipped for plan-mode **plan-only** writes)  
 
 ## Stop order (state machine; stdout not host-enforced)
 

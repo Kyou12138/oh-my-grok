@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.26] — 2026-07-16
+
+### MAGI spiral — Prometheus role lock + plan-mode Skill Gate skip
+
+- **feat(prometheusRoleDeny)** sticky/host `prometheus` may only mutate `.omg/plans/*` (PreTool hard)
+- **fix(skill-gate)** skip when plan-mode is active and **all** paths are plan-only — `/plan` drafting no longer blocked by unrelated TDD/design intent
+- **docs** contract PreTool order + CONTRIBUTING order updated
+- **test** prometheus role deny/allow; isPlanModePlanOnlyWrite; PreTool plan Write allows under TDD last-prompt
+
 ## [1.1.25] — 2026-07-16
 
 ### MAGI spiral — Agent Guard spawn/task PreTool + NotebookEdit post-write

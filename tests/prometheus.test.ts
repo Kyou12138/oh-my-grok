@@ -19,15 +19,19 @@ import {
   isHostExitPlanTool,
   loadPlanMode,
   countPlanTaskCheckboxes,
+  isPlanModePlanOnlyWrite,
   planFileHasReview,
   planFormatDenyReason,
   planModeContext,
   planModeDeny,
   planReviewDenyReason,
+  prometheusRoleDeny,
   startPlanMode,
   startWorkFromPlan,
 } from "../src/features/prometheus.js";
 import { incompleteTodos, loadBoulder, loadTodosMirror } from "../src/features/todo-boulder.js";
+import { handlePreToolUse } from "../src/events/pre-tool-use.js";
+import { refreshCatalog } from "../src/features/skill-gate.js";
 
 const tmpRoots: string[] = [];
 
@@ -421,6 +425,111 @@ describe("planReviewDenyReason + planModeContext", () => {
 });
 
 // ─── 5. planModeDeny 写路径 ──────────────────────────────────────────
+
+describe("prometheusRoleDeny + plan-only skill skip (v1.1.26)", () => {
+  it("prometheus role cannot Write src/", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"), { agentGuard: true, hashline: false });
+    const deny = prometheusRoleDeny(
+      base(ws, {
+        agentName: "prometheus",
+        toolName: "Write",
+        toolInput: {
+          path: path.join(ws, "src", "app.ts"),
+          contents: "export {}\n",
+        },
+      }),
+      c,
+      "prometheus",
+    );
+    expect(deny).toMatch(/PROMETHEUS_ROLE|plan-only|plans/i);
+  });
+
+  it("prometheus role may Write .omg/plans/", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"), { agentGuard: true });
+    const plan = path.join(ws, ".omg", "plans", "x.md");
+    fs.mkdirSync(path.dirname(plan), { recursive: true });
+    expect(
+      prometheusRoleDeny(
+        base(ws, {
+          agentName: "prometheus",
+          toolName: "Write",
+          toolInput: { path: plan, contents: "# plan\n" },
+        }),
+        c,
+        "prometheus",
+      ),
+    ).toBeNull();
+  });
+
+  it("isPlanModePlanOnlyWrite true only for plan paths while plan-mode active", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    expect(isPlanModePlanOnlyWrite(input, c)).toBe(false);
+    const pm = startPlanMode(input, c, "topic");
+    expect(
+      isPlanModePlanOnlyWrite(
+        {
+          ...input,
+          toolInput: { path: pm.planFile!, contents: "# x\n" },
+        },
+        c,
+      ),
+    ).toBe(true);
+    expect(
+      isPlanModePlanOnlyWrite(
+        {
+          ...input,
+          toolInput: { path: path.join(ws, "src", "x.ts"), contents: "x\n" },
+        },
+        c,
+      ),
+    ).toBe(false);
+  });
+
+  it("PreTool: plan-mode plan Write skips Skill Gate even with TDD last prompt", () => {
+    const ws = tmpWorkspace();
+    const data = path.join(ws, "pdata");
+    const c = cfg(data, {
+      skillGate: true,
+      hashline: false,
+      agentGuard: false,
+      planMode: true,
+    });
+    const input = base(ws);
+    // ensure catalog non-empty so skill gate would otherwise fire
+    refreshCatalog(input, c);
+    const pm = startPlanMode(input, c, "tdd plan");
+    // last prompt with TDD intent (would require skill if not skipped)
+    const lastPromptPath = path.join(data, "prom-sess", "last-prompt.json");
+    fs.mkdirSync(path.dirname(lastPromptPath), { recursive: true });
+    fs.writeFileSync(
+      lastPromptPath,
+      JSON.stringify({
+        schemaVersion: 1,
+        prompt: "implement with TDD and unit tests",
+        updatedAt: new Date().toISOString(),
+      }),
+      "utf8",
+    );
+    const r = handlePreToolUse(
+      {
+        ...input,
+        event: "pre-tool-use",
+        toolName: "Write",
+        toolInput: {
+          path: pm.planFile!,
+          contents: "# Plan\n- [ ] 1. Do work\n",
+        },
+      },
+      c,
+    );
+    expect(r.exitCode).toBe(0);
+    expect(r.output).toMatchObject({ decision: "allow" });
+  });
+});
 
 describe("planModeDeny", () => {
   it("inactive or planMode=false → null", () => {

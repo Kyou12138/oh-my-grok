@@ -40,5 +40,16 @@ export declare function detectPlanCommand(prompt: string): {
     action: "plan" | "start-work" | null;
     topic: string;
 };
+export declare function isPlanWritePath(file: string): boolean;
+/**
+ * True when plan-mode is active and every path in this tool call is under .omg/plans/.
+ * Used to skip Skill Gate on pure plan markdown edits (v1.1.26).
+ */
+export declare function isPlanModePlanOnlyWrite(input: HookInput, cfg: EnvConfig): boolean;
 export declare function planModeDeny(input: HookInput, cfg: EnvConfig): string | null;
+/**
+ * Sticky / host role **prometheus** may only mutate plan paths (even outside /plan session).
+ * Spawn of metis/momus is allowed (handled separately — this only checks mutating tools).
+ */
+export declare function prometheusRoleDeny(input: HookInput, cfg: EnvConfig, role: string): string | null;
 export declare function planModeContext(pm: PlanModeState): string;

@@ -243,13 +243,29 @@ export function detectPlanCommand(prompt: string): {
   return { action: null, topic: "" };
 }
 
-function isPlanWritePath(file: string): boolean {
+export function isPlanWritePath(file: string): boolean {
   const norm = file.replace(/\\/g, "/");
   return (
     norm.includes("/.omg/plans/") ||
     norm.includes(".omg/plans/") ||
     norm.endsWith("plan-mode.json")
   );
+}
+
+/**
+ * True when plan-mode is active and every path in this tool call is under .omg/plans/.
+ * Used to skip Skill Gate on pure plan markdown edits (v1.1.26).
+ */
+export function isPlanModePlanOnlyWrite(
+  input: HookInput,
+  cfg: EnvConfig,
+): boolean {
+  if (!cfg.planMode) return false;
+  const pm = loadPlanMode(input, cfg);
+  if (!pm.active) return false;
+  const paths = pathsFromToolInput(input.toolInput);
+  if (!paths.length) return false;
+  return paths.every(isPlanWritePath);
 }
 
 export function planModeDeny(input: HookInput, cfg: EnvConfig): string | null {
@@ -267,6 +283,35 @@ export function planModeDeny(input: HookInput, cfg: EnvConfig): string | null {
     "[Prometheus plan-mode] Only writes under .omg/plans/ are allowed.",
     `Blocked path: ${blocked[0]}${blocked.length > 1 ? ` (+${blocked.length - 1} more)` : ""}`,
     "Finish the plan, then /start-work to execute (Atlas/boulder).",
+  ].join("\n");
+}
+
+/**
+ * Sticky / host role **prometheus** may only mutate plan paths (even outside /plan session).
+ * Spawn of metis/momus is allowed (handled separately — this only checks mutating tools).
+ */
+export function prometheusRoleDeny(
+  input: HookInput,
+  cfg: EnvConfig,
+  role: string,
+): string | null {
+  if (!cfg.agentGuard && !cfg.planMode) return null;
+  const r = (role || "").toLowerCase().trim();
+  if (r !== "prometheus" && r !== "oh-my-grok:prometheus") return null;
+  // only when mutating (caller should pass mutating tools)
+  const paths = pathsFromToolInput(input.toolInput);
+  if (!paths.length) {
+    return [
+      "[PROMETHEUS_ROLE] Prometheus may only write under .omg/plans/.",
+      "How to fix: set path to a plan file, or /agent sisyphus to implement.",
+    ].join("\n");
+  }
+  const blocked = paths.filter((f) => !isPlanWritePath(f));
+  if (!blocked.length) return null;
+  return [
+    "[PROMETHEUS_ROLE] Prometheus is plan-only — implementation paths blocked.",
+    `Blocked path: ${blocked[0]}${blocked.length > 1 ? ` (+${blocked.length - 1} more)` : ""}`,
+    "Write plans under .omg/plans/, then /start-work or /agent hephaestus|sisyphus to execute.",
   ].join("\n");
 }
 
