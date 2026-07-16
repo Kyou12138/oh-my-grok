@@ -16,5 +16,10 @@ export declare function markVerified(input: HookInput, cfg: EnvConfig): void;
 export declare function markSoftPrompted(input: HookInput, cfg: EnvConfig): void;
 export declare function runDiagCommand(input: HookInput, cfg: EnvConfig): DiagState;
 export declare function isVerifiedMessage(msg?: string): boolean;
+/**
+ * PreTool deny when last diagCommand run failed (host-enforced).
+ * Soft needsVerify (no lastErrors) stays Stop-only — do not block all edits.
+ */
+export declare function diagPreDeny(input: HookInput, cfg: EnvConfig): string | null;
 export declare function diagStopReason(input: HookInput, cfg: EnvConfig): string | null;
 export declare function diagUserContext(input: HookInput, cfg: EnvConfig): string;

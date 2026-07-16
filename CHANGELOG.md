@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.5] — 2026-07-16
+
+### MAGI spiral — mutating-tool norm + diag PreTool hard fail
+
+- **fix(isMutatingTool)** normalize to `[a-z]` only so **SearchReplace** / `search-replace` match (old `[^a-z_]` kept underscores → `searchreplace` missed set)
+- **feat(diag)** `diagPreDeny`: when `lastErrors` set (failed diagCommand), PreTool denies mutating tools until clean; soft `needsVerify` stays Stop-only
+- PreTool order: … spawn-followthrough → **diag** → hashline …
+- **test** SearchReplace/search-replace; diag PreTool deny + soft null
+
 ## [1.1.4] — 2026-07-16
 
 ### MAGI spiral — spawn follow-through PreTool (after child finished)

@@ -1,6 +1,7 @@
 import { agentGuardDeny } from "../features/agent-guard.js";
 import { categoryDisciplinePreDeny } from "../features/category-discipline.js";
 import { commentCheckerPreDeny } from "../features/comment-checker.js";
+import { diagPreDeny } from "../features/diagnostics.js";
 import { hashlinePreToolDeny } from "../features/hashline.js";
 import { planModeDeny } from "../features/prometheus.js";
 import { skillGateContext } from "../features/last-prompt.js";
@@ -29,6 +30,11 @@ export function handlePreToolUse(input, cfg) {
     const spawnFt = spawnFollowThroughPreDeny(input, cfg);
     if (spawnFt) {
         return { output: { decision: "deny", reason: spawnFt }, exitCode: 2 };
+    }
+    // 1.7) Diagnostics hard fail — lastErrors set (host-enforced until clean)
+    const diagDeny = diagPreDeny(input, cfg);
+    if (diagDeny) {
+        return { output: { decision: "deny", reason: diagDeny }, exitCode: 2 };
     }
     // 2) Hashline stale-edit guard (+ write-before-read)
     const hl = hashlinePreToolDeny(input, cfg);

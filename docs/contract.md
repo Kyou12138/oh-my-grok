@@ -36,9 +36,10 @@ oh-my-grok still **writes** `additionalContext` / Stop `decision:block` for test
 2. Prometheus plan-mode path deny  
 3. Category discipline (specialist work + zero spawns, once per session)  
 4. Spawn follow-through (child finished + still pending, once per wave)  
-5. Hashline (fresh Read + old_string + LINE#ID)  
-6. Comment checker hard deny (when deny mode)  
-7. Skill Gate  
+5. Diagnostics hard fail (`lastErrors` from diagCommand — until clean)  
+6. Hashline (fresh Read + old_string + LINE#ID)  
+7. Comment checker hard deny (when deny mode)  
+8. Skill Gate  
 
 ## Stop order (state machine; stdout not host-enforced)
 

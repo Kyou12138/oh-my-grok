@@ -3,7 +3,8 @@
  *
  * 直驱 handlePreToolUse 纯函数,锁定门禁短路顺序:
  *   0 agent-guard → mutating 短路 → 1 plan-mode → 1.5 category-discipline
- *   → 1.6 spawn-followthrough → 2 hashline → 3 comment-checker → 4 skill-gate
+ *   → 1.6 spawn-followthrough → 1.7 diag lastErrors → 2 hashline
+ *   → 3 comment-checker → 4 skill-gate
  *
  * 双重断言:命中先置门禁时 reason 含先置门禁文案 且 不含后置门禁文案。
  * 关键防回归:agent-guard 对非 mutating 工具 return null,故 oracle 的 Read 直接 allow(非被拦)。

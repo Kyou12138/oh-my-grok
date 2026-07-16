@@ -18,25 +18,34 @@ export interface SkillGateState {
   updatedAt: string;
 }
 
+/**
+ * Mutating tool ids — normalized to [a-z] only (drop _ - .).
+ * Fixes v1.1.5: SearchReplace → searchreplace was missing while
+ * search_replace (underscore kept under old [^a-z_] norm) hit the set.
+ */
 const MUTATING = new Set([
   "write",
   "strreplace",
-  "search_replace",
+  "searchreplace",
   "editnotebook",
   "delete",
   "deletefile",
   "edit",
   "editfile",
   "create",
-  "apply_patch",
   "applypatch",
   "multiedit",
   "writefile",
 ]);
 
+/** Normalize tool name for mutating / matcher checks. */
+export function normalizeToolName(name: string): string {
+  return name.toLowerCase().replace(/[^a-z]/g, "");
+}
+
 export function isMutatingTool(name?: string): boolean {
   if (!name) return false;
-  return MUTATING.has(name.toLowerCase().replace(/[^a-z_]/g, ""));
+  return MUTATING.has(normalizeToolName(name));
 }
 
 function parseSkillFrontmatter(content: string, filePath: string): SkillMeta {

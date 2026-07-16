@@ -17,11 +17,13 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  diagPreDeny,
   diagStopReason,
   isVerifiedMessage,
   markDirty,
   runDiagCommand,
 } from "../src/features/diagnostics.js";
+import { handlePreToolUse } from "../src/events/pre-tool-use.js";
 import type { EnvConfig, HookInput } from "../src/protocol/types.js";
 
 const tmpRoots: string[] = [];
@@ -175,5 +177,49 @@ describe("diagnostics — runDiagCommand 状态分支", () => {
     const st = runDiagCommand(input, cfg);
     expect(st.needsVerify).toBe(true);
     expect(st.lastErrors.length).toBeGreaterThan(0);
+  });
+});
+
+describe("diagnostics — diagPreDeny (v1.1.5 host-enforced)", () => {
+  it("lastErrors → PreTool deny; clean run → allow", () => {
+    const ws = tmpWorkspace();
+    const cfg = makeCfg({
+      diagCommand: `node -e "process.exit(1)"`,
+      skillGate: false,
+      hashline: false,
+      planMode: false,
+      agentGuard: false,
+      categoryDiscipline: false,
+    });
+    const input = makeInput(ws);
+    markDirty(input, cfg, "src/a.ts");
+    runDiagCommand(input, cfg);
+    expect(diagPreDeny(input, cfg)).toMatch(/DIAGNOSTICS|failed/i);
+
+    const write = {
+      ...input,
+      event: "pre-tool-use" as const,
+      toolName: "Write",
+      toolInput: { path: path.join(ws, "b.ts"), contents: "export {}\n" },
+    };
+    const r = handlePreToolUse(write, cfg);
+    expect(r.exitCode).toBe(2);
+
+    // green diag clears hard block
+    const cfgOk = makeCfg({
+      ...cfg,
+      diagCommand: `node -e "process.exit(0)"`,
+    });
+    runDiagCommand(input, cfgOk);
+    expect(diagPreDeny(input, cfgOk)).toBeNull();
+    expect(handlePreToolUse(write, cfgOk).exitCode).toBe(0);
+  });
+
+  it("soft needsVerify without lastErrors → PreTool null", () => {
+    const ws = tmpWorkspace();
+    const cfg = makeCfg({ diagCommand: "" });
+    const input = makeInput(ws);
+    markDirty(input, cfg, "src/a.ts");
+    expect(diagPreDeny(input, cfg)).toBeNull();
   });
 });

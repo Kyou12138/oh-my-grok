@@ -114,6 +114,28 @@ export function isVerifiedMessage(msg?: string): boolean {
   return false;
 }
 
+/**
+ * PreTool deny when last diagCommand run failed (host-enforced).
+ * Soft needsVerify (no lastErrors) stays Stop-only — do not block all edits.
+ */
+export function diagPreDeny(input: HookInput, cfg: EnvConfig): string | null {
+  if (!cfg.diagEnforce) return null;
+  const st = loadDiag(input, cfg);
+  if (!st.lastErrors?.trim()) return null;
+  return [
+    "[DIAGNOSTICS] Last diagnostic run failed — fix before more edits.",
+    st.lastFiles.length ? `Recent files: ${st.lastFiles.slice(0, 5).join(", ")}` : "",
+    "```",
+    st.lastErrors.slice(0, 2000),
+    "```",
+    cfg.diagCommand
+      ? `How to fix: run \`${cfg.diagCommand}\`, repair failures, then retry (post-write re-runs diag).`
+      : "How to fix: run tests/typecheck, repair failures, then retry.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 export function diagStopReason(input: HookInput, cfg: EnvConfig): string | null {
   if (!cfg.diagEnforce) return null;
   const st = loadDiag(input, cfg);

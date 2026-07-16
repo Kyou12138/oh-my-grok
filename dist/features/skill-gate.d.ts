@@ -11,6 +11,8 @@ export interface SkillGateState {
     catalog: SkillMeta[];
     updatedAt: string;
 }
+/** Normalize tool name for mutating / matcher checks. */
+export declare function normalizeToolName(name: string): string;
 export declare function isMutatingTool(name?: string): boolean;
 export declare function scanSkillCatalog(pluginRoot: string): SkillMeta[];
 export declare function loadSkillGateState(input: HookInput, cfg: EnvConfig): SkillGateState;

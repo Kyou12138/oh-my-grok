@@ -448,12 +448,16 @@ describe("isMutatingTool", () => {
     }
   });
 
-  it("对工具名做字符归一化（去掉非 [a-z_]）", () => {
+  it("对工具名做字符归一化（去掉非 [a-z]，含 CamelCase 无下划线）", () => {
     // "apply-patch" → "applypatch"；v1.0 起与 apply_patch 同属写入工具
     expect(isMutatingTool("apply-patch")).toBe(true);
     expect(isMutatingTool("apply_patch")).toBe(true);
     expect(isMutatingTool("search_replace")).toBe(true);
+    // v1.1.5: SearchReplace / search-replace must match (old norm kept _)
+    expect(isMutatingTool("SearchReplace")).toBe(true);
+    expect(isMutatingTool("search-replace")).toBe(true);
     expect(isMutatingTool("WriteFile")).toBe(true);
+    expect(isMutatingTool("EditFile")).toBe(true);
     // "Write." → "write" 命中
     expect(isMutatingTool("Write.")).toBe(true);
   });
