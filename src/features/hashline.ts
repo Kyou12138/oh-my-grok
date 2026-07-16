@@ -4,6 +4,7 @@ import path from "node:path";
 import type { EnvConfig, HookInput } from "../protocol/types.js";
 import { ensureDir, readJson, writeJsonAtomic } from "../state/fs.js";
 import { pathsFor } from "../state/paths.js";
+import { normalizeToolName } from "./skill-gate.js";
 
 export interface HashlineFileCache {
   path: string;
@@ -155,7 +156,9 @@ export function hashlinePreToolDeny(
   cfg: EnvConfig,
 ): string | null {
   if (!cfg.hashline) return null;
-  const tool = (input.toolName || "").toLowerCase();
+  // Letters-only normalize so SearchReplace / search-replace hit replace branch
+  // (v1.1.6: old lower-only + search_replace underscore check missed CamelCase)
+  const toolNorm = normalizeToolName(input.toolName || "");
   const file = String(
     input.toolInput?.file_path ??
       input.toolInput?.path ??
@@ -179,10 +182,9 @@ export function hashlinePreToolDeny(
 
   const cached = getCached(input, cfg, file);
   const isReplace =
-    tool.includes("strreplace") ||
-    tool.includes("search_replace") ||
-    tool.includes("edit") ||
-    tool === "multiedit";
+    toolNorm.includes("strreplace") ||
+    toolNorm.includes("searchreplace") ||
+    toolNorm.includes("edit"); // edit, editfile, editnotebook, multiedit
 
   // Require a recent Read before mutating existing files
   if (current && !cached) {

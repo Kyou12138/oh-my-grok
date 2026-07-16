@@ -179,6 +179,58 @@ describe("hashline — stale-cache 拒绝", () => {
   });
 });
 
+describe("hashline — SearchReplace isReplace branch (v1.1.6)", () => {
+  it("SearchReplace with stale old_string is denied (was skipped before letter-norm)", () => {
+    const ws = tmpWorkspace();
+    const fileAbs = path.join(ws, "app.ts");
+    fs.writeFileSync(fileAbs, "export const n = 1;\n", "utf8");
+    const cfg = makeCfg();
+    recordRead(
+      makeInput(ws, { toolName: "Read", toolInput: { file_path: "app.ts" } }),
+      cfg,
+      "app.ts",
+    );
+    // Wrong old_string — must hit isReplace + not-found (SearchReplace CamelCase)
+    const deny = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "SearchReplace",
+        toolInput: {
+          file_path: "app.ts",
+          old_string: "export const n = 999;",
+          new_string: "export const n = 2;",
+        },
+      }),
+      cfg,
+    );
+    expect(deny).not.toBeNull();
+    expect(deny).toMatch(/old_string not found|stale/i);
+  });
+
+  it("search-replace with correct old_string allows", () => {
+    const ws = tmpWorkspace();
+    const fileAbs = path.join(ws, "ok.ts");
+    fs.writeFileSync(fileAbs, "export const ok = true;\n", "utf8");
+    const cfg = makeCfg();
+    recordRead(
+      makeInput(ws, { toolName: "Read", toolInput: { file_path: "ok.ts" } }),
+      cfg,
+      "ok.ts",
+    );
+    const deny = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "search-replace",
+        toolInput: {
+          file_path: "ok.ts",
+          old_string: "export const ok = true;",
+          new_string: "export const ok = false;",
+        },
+      }),
+      cfg,
+    );
+    expect(deny).toBeNull();
+  });
+});
+
 describe("hashline — post-write recache 链路", () => {
   it("recordRead → 改 → 再 recordRead 后 getCached 返回新 hash;新内容 strreplace allow,旧内容 deny", () => {
     const ws = tmpWorkspace();

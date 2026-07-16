@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.6] — 2026-07-16
+
+### MAGI spiral — Hashline isReplace for SearchReplace
+
+- **fix(hashline)** replace-branch detection uses `normalizeToolName` so **SearchReplace** / `search-replace` run `old_string` + LINE#ID checks (previously only `search_replace` underscore form matched)
+- **test** SearchReplace stale old_string deny; search-replace exact allow
+
 ## [1.1.5] — 2026-07-16
 
 ### MAGI spiral — mutating-tool norm + diag PreTool hard fail

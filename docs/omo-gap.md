@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-16 · **omg version:** **1.1.5**  
+**Date:** 2026-07-16 · **omg version:** **1.1.6**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -276,14 +276,20 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **isMutatingTool 归一化** | `SearchReplace` / `search-replace` 等 CamelCase 无下划线名正确识别为 mutating（PreTool 全门禁入口） |
 | **diag → PreTool hard** | `lastErrors`（diagCommand 失败）时 deny 继续编辑直至 clean；soft needsVerify 仍仅 Stop |
 
+## Closed this spiral (v1.1.6)
+
+| Item | Behavior |
+|------|----------|
+| **Hashline isReplace 归一化** | `SearchReplace` / `search-replace` 进入 old_string + LINE#ID 校验（与 v1.1.5 mutating 同源缺口） |
+
 ## Next spiral focus (提升)
 
-- Hashline native edit（宿主）
+- Hashline native edit tool（宿主能力）
 - todo abort 窄场景是否 PreTool（默认仍偏 Stop 状态机）
 - 全量 project-memory（仍 defer）
 - marketplace 收录
 
-**推荐**: `grok plugin update` → **1.1.5**。
+**推荐**: `grok plugin update` → **1.1.6**。
 
 ## Explicit non-goals
 
