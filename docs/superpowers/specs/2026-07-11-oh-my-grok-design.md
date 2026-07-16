@@ -5,6 +5,17 @@
 **仓库路径：** `D:\Data\code\VibeCoding\oh-my-grok`  
 **产品名称：** `oh-my-grok`（Grok Build 插件）
 
+> ## ⚠️ 宿主契约勘误（2026-07-16 / v1.1.21）
+>
+> 本文多处写「Stop `decision:block` **驱动宿主续跑**」。在 **当前 grok-build** 上这是 **过时假设**：
+>
+> - 仅 **PreToolUse** 能硬拦工具（见 [docs/contract.md](../../contract.md)、[docs/grok-build-source.md](../../grok-build-source.md)）
+> - Stop / UserPrompt 的 stdout **被宿主丢弃**；handlers 仍写 `.omg` 状态供下一轮 PreTool / SessionStart 使用
+>
+> **贡献者请以 contract.md 为准。** 下文 Stop 链仍描述**插件状态机顺序**（测试与未来宿主），**不要** PR「依赖 Stop stdout 自动 yank」。
+>
+> 产品叙事：**Harness Light** — PreTool 硬门禁 + omo 语义状态机，非 OpenCode Ultimate。
+
 ---
 
 ## 1. 背景与目标
@@ -52,9 +63,9 @@ Grok Build CLI 提供了 hooks、skills、rules、plugins，但缺少类似 **oh
 
 1. `grok plugin install <path> --trust` + enable 后，`grok inspect` 列出本插件 hooks 与 skills。  
 2. 新 session 写入 fingerprint；首条 prompt 注入 `using-superpowers` 相关引导。  
-3. `/ralph-loop` 未完成时，Stop 输出 `{"decision":"block","reason":"..."}` 并驱动续跑。  
-4. 未 Read 相关 `SKILL.md` 时，对 Write/StrReplace 等突变工具 PreToolUse deny。  
-5. 无 Grok CLI 的 CI 中，协议层 golden 测试（L0）全部通过。  
+3. `/ralph-loop` 未完成时，Stop **状态机**记录未完成并输出 `decision:block`（**测试/前向兼容**；当前 Grok **不**据此自动 re-prompt）。  
+4. 未 Read 相关 `SKILL.md` / 未 Read 文件时，对 Write/StrReplace 等突变工具 **PreToolUse deny**（**真硬门禁**）。  
+5. 无 Grok CLI 的 CI 中，协议层 golden 测试（L0）全部通过；真机 L2 以 PreTool 探针为准。  
 
 ---
 

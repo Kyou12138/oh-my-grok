@@ -1,7 +1,9 @@
 # oh-my-grok Hook Contract
 
-Aligned with **xai-org/grok-build** open source (`xai-grok-hooks`, plugin `hooks_adapter`).  
-See also [grok-build-source.md](./grok-build-source.md).
+> **Authoritative for user-facing promises.** README / marketing claims must be a **subset** of this file.  
+> See also [grok-build-source.md](./grok-build-source.md).
+
+Aligned with **xai-org/grok-build** open source (`xai-grok-hooks`, plugin `hooks_adapter`).
 
 ## Command
 

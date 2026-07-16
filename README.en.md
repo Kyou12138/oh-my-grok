@@ -8,28 +8,40 @@
 
 [中文](./README.md) | **English**
 
-**omo-style agent harness + Superpowers methodology for [Grok Build](https://x.ai).** · **v1.1.20** (aligned with [grok-build](https://github.com/xai-org/grok-build) + omo issues)
+**Discipline harness for [Grok Build](https://x.ai) (Harness Light) + Superpowers.** · **v1.1.21**
 
-Install once. Type `ultrawork`. Hooks force the agent to explore → implement → verify until the work is actually done.
+> **Hard PreTool gates + agents/skills discipline** — not full OpenCode omo.  
+> **Host truth is [docs/contract.md](./docs/contract.md)** (today only PreToolUse can hard-block tools).
+
+Install once → `npm run doctor` healthy → blind edits get an immediate **PreTool deny**. Hard paths are demoable; Stop only writes state — we do **not** claim host auto-yank.
 
 > **Repo:** https://github.com/Kyou12138/oh-my-grok  
 > **Requires:** Grok Build CLI + Node.js 20+  
-> Community plugin — **not** an xAI product. “Grok” is a trademark of xAI.
+> Community plugin — **not** an xAI product. “Grok” is a trademark of xAI.  
+> ⚠️ **Do not dual-enable with [mihazs/oh-my-grok](https://github.com/mihazs/oh-my-grok)** (name + `.omg` clash).
 
 ---
 
 ## The problem
 
-Vanilla Grok Build is a strong coding agent. On long tasks it still drifts:
+Vanilla Grok Build is strong. Long tasks still drift:
 
-| Failure mode | What happens without a harness |
-|--------------|--------------------------------|
-| Stops early | Declares “done” with open todos |
-| Edits blind | Mutates files without reading skills or current content |
-| Skips process | No brainstorm → plan → TDD → verify |
-| Soft stops | Idle when the boulder is only half up the hill |
+| Failure mode | Without a harness |
+|--------------|-------------------|
+| Blind edits | Write without reading file/skills |
+| Plan leaks | Mutates `src/` while “planning” |
+| Role escape | Read-only specialists still edit |
+| Fake done | Open todos / plan claimed finished |
 
-**oh-my-grok** is the harness: hooks that **enforce** discipline (loops, gates, stop continuation) plus **Superpowers** skills that teach how to ship correctly.
+**oh-my-grok** = **Grok discipline plugin**:
+
+| Channel | Real effect on Grok Build today |
+|---------|----------------------------------|
+| **PreToolUse** | **Only hard enforce** — deny tool calls (Hashline, plan lock, Agent Guard, Skill Gate, diag hard, spawn recovery, …) |
+| **PostTool / Stop** | Writes `.omg` / session state; **stdout discarded** by host — no guaranteed auto-continue |
+| **SessionStart / skills / agents** | Inject discipline context; handoff / resume summaries |
+
+KPI: **hard-gate reliability + install conversion**, not omo-issue close counts. Semantics align with omo; product peer is **Codex Light**, not Ultimate feature parity.
 
 ---
 
@@ -48,7 +60,15 @@ grok plugin install https://github.com/Kyou12138/oh-my-grok --trust
 grok plugin enable oh-my-grok
 ```
 
-Open a **new** Grok session (or reload Hooks). You should see Sisyphus / Superpowers context inject.
+Open a **new** Grok session (or reload Hooks).
+
+**60-second check:**
+
+```bash
+npm run doctor    # expect RESULT: healthy
+```
+
+Live probe: `search_replace` / Write an **existing** file **without** a prior `read_file` → expect **PreTool deny** (Hashline).
 
 **Local path (Windows):**
 
@@ -73,68 +93,72 @@ oh-my-grok is a **community plugin, not an xAI product** (see disclaimer above).
 
 ---
 
-## Wow path (copy-paste)
+## Wow path (30s hard feel)
 
-### 1) Ultrawork — work until verified
+### 1) Blind edit denied (PreTool — demo this first)
 
-```text
-ultrawork fix the failing tests and don't stop until green
-```
+1. Pick an **existing** source path  
+2. **Skip** `read_file`  
+3. Call `search_replace` / Write  
+4. Expect: **tool deny**, Hashline / Read-first reason  
 
-**What the harness does (real behavior, covered by tests):**
+Best GIF-worthy path after install.
 
-1. Starts a **ULW loop** (phase machine: `explore → implement → verify`)
-2. On **Stop**, if work is incomplete → **blocks** and continues the agent
-3. Rejects bare `<promise>DONE</promise>` without explore/implement evidence + verification
-4. Prefer: `<promise>VERIFIED</promise>` then `<promise>DONE</promise>`
-5. Shell commands like `npm test` credit ULW verify (`post-tool-shell`)
-
-Mid-sentence also works: `please ulw refactor the auth module`.
-
-### 2) Ralph — named task loop
-
-```text
-/ralph-loop "ship the login bugfix with tests"
-```
-
-Cancel with `/cancel-ralph`. Pause all auto-continuation: `/stop-continuation`.
-
-### 3) Plan then execute
+### 2) Plan-mode path lock
 
 ```text
 /plan "add OAuth to login"
 ```
 
-Agent may only write under `.omg/plans/` (Prometheus plan-mode). Then:
+Writing under `src/` while plan-mode is active → **PreTool deny**; only `.omg/plans/` is allowed.
 
 ```text
 /start-work
 ```
 
-Activates **boulder** execution (Atlas/Sisyphus). **Plan review required first**: check Metis/Momus items under `## Review`, or write `VERDICT: PASS` — otherwise `/start-work` is blocked.
+Requires plan review (`## Review` Metis/Momus or `VERDICT: PASS`) **and** labeled task checkboxes — else blocked. Arms **boulder** + optional todo seed.
+
+### 3) Ultrawork state machine (honest)
+
+```text
+ultrawork fix the failing tests and don't stop until green
+```
+
+| Behavior | Host hard-enforce? |
+|----------|-------------------|
+| ULW phases `explore → implement → verify` | State in `.omg` |
+| Fake DONE / `not ULW_DONE` hedges | State machine rejects (tested) |
+| `npm test` credits verify | PostTool state |
+| **Stop auto-yank / re-prompt** | **No** — Grok discards Stop stdout; next PreTool / SessionStart resume reads state |
+
+Cancel: `/cancel-ralph`. Pause plugin-side gates: `/stop-continuation` (not host force-reprompt).
+
+Mid-sentence: `please ulw refactor the auth module`.
 
 ---
 
 ## What you get
 
-| Layer | Ships today |
-|-------|-------------|
-| **Harness** | Ralph / **ULW v3 multi-goal**, **Hashline** (Read-before-edit), **plan-review**, **spawn follow-through** (≤2 result-recovery yanks), SessionStart **state resume**, Todo/Boulder, idle-turn, sticky `/agent`, Category discipline, Comment aggregate, Agent Guard, Handoff resume, `/init-deep` |
-| **Discipline agents** | Sisyphus · Hephaestus · Prometheus · Atlas · Oracle · Explore · Librarian · Metis · Momus |
-| **Superpowers** | Vendored MIT skills: brainstorming, writing-plans, TDD, verification-before-completion, … |
+| Layer | Ships today | Hard enforce? |
+|-------|-------------|---------------|
+| **PreTool gates** | Hashline, plan lock, Agent Guard, Skill Gate, diag hard, category-discipline, spawn follow-through PreTool | **Yes** |
+| **State machine / soft** | Ralph·ULW, Todo/Boulder, idle detect, Stop chain, SessionStart resume, Handoff | Writes `.omg`; Stop **≠** host continue |
+| **Discipline agents** | Sisyphus · Hephaestus · Prometheus · Atlas · Oracle · Explore · Librarian · Metis · Momus | Roles + PreTool guard |
+| **Superpowers** | Vendored MIT skills + Skill Gate | Intent + PreTool |
 
-### Honest comparison
+### Honest comparison (three columns)
 
-| | Vanilla Grok | oh-my-grok | oh-my-openagent (omo) |
-|--|--------------|------------|------------------------|
-| Host | Grok Build | **Grok Build** | OpenCode (+ Codex Light) |
-| Long-task loops / stop yank | Soft | **Hard hooks** | Hard |
-| Superpowers methodology | Optional | **Bundled + Skill Gate** | Separate / partial |
-| Multi-model routing | Host | Thin categories + spawn | Full matrix + fallbacks |
-| Team Mode / tmux panes | — | **No** (platform limit) | Yes (Ultimate) |
-| LSP / AST / 50+ hooks | Host tools | No in-plugin LSP/AST suite | Yes |
+| | Vanilla Grok | **oh-my-grok** | omo Ultimate / Codex Light |
+|--|--------------|----------------|----------------------------|
+| Host | Grok Build | **Grok Build** | OpenCode · Codex |
+| **Hard tool deny (PreTool)** | No plugin gates | **Yes** (main arena) | Yes (wider hook surface) |
+| Stop / idle **auto-continue** | No | **State machine only** (host-limited) | Ultimate can session.prompt-level continue |
+| Superpowers / skills | Optional | **Bundled + Gate** | Separate / partial |
+| Multi-model routing | Host | **non-goal** | Ultimate |
+| Team Mode / tmux | — | **non-goal** | Ultimate |
+| Peer product tier | — | **≈ Codex Light discipline** | Ultimate = full OS |
 
-We **align on harness semantics** with omo; we do **not** claim Team Mode, multi-provider model routing, or full tool OS parity.
+We **align harness semantics** with omo; KPI is **hard-gate reliability**, not 54+ hooks or Ultimate parity. See [docs/omo-gap.md](./docs/omo-gap.md).
 
 ---
 
@@ -158,7 +182,7 @@ Editing an existing file without a prior Read is denied (skill: `hashline-edit`)
 | `/agent <role>` · `/as <role>` | Sticky session role (Agent Guard) |
 | `/handoff` | Session handoff under `.omg/handoffs/` |
 | `/init-deep` | Hierarchical `AGENTS.md` |
-| `/stop-continuation` · `/resume-continuation` | Pause / resume auto-continue |
+| `/stop-continuation` · `/resume-continuation` | Pause / resume **plugin-side** gate & state logic |
 
 | Marker | Meaning |
 |--------|---------|
@@ -180,8 +204,10 @@ npm run validate
 
 - [CONTRIBUTING.md](./CONTRIBUTING.md)  
 - [CHANGELOG.md](./CHANGELOG.md)  
-- [docs/contract.md](./docs/contract.md)  
-- [docs/omo-gap.md](./docs/omo-gap.md) — omo capability map (shipped / blocked)  
+- [docs/contract.md](./docs/contract.md) — **authoritative host contract**; README promises ⊆ this file  
+- [docs/omo-gap.md](./docs/omo-gap.md) — Vanilla / omg / omo map  
+- [docs/acceptance.md](./docs/acceptance.md) — L0 unit · L2 live PreTool  
+- [docs/grok-build-source.md](./docs/grok-build-source.md) — grok-build source notes  
 - **CI:** `npm run ci` ([`scripts/ci.mjs`](./scripts/ci.mjs)). Actions template: [`docs/ci.workflow.yml`](./docs/ci.workflow.yml)
 
 ---

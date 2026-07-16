@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.21] — 2026-07-16
+
+### Docs honesty — README ⊆ contract (Harness Light)
+
+Product narrative alignment with grok-build host limits (only PreTool hard-blocks):
+
+- **README / README.en** — slogan = PreTool hard gates + agents/skills; remove “Stop force-continue” overclaim; 30s wow = blind-edit deny + plan lock; ULW Stop marked host-limited
+- **omo-gap** — three columns Vanilla / omg / omo Ultimate·Codex Light; hard vs soft enforce tags; peer = Codex Light
+- **acceptance** — L0 CI · L2 live PreTool probes; Stop yank **not** required
+- **design spec 2026-07-11** — supersede Stop-driven re-prompt assumption
+- **CONTRIBUTING** — P0 funnel = PreTool; matcher case note; pure logic vs host I/O
+
 ## [1.1.20] — 2026-07-16
 
 ### MAGI spiral — plan↔todo sync + design skill narrow

@@ -8,13 +8,17 @@
 
 **中文** | [English](./README.en.md)
 
-**Grok Build 上的 omo 式 harness + Superpowers 方法论。** · **v1.1.20**（对齐 [grok-build](https://github.com/xai-org/grok-build) + omo issues）
+**Grok Build 上的纪律 harness（Harness Light）+ Superpowers。** · **v1.1.21**
 
-装一次，输入 `ultrawork`。Hooks 强制 agent 走完 **探索 → 实现 → 验证**，直到真正做完。
+> **PreTool 硬门禁 + Agents/Skills 纪律** — 不是 OpenCode 全量 omo。  
+> **宿主真相以 [docs/contract.md](./docs/contract.md) 为准**（当前 Grok 仅 PreToolUse 能硬拦工具）。
+
+装一次 → `npm run doctor` 健康 → 盲改文件立刻被 **PreTool deny**。硬能力可演示；Stop 只写状态，不假装宿主自动 yank。
 
 > **仓库：** https://github.com/Kyou12138/oh-my-grok  
 > **依赖：** [Grok Build CLI](https://x.ai) + Node.js 20+  
-> 社区插件，**非** xAI 官方产品。「Grok」为 xAI 商标。
+> 社区插件，**非** xAI 官方产品。「Grok」为 xAI 商标。  
+> ⚠️ **禁止与 [mihazs/oh-my-grok](https://github.com/mihazs/oh-my-grok) 双 enable**（同名 + `.omg` 冲突）。
 
 ---
 
@@ -24,12 +28,20 @@ Vanilla Grok Build 很强，但长任务仍容易跑偏：
 
 | 现象 | 没有 harness 时 |
 |------|----------------|
-| 半途而废 | 有未完成 todo 却宣称「完成了」 |
-| 盲改代码 | 不读 skill、不读当前文件内容就改 |
-| 跳过流程 | 没有 brainstorm → plan → TDD → verify |
-| 软停 | 石头只推到半山就歇了 |
+| 盲改代码 | 不读当前内容 / 不读 skill 就 Write |
+| 规划时漏写业务 | plan-mode 下改 `src/` 无人拦 |
+| 角色越权 | 只读 specialist 仍在改文件 |
+| 半途而废 | 有未完成 todo / plan 却宣称完成 |
 
-**oh-my-grok** = 缰绳：hooks **强制**纪律（循环、门禁、Stop 续跑）+ **Superpowers** 技能教你怎么正确交付。
+**oh-my-grok** = **Grok 纪律插件**：
+
+| 通道 | 实际作用（Grok Build 现状） |
+|------|---------------------------|
+| **PreToolUse** | **唯一硬 enforce**：deny 工具调用（Hashline、plan 锁、Agent Guard、Skill Gate、diag hard、spawn 回收…） |
+| **PostTool / Stop** | 写 `.omg` / session 状态机；**stdout 宿主丢弃**，不保证自动续跑 |
+| **SessionStart / skills / agents** | 注入纪律上下文；handoff / resume 摘要 |
+
+KPI：**硬门禁可靠性 + 安装转化**，不是 omo issue 关闭数。语义对齐 omo；对标层级是 **Codex Light 同温层**，不是 Ultimate 功能清单。
 
 ---
 
@@ -48,7 +60,16 @@ grok plugin install https://github.com/Kyou12138/oh-my-grok --trust
 grok plugin enable oh-my-grok
 ```
 
-**新开一个 Grok session**（或 TUI 里 reload Hooks）。应能看到 Sisyphus / Superpowers 上下文注入。
+**新开一个 Grok session**（或 TUI 里 reload Hooks）。
+
+**装后 60 秒验收：**
+
+```bash
+# 在插件源码目录（或 clone 后）
+npm run doctor    # 期望 RESULT: healthy
+```
+
+真机探针：在**未 Read** 的已有文件上直接 `search_replace` / Write → 应 **PreTool deny**（Hashline）。
 
 **本地路径（Windows）：**
 
@@ -73,70 +94,71 @@ oh-my-grok 是**社区插件,非 xAI 官方产品**(见顶部免责)。两条安
 
 ---
 
-## 开箱 wow 路径（可复制）
+## 开箱 wow 路径（30 秒硬感）
 
-### 1) Ultrawork — 干到验证过关
+### 1) 盲改被拒（PreTool 硬门禁 — 立刻有感）
 
-在 Grok 对话里：
+1. 打开任意**已有**源文件路径  
+2. **不要**先 `read_file`，直接 `search_replace` / Write  
+3. 期望：**工具被 deny**，reason 含 Hashline / Read-first  
 
-```text
-ultrawork 修掉失败的测试，不过绿不许停
-```
+这是装上后最值得录 GIF 的路径。
 
-**Harness 真实行为（有测试覆盖）：**
-
-1. 启动 **ULW 循环**（阶段机：`explore → implement → verify`）
-2. **Stop** 时若未完成 → **block** 并续跑
-3. 无 explore/implement 证据 + 验证就写 `<promise>DONE</promise>` → **拒绝**
-4. 建议顺序：先 `<promise>VERIFIED</promise>`，再 `<promise>DONE</promise>`
-5. 跑 `npm test` 等 shell 会记入 verify 证据（`post-tool-shell`）
-
-句中也可：`请 ulw 重构登录模块`。
-
-### 2) Ralph — 命名任务循环
-
-```text
-/ralph-loop "把登录 bug 修完并补测试"
-```
-
-取消：`/cancel-ralph`。暂停全部自动续跑：`/stop-continuation`。
-
-### 3) 先规划再执行
+### 2) Plan-mode 锁路径
 
 ```text
 /plan "给登录加 OAuth"
 ```
 
-Plan-mode 下只允许写 `.omg/plans/`。然后：
+Plan-mode 下写 `src/` 业务文件 → **PreTool deny**；只允许写 `.omg/plans/`。
 
 ```text
 /start-work
 ```
 
-进入 **boulder** 执行（Atlas/Sisyphus）。**须先完成计划评审**：在 plan 的 `## Review` 勾选 Metis/Momus，或写入 `VERDICT: PASS`，否则 `/start-work` 会被拦。
+须先完成计划评审（`## Review` 勾选 Metis/Momus 或 `VERDICT: PASS`），且 plan 有**带标签** task checkbox，否则拒绝。激活 **boulder** + 可 seed todos。
+
+### 3) Ultrawork 状态机（诚实说明）
+
+```text
+ultrawork 修掉失败的测试，不过绿不许停
+```
+
+| 行为 | 是否宿主硬 enforce |
+|------|-------------------|
+| 启动 ULW 阶段机 `explore → implement → verify` | 状态写入 `.omg` |
+| 假 DONE / 否定话术 `not ULW_DONE` | 状态机拒绝「完成」标记（有测试） |
+| `npm test` 等 shell 记入 verify 证据 | PostTool 写状态 |
+| **Stop 自动 yank 续聊** | **否** — 当前 Grok 丢弃 Stop stdout；下一轮 PreTool / SessionStart resume 才读状态 |
+
+取消：`/cancel-ralph`。暂停状态机：`/stop-continuation`（暂停的是**插件侧**自动门禁逻辑，不是宿主强制重提示）。
+
+句中也可：`请 ulw 重构登录模块`。
 
 ---
 
 ## 你得到什么
 
-| 层 | 已交付 |
-|----|--------|
-| **Harness** | Ralph / **ULW v3 multi-goal**、**Hashline**（先 Read 再改）、**plan-review**、**spawn follow-through**（结果回收至多 2 次）、SessionStart **状态摘要**、Todo/Boulder、idle-turn、粘性 `/agent`、Category discipline、Comment aggregate、Agent Guard、Handoff 续跑、`/init-deep` |
-| **纪律 Agents** | Sisyphus · Hephaestus · Prometheus · Atlas · Oracle · Explore · Librarian · Metis · Momus |
-| **Superpowers** | Vendor MIT skills：brainstorming、writing-plans、TDD、verification-before-completion … |
+| 层 | 已交付 | 硬 enforce？ |
+|----|--------|-------------|
+| **PreTool 门禁** | Hashline、plan 锁、Agent Guard、Skill Gate、diag hard、category-discipline、spawn follow-through PreTool | **是** |
+| **状态机 / soft** | Ralph·ULW、Todo/Boulder、idle 检测、Stop 链、SessionStart resume、Handoff | 写 `.omg`；Stop **不**保证宿主续跑 |
+| **纪律 Agents** | Sisyphus · Hephaestus · Prometheus · Atlas · Oracle · Explore · Librarian · Metis · Momus | 角色 + PreTool guard |
+| **Superpowers** | Vendor MIT skills + Skill Gate | 意图匹配 + PreTool |
 
-### 诚实对比
+### 诚实对比（三列）
 
-| | Vanilla Grok | oh-my-grok | oh-my-openagent (omo) |
-|--|--------------|------------|------------------------|
-| 宿主 | Grok Build | **Grok Build** | OpenCode（+ Codex Light） |
-| 长任务循环 / Stop 续跑 | 软 | **硬 hooks** | 硬 |
-| Superpowers 方法论 | 可选 | **内置 + Skill Gate** | 另装 / 部分 |
-| 多模型路由 | 宿主 | 薄 category + spawn | 完整矩阵 + fallback |
-| Team Mode / tmux | — | **无**（平台限制） | 有（Ultimate） |
-| LSP / AST / 50+ hooks | 宿主工具 | 插件内不提供完整套件 | 有 |
+| | Vanilla Grok | **oh-my-grok** | omo Ultimate / Codex Light |
+|--|--------------|----------------|----------------------------|
+| 宿主 | Grok Build | **Grok Build** | OpenCode · Codex |
+| **工具硬拦（PreTool）** | 无本插件门禁 | **有**（主战场） | 有（hook 面更宽） |
+| Stop / idle **自动续跑** | 无 | **状态机 only**（host-limited） | Ultimate 可 session.prompt 级续跑 |
+| Superpowers / skills | 可选 | **内置 + Gate** | 另装 / 部分 |
+| 多模型路由 | 宿主 | **non-goal** | Ultimate 有 |
+| Team Mode / tmux | — | **non-goal** | Ultimate 有 |
+| 产品同温层 | — | **≈ Codex Light 纪律层** | Ultimate = 全量 OS |
 
-与 omo **语义对齐**；**不宣称** Team Mode、跨厂路由或完整工具 OS 对等。
+与 omo **语义对齐**；KPI 是 **硬门禁可靠性**，不是 54+ hooks 数量或 Ultimate 功能对表。完整差距见 [docs/omo-gap.md](./docs/omo-gap.md)。
 
 ---
 
@@ -160,7 +182,7 @@ Plan-mode 下只允许写 `.omg/plans/`。然后：
 | `/agent <role>` · `/as <role>` | 粘性会话角色（Agent Guard） |
 | `/handoff` | 会话交接 → `.omg/handoffs/` |
 | `/init-deep` | 生成层级 `AGENTS.md` |
-| `/stop-continuation` · `/resume-continuation` | 暂停 / 恢复自动续跑 |
+| `/stop-continuation` · `/resume-continuation` | 暂停 / 恢复**插件侧**门禁与状态 yank 逻辑 |
 
 | 完成标记 | 含义 |
 |----------|------|
@@ -183,9 +205,10 @@ npm run validate
 
 - [CONTRIBUTING.md](./CONTRIBUTING.md) — 如何贡献  
 - [CHANGELOG.md](./CHANGELOG.md) — 版本说明  
-- [docs/contract.md](./docs/contract.md) — Hook I/O 契约  
-- [docs/omo-gap.md](./docs/omo-gap.md) — 与 omo 能力对照（可做 / 阻塞）  
-- [docs/acceptance.md](./docs/acceptance.md) — 人工验收勾选清单  
+- [docs/contract.md](./docs/contract.md) — **宿主契约（权威）**；README 承诺 ⊆ 此文件  
+- [docs/omo-gap.md](./docs/omo-gap.md) — Vanilla / omg / omo 对照  
+- [docs/acceptance.md](./docs/acceptance.md) — 验收：L0 单测 · L2 真机 PreTool  
+- [docs/grok-build-source.md](./docs/grok-build-source.md) — grok-build 源码对齐笔记  
 - **CI：** `npm run ci`（[`scripts/ci.mjs`](./scripts/ci.mjs)）。GitHub Actions 模板：[`docs/ci.workflow.yml`](./docs/ci.workflow.yml)
 
 ---

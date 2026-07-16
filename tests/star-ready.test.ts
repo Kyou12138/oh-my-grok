@@ -23,7 +23,8 @@ function exists(rel: string): boolean {
 
 describe("README top-of-funnel (star-ready)", () => {
   const readme = read("README.md");
-  const top = readme.slice(0, 3500);
+  // v1.1.21: first screen prioritizes PreTool honesty; larger top window for install funnel
+  const top = readme.slice(0, 5500);
 
   it("defaults to Chinese and links English README", () => {
     expect(readme).toMatch(/中文|解决什么问题|30 秒安装/);
@@ -51,13 +52,17 @@ describe("README top-of-funnel (star-ready)", () => {
     expect(top).toMatch(/grok plugin enable oh-my-grok/);
   });
 
-  it("documents wow command ultrawork without requiring other files", () => {
-    expect(top).toMatch(/ultrawork/i);
+  it("documents wow path: PreTool deny first + ultrawork honesty", () => {
+    expect(top).toMatch(/PreTool|硬门禁|deny/i);
+    expect(readme).toMatch(/ultrawork/i);
+    expect(readme).toMatch(/contract\.md/i);
   });
 
   it("honest non-claims: Team Mode / multi-model limits", () => {
     expect(readme).toMatch(/Team Mode/i);
-    expect(readme).toMatch(/platform limit|平台限制|not claim|不宣称/i);
+    expect(readme).toMatch(
+      /platform limit|平台限制|not claim|不宣称|non-goal|host-limited|宿主/i,
+    );
     expect(readme).toMatch(/multi-model|model routing|多模型/i);
   });
 

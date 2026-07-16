@@ -1,59 +1,71 @@
-# oh-my-grok 验收清单（v0.28+）
+# oh-my-grok 验收清单（v1.1.21+）
 
-给人工 24h 摸测用。每项标 ✅ / ❌ / 跳过，并记下 session 截图或 `.omg/` 状态。
+> **权威宿主契约：** [contract.md](./contract.md) — 仅 **PreToolUse** 硬拦；Stop / UserPrompt stdout 当前 Grok **丢弃**。  
+> 自动化 handler 报告（历史）：[acceptance-report-0.30.md](./acceptance-report-0.30.md)
 
-> **自动化验收（2026-07-15，v0.30.x）：** 见 [acceptance-report-0.30.md](./acceptance-report-0.30.md) — handler 主路径 **24/24 PASS**；`grok plugin install` 需本机宿主点一次。
+分层：
 
-## 安装
+| 层 | 含义 | 是否发布门禁 |
+|----|------|--------------|
+| **L0** | `npm run ci`（build + test + doctor + validate） | **必过** |
+| **L1** | 单测/契约覆盖的状态机（Stop 文案、否定 DONE 等） | 已在 CI；**不**当「宿主会 yank」验收 |
+| **L2** | 真机 Grok CLI：install + **PreTool deny 探针** | **装机必过**；Stop yank **不是**必过项 |
 
-- [ ] `grok plugin install Kyou12138/oh-my-grok --trust` + `enable`（宿主侧，自动化 ⏭）
-- [x] 新 session 出现 `OMG_SISYPHUS` / SessionStart 上下文
-- [x] `npm run doctor`（本地源码）RESULT: healthy
+---
 
-## 规划链
+## L0 — 自动化（CI / 本地源码）
 
-- [x] `/plan "小功能"` → 仅允许写 `.omg/plans/`
-- [x] 未评审直接 `/start-work` → **PLAN_REVIEW** 拦截
-- [x] 勾选 Metis/Momus 或写 `VERDICT: PASS` 后 `/start-work` → boulder 激活
+- [ ] `npm run ci` 全绿
+- [ ] `npm run doctor` → `RESULT: healthy`
+- [ ] `npm run validate` → plugin/hooks/agents OK
 
-## 循环
+---
 
-- [x] `ulw 修一个小 bug` 或 `/ulw-loop` → 进入 ULW
-- [x] 只说 `ok` / `继续` 且有未完成 todo → **IDLE** 或 TODO 续跑
-- [x] 否定话术 `not ULW_DONE` **不会**关掉 loop
-- [x] 正常 `<promise>VERIFIED</promise>` + DONE（多目标时 `GOAL_DONE`）可结束
+## L2 — 真机（装上立刻有感，60s）
 
-## 角色与 spawn
+> 下列任一项失败 = 安装/配置问题，优先修；**不要**用「Stop 没续跑」当失败标准。
 
-- [x] `/agent oracle` 后 Write 被 **AGENT_GUARD** 拦
-- [x] `/agent hephaestus` 后 Write 放行（即使 host 仍打 oracle 标签）
-- [x] spawn 子代理后仅回复「已派出」→ **SPAWN_FOLLOWTHROUGH** 再拉一次
-- [x] deep 类任务零 spawn → **CATEGORY_DISCIPLINE** 一次提示
+- [ ] `grok plugin install Kyou12138/oh-my-grok --trust` + `enable`（**勿**与 mihazs/oh-my-grok 双开）
+- [ ] 新 session 或 Hooks reload
+- [ ] 插件源码目录 `npm run doctor` healthy（或文档指向的健康检查）
+- [ ] **PreTool 探针 A — Hashline：** 对已有文件 **不** `read_file` 直接 `search_replace`/Write → **deny**
+- [ ] **PreTool 探针 B — plan 锁：** `/plan "试一下"` 后写 `src/` 业务路径 → **deny**；写 `.omg/plans/*` → 放行
+- [ ] **PreTool 探针 C — Agent Guard（可选）：** `/agent oracle` 后 Write → **deny**
 
-## 编辑与注释
+可选录屏：探针 A 的 30 秒 GIF（README wow path）。
 
-- [x] 未 Read 的 Hashline 编辑被拒（若开启）
-- [x] 含 `// This function…` 的 slop 注释：soft 警告；deny 模式 PreTool 硬拒
+---
 
-## 其它命令
+## L1 — 状态机 / soft（有测试即可，不要求宿主 yank）
 
-- [x] `/handoff` 写出 `.omg/handoffs/*`
-- [x] 写过 handoff 后**新 session** 上下文含 `OMG_HANDOFF_RESUME` / 路径
-- [x] `/init-deep` 在有代码的子目录生成 `AGENTS.md`（不覆盖手写长文）
-- [x] `/stop-continuation` / `/resume-continuation`
+下列由 CI 覆盖；真机上 Stop **可能不会**自动重提示，属 **host-limited**，标 ⏭ 可接受。
 
-## 已知非目标（不要求）
+- [x] ULW / Ralph 状态写入 `.omg`；假 DONE / `not ULW_DONE` 不会当完成
+- [x] `/start-work` 无 review → PLAN_REVIEW；无 task checkbox → PLAN_FORMAT
+- [x] SessionStart / handoff resume 路径存在（新 session 摘要）
+- [x] `/stop-continuation` 暂停**插件侧**门禁逻辑
+- [ ] ~~Stop idle 必须自动 yank~~ → **非 L2 必过**（见 contract）
 
-- Team Mode / tmux
-- 多模型路由
-- 插件内完整 LSP/AST
+---
+
+## 非目标（永不要求）
+
+- Team Mode / tmux  
+- 多模型路由矩阵  
+- 插件内完整 LSP/AST  
+- 与 omo Ultimate 功能数对表  
+- Stop stdout 驱动宿主续聊  
+
+---
 
 ## 反馈模板
 
 ```
-版本: 0.28.x
-失败项:
-复现步骤:
+版本: 1.1.21
+OS / Grok Build 版本:
+L0: npm run ci → 
+L2 探针 A Hashline deny: ✅/❌
+L2 探针 B plan 锁: ✅/❌
+失败项 / 复现:
 期望 / 实际:
-.omg 相关文件:
 ```

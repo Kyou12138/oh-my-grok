@@ -39,28 +39,41 @@ Reload hooks with a **new session** after changing `hooks/` or `dist/`.
 
 | Area | Notes |
 |------|--------|
-| Harness reliability | Ralph/ULW, Stop chain, gates — keep fail-open + tests |
-| Docs / DX | README wow path honesty, doctor messages, contract |
+| **PreTool hard gates** | Highest ROI — only path Grok host hard-enforces (see `docs/contract.md`) |
+| State machines | Ralph/ULW/Todo/Boulder write `.omg`; Stop stdout is **not** host re-yank |
+| Docs / DX | README promises **⊆** contract; wow path = install + doctor + PreTool probe |
 | Agents / skills | Thin agents + Grok-specific skills under `skills/` |
 | Superpowers vendor | Do **not** hand-edit `vendor/superpowers`; run `npm run vendor:superpowers` |
 
-**Non-goals for most PRs:** Team Mode, multi-provider model matrix, forking omo source, dual-enable with mihazs/oh-my-grok.
+**Non-goals for most PRs:** Team Mode, multi-provider model matrix, forking omo source, dual-enable with mihazs/oh-my-grok, PRs that **require Stop stdout** for user-visible “continue”.
+
+## Priority funnel
+
+1. User feels it?  
+2. Relies on **PreTool deny**? → **P0**  
+3. Only `.omg` + skill copy? → **P1** (label **soft** / host-limited)  
+4. Pretends host has omo Ultimate? → **don’t ship**
 
 ## Rules of the codebase
 
 1. **One hook command per event** in `hooks/hooks.json`; merge logic in `src/events/*`.
-2. **Stop order** only in `src/events/stop.ts` (Ralph → Boulder → Todo → diag → plan).
-3. **PreTool order:** Agent Guard → plan-mode → Hashline → Comment Checker → Skill Gate.
+2. **Stop order** only in `src/events/stop.ts` (state machine; stdout discarded on current Grok).
+3. **PreTool order** (breaking-change gate — keep `tests/pre-tool-orchestration.test.ts` green):  
+   Agent Guard → plan-mode → category-discipline → spawn-followthrough → diag hard → Hashline → Comment → Skill Gate.
 4. **Fail-open** in `src/cli.ts` catch (except intentional PreTool deny).
 5. **Windows-first:** `node dist/cli.js`, no bash launcher.
 6. **TDD for harness behavior:** add/adjust tests under `tests/` before claiming new gates.
+7. **Matcher case sensitivity:** host simple matchers are **exact / case-sensitive** — register both `search_replace` and `SearchReplace` (etc.) in `hooks/hooks.json`. Normalize in code via `normalizeToolName` (`[^a-z]` stripped).
+8. **Pure logic vs host I/O:** prefer pure functions in `src/features/*`; stdin/stdout only in `cli` + `events/*`. Do not encode OpenCode-only assumptions (tool-output rewrite, session.prompt yank) as required behavior.
 
 ## PR checklist
 
 - [ ] `npm run build && npm test && npm run doctor && npm run validate` pass
 - [ ] New behavior has a test that drives shipped code (`src/` / CLI path)
-- [ ] README / CHANGELOG updated if user-facing
+- [ ] If user-facing: README claims still ⊆ `docs/contract.md`
+- [ ] PreTool order tests still pass if you touched `pre-tool-use.ts`
 - [ ] No secrets or personal machine paths committed
+- [ ] If `dist/` is committed: build before commit so dist matches `src/`
 
 ## Reporting issues
 

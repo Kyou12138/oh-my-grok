@@ -1,33 +1,50 @@
-# oh-my-grok vs oh-my-openagent (omo) — capability inventory
+# oh-my-grok capability map (vs Vanilla Grok / omo)
 
-**Date:** 2026-07-16 · **omg version:** **1.1.20**  
+**Date:** 2026-07-16 · **omg version:** **1.1.21**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
+
+**Product peer:** omo **Codex Light** 同温层（纪律 + 状态），**不是** Ultimate 全量 OS。  
+**Host truth:** [contract.md](./contract.md) — Grok 仅 **PreToolUse** 硬拦；Stop/UserPrompt stdout **丢弃**。
 
 ## Legend
 
 | Tag | Meaning |
 |-----|---------|
-| **shipped** | Real hooks/handlers + tests |
-| **partial** | Semantics present, thinner than omo |
-| **blocked** | Needs OpenCode-class plugin/tool APIs or multi-model host |
+| **hard** | PreTool deny — model cannot skip on current Grok |
+| **soft** | State machine / skills / Stop stdout (tests + future hosts; **no** host re-yank today) |
+| **shipped** | Real handlers + tests |
+| **partial** | Semantics present, thinner or host-limited |
+| **blocked / non-goal** | Needs OpenCode-class APIs or deliberately out of scope |
 
-## Inventory
+## Three-column snapshot
 
-| omo capability | oh-my-grok | Status |
-|----------------|------------|--------|
-| Ralph / ultrawork / ULW loop | ULW v3 multi-goal, shell→verify, stall | **shipped** |
-| Todo continuation enforcer | cooldown + abort-window + **stagnation** + configurable (omo #6133) | **shipped** |
-| Prometheus plan-mode | write lock + **plan-review gate** before start-work | **shipped** |
-| IntentGate / think-mode | keywords + ultrathink | **shipped** |
-| Hashline LINE#ID | PreTool tag+body + Read inject + 文案/matcher v1.0 | **shipped** (partial vs native edit tool) |
-| Skill force-use | Intent Skill Gate | **shipped** |
-| Comment checker | patterns + **session aggregate Stop** | **shipped** (partial vs binary) |
-| Discipline agents + role lock | sticky /agent + spawn | **shipped** (partial models) |
-| Idle-turn yank | fluff empty Stop | **shipped** |
-| Team Mode / tmux | — | **blocked** |
-| Multi-provider model matrix | — | **blocked** |
-| In-plugin LSP / AST | — | **partial** |
-| Built-in Exa/Context7 MCP | context7 shipped(.mcp.json),Exa 未集成 | **partial** |
+| Capability | Vanilla Grok | **oh-my-grok** | omo Ultimate · Codex Light |
+|------------|--------------|----------------|----------------------------|
+| PreTool hard gates | — | **hard** Hashline / plan / guard / skill / diag / spawn | hard (wider surface) |
+| Stop / idle auto-continue | — | **soft** state only (host-limited) | Ultimate often hard-ish via session.prompt |
+| ULW / Ralph loops | — | **soft** + evidence gates in state | Light ≈ soft+; Ultimate richer |
+| Plan-mode write lock | — | **hard** PreTool | hard |
+| Multi-model matrix | host | **non-goal** | Ultimate |
+| Team / tmux | — | **non-goal** | Ultimate |
+| Superpowers skills | optional | bundled + **hard** skill gate | separate / partial |
+
+## Inventory (omo semantics → omg)
+
+| omo capability | oh-my-grok | Enforce | Status |
+|----------------|------------|---------|--------|
+| Ralph / ultrawork / ULW loop | ULW v3 multi-goal, shell→verify, stall | soft (+ PreTool evidence) | **shipped** |
+| Todo continuation enforcer | cooldown + abort-window + **stagnation** + config | soft Stop; progress via PreTool | **shipped** (host-limited) |
+| Prometheus plan-mode | write lock + plan-review before start-work | **hard** path lock | **shipped** |
+| IntentGate / think-mode | keywords + ultrathink | soft inject | **shipped** |
+| Hashline LINE#ID | PreTool tag+body + cache | **hard** | **shipped** (partial vs native edit tool) |
+| Skill force-use | Intent Skill Gate | **hard** | **shipped** |
+| Comment checker | patterns + aggregate | hard if deny mode; soft aggregate | **partial** |
+| Discipline agents + role lock | sticky /agent + spawn | **hard** on mutating | **shipped** (partial models) |
+| Idle-turn yank | fluff empty Stop | soft | **shipped** (host-limited) |
+| Team Mode / tmux | — | — | **non-goal** |
+| Multi-provider model matrix | — | — | **non-goal** |
+| In-plugin LSP / AST | optional external MCP | — | **partial** |
+| Built-in Exa/Context7 MCP | context7 in `.mcp.json` | — | **partial** |
 
 ## Reassessed this spiral (v0.9.1)
 
@@ -390,15 +407,25 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **plan↔todo sync** | 写 plan / boulder Stop 时 `syncTodosFromPlanCheckboxes`：plan 行 `[x]` → 对应 `plan-N`/同标签 todo 完成；避免只改 markdown 不改 todo_write 的永久 yank |
 | **skill design 收窄** | 裸 `design` / design system 不再触发 brainstorming |
 
+## Closed this spiral (v1.1.21) — honesty / narrative
+
+| Item | Behavior |
+|------|----------|
+| **README ⊆ contract** | 去掉「Stop 强制续跑」overclaim；主 slogan = Harness Light + PreTool 硬门禁 |
+| **三列对照** | Vanilla Grok / oh-my-grok / omo Ultimate·Codex Light；Stop 标 host-limited |
+| **acceptance L2** | 真机必过项 = install + doctor + PreTool deny 探针 |
+| **design spec** | 2026-07-11 Stop 驱动续跑 → 标 **superseded by contract.md** |
+
 ## Next spiral focus (提升)
 
+- **marketplace** 收录（分发转化 > 再加 soft Stop 文案）
+- PreTool hardening + 可演示 GIF/探针
+- SessionStart resume 默认 wow path
 - Hashline native edit tool（宿主能力）
-- marketplace 收录
-- project-memory 仍 defer（对齐 omo #74 共识）
-- omo #4217 stall 深化（若 host 暴露 task progress）
-- 持续扫 omo issues 中 **Grok-feasible** 门禁
+- project-memory 仍 defer（omo #74）
+- 停追「仅 Stop stdout yank」类 feature
 
-**推荐**: `grok plugin update` → **1.1.20**。
+**推荐**: `grok plugin update` → **1.1.21**。
 
 ## Explicit non-goals
 
@@ -406,9 +433,11 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 - Multi-provider model routing  
 - Full in-plugin LSP/AST suite — **放弃** (distinct from adopting an existing external MCP server, which is an optional enhancement, not a non-goal)
 - Forking omo source  
+- Pretending host has OpenCode-class Stop re-prompt  
 
 > 注："Full in-plugin LSP/AST suite"(自己从零内建 LSP/AST 工具链,放弃)≠ "接入既有外部 MCP server"(按需挂载 lsp-tools-mcp / ast-grep-skill,属可选增强)。两者明确区分,不混为一谈。(pi-ast-grep 因 pi coding agent 专用已于 v0.12 移除推荐。)
 
 ## Product thesis
 
-Grok “must-install” = hard discipline hooks, not OpenCode multi-model OS clone. Spiral: critique real gaps → ship gates → elevate next focus.
+Grok “must-install” = **hard PreTool discipline** + honest soft state machines — **not** an OpenCode multi-model OS clone.  
+Narrative: **A (Grok 最佳纪律插件) + B 诚实版 (omo 语义 Grok Adapter)**. KPI = hard-gate reliability + install conversion.
