@@ -279,9 +279,28 @@ export function isDoneMessage(msg?: string): boolean {
   // processLoopStop 在 ralph 模式对 isDoneMessage 命中直接 cancelRalph 不经 gate,
   // 故 'not ULW_DONE' / 'NOT <promise>DONE</promise>' / 'will never mark RALPH_DONE'
   // / 'no ULW_DONE yet' 等否定话术必须被拦,否则一句否定关闭整个 loop。
+  const DONE_RE =
+    /(?:<promise>DONE<\/promise>|<promise>done<\/promise>|RALPH_DONE|ULW_DONE)/i;
+  if (!DONE_RE.test(msg) && !DONE_MARKERS.some((m) => msg.includes(m))) {
+    return false;
+  }
   const NEGATED_DONE =
     /\b(?:not|never|without|no|rarely|seldom|hardly|barely|scarcely|don'?t|doesn'?t|isn'?t|aren'?t|wasn'?t|weren'?t|won'?t|wouldn'?t|shouldn'?t|couldn'?t|mustn'?t|haven'?t|hasn'?t|hadn'?t|ain'?t|didn'?t)\b[^.!\n]*(?:<promise>DONE<\/promise>|<promise>done<\/promise>|RALPH_DONE|ULW_DONE)/i;
   if (NEGATED_DONE.test(msg)) return false;
+  // v1.1.15: partial-done hedges (align isVerifiedMessage v1.1.14)
+  const HEDGED_AFTER =
+    /(?:<promise>DONE<\/promise>|<promise>done<\/promise>|RALPH_DONE|ULW_DONE)[^.!\n]{0,80}\b(except|but|however|not\s+all|remaining|still|partial|incomplete|failing|failed)\b/i;
+  const HEDGED_BEFORE =
+    /\b(almost|nearly|mostly|partially|roughly)\b[^.!\n]{0,40}(?:<promise>DONE<\/promise>|<promise>done<\/promise>|RALPH_DONE|ULW_DONE)/i;
+  if (HEDGED_AFTER.test(msg) || HEDGED_BEFORE.test(msg)) return false;
+  // Chinese negation near marker
+  if (
+    /(?:未|没有|没|并非|不)[^。\n]{0,24}(?:ULW_DONE|RALPH_DONE|DONE)|(?:ULW_DONE|RALPH_DONE)[^。\n]{0,24}(?:未完成|还没|仍有)/.test(
+      msg,
+    )
+  ) {
+    return false;
+  }
   return DONE_MARKERS.some((m) => msg.includes(m));
 }
 

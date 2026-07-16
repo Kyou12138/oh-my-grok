@@ -171,6 +171,17 @@ describe("isDoneMessage 真值表(v0.15 否定集修复)", () => {
 
   it("负例:空串 / undefined 返回 false", () => {
     expect(isDoneMessage("")).toBe(false);
+  });
+
+  it("负例: partial DONE hedges 不得关闭 loop (v1.1.15)", () => {
+    expect(isDoneMessage("ULW_DONE except remaining goals")).toBe(false);
+    expect(isDoneMessage("RALPH_DONE but still incomplete")).toBe(false);
+    expect(isDoneMessage("almost ULW_DONE")).toBe(false);
+    expect(isDoneMessage("<promise>DONE</promise> however failing tests")).toBe(
+      false,
+    );
+    expect(isDoneMessage("未标记 ULW_DONE")).toBe(false);
+    expect(isDoneMessage("ULW_DONE 还没完成")).toBe(false);
     expect(isDoneMessage(undefined)).toBe(false);
   });
 });

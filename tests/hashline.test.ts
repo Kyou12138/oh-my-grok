@@ -290,6 +290,47 @@ describe("hashline — Grok read_file N→ prefix strip (v1.1.10)", () => {
   });
 });
 
+describe("hashline — empty Write wipe (v1.1.15)", () => {
+  it("denies Write with empty contents on existing file", () => {
+    const ws = tmpWorkspace();
+    fs.writeFileSync(path.join(ws, "wipe.ts"), "keep me\n", "utf8");
+    const cfg = makeCfg();
+    recordRead(
+      makeInput(ws, { toolName: "Read", toolInput: { file_path: "wipe.ts" } }),
+      cfg,
+      "wipe.ts",
+    );
+    const deny = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "Write",
+        toolInput: { file_path: "wipe.ts", contents: "" },
+      }),
+      cfg,
+    );
+    expect(deny).toMatch(/Empty Write|wipe/i);
+  });
+
+  it("allows Write with content on existing file after Read", () => {
+    const ws = tmpWorkspace();
+    fs.writeFileSync(path.join(ws, "ok.ts"), "old\n", "utf8");
+    const cfg = makeCfg();
+    recordRead(
+      makeInput(ws, { toolName: "Read", toolInput: { file_path: "ok.ts" } }),
+      cfg,
+      "ok.ts",
+    );
+    expect(
+      hashlinePreToolDeny(
+        makeInput(ws, {
+          toolName: "Write",
+          toolInput: { file_path: "ok.ts", contents: "new\n" },
+        }),
+        cfg,
+      ),
+    ).toBeNull();
+  });
+});
+
 describe("hashline — empty old_string on existing file (v1.1.13)", () => {
   it("denies empty old_string when file exists", () => {
     const ws = tmpWorkspace();

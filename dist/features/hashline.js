@@ -168,6 +168,30 @@ export function hashlinePreToolDeny(input, cfg) {
             "Skill: hashline-edit · skill-gate may require reading it before edits.",
         ].join("\n");
     }
+    // Write/Create with explicit empty contents on an existing file = accidental wipe
+    const isFullWrite = toolNorm === "write" ||
+        toolNorm === "writefile" ||
+        toolNorm === "create";
+    if (isFullWrite && current) {
+        const hasKey = input.toolInput &&
+            ("contents" in input.toolInput ||
+                "content" in input.toolInput ||
+                "body" in input.toolInput);
+        if (hasKey) {
+            const body = String(input.toolInput?.contents ??
+                input.toolInput?.content ??
+                input.toolInput?.body ??
+                "");
+            if (body.length === 0) {
+                return [
+                    "[Hashline] Empty Write contents would wipe an existing file.",
+                    `File: ${file}`,
+                    "",
+                    "How to fix: pass non-empty **contents**, or Delete the file intentionally first.",
+                ].join("\n");
+            }
+        }
+    }
     if (cached && Date.now() - cached.readAt > cfg.hashlineTtlMs) {
         return [
             `[Hashline] Read cache expired for ${file}.`,

@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.15] — 2026-07-16
+
+### MAGI spiral — DONE hedges + empty Write wipe
+
+- **fix(isDoneMessage)** reject partial DONE claims (`ULW_DONE except…`, `almost RALPH_DONE`, Chinese 未/还没 near markers) — same lineage as verify-gate v1.1.14
+- **fix(hashline)** deny **Write/Create with empty contents** on an existing file (accidental wipe)
+- **test** DONE hedge matrix; empty Write wipe vs non-empty allow
+
 ## [1.1.14] — 2026-07-16
 
 ### MAGI spiral — verify-gate hedge + Chinese pass
