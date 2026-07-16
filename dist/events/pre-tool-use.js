@@ -5,6 +5,7 @@ import { hashlinePreToolDeny } from "../features/hashline.js";
 import { planModeDeny } from "../features/prometheus.js";
 import { skillGateContext } from "../features/last-prompt.js";
 import { isMutatingTool, loadSkillGateState, refreshCatalog, skillGateDenyReason, } from "../features/skill-gate.js";
+import { spawnFollowThroughPreDeny } from "../features/spawn-followthrough.js";
 export function handlePreToolUse(input, cfg) {
     // 0) Agent role guard (even before mutating-tool short-circuit helpers)
     const agentDeny = agentGuardDeny(input, cfg);
@@ -23,6 +24,11 @@ export function handlePreToolUse(input, cfg) {
     const catDisc = categoryDisciplinePreDeny(input, cfg);
     if (catDisc) {
         return { output: { decision: "deny", reason: catDisc }, exitCode: 2 };
+    }
+    // 1.6) Spawn follow-through — child finished + still pending (once; host-enforced)
+    const spawnFt = spawnFollowThroughPreDeny(input, cfg);
+    if (spawnFt) {
+        return { output: { decision: "deny", reason: spawnFt }, exitCode: 2 };
     }
     // 2) Hashline stale-edit guard (+ write-before-read)
     const hl = hashlinePreToolDeny(input, cfg);

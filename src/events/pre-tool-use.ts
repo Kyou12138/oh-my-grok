@@ -11,6 +11,7 @@ import {
   refreshCatalog,
   skillGateDenyReason,
 } from "../features/skill-gate.js";
+import { spawnFollowThroughPreDeny } from "../features/spawn-followthrough.js";
 
 export function handlePreToolUse(
   input: HookInput,
@@ -39,6 +40,12 @@ export function handlePreToolUse(
   const catDisc = categoryDisciplinePreDeny(input, cfg);
   if (catDisc) {
     return { output: { decision: "deny", reason: catDisc }, exitCode: 2 };
+  }
+
+  // 1.6) Spawn follow-through — child finished + still pending (once; host-enforced)
+  const spawnFt = spawnFollowThroughPreDeny(input, cfg);
+  if (spawnFt) {
+    return { output: { decision: "deny", reason: spawnFt }, exitCode: 2 };
   }
 
   // 2) Hashline stale-edit guard (+ write-before-read)

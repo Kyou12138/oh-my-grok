@@ -1,7 +1,10 @@
 /**
- * Spawn follow-through / result recovery (v0.21, deepened v1.0).
+ * Spawn follow-through / result recovery (v0.21, deepened v1.0 / PreTool v1.1.4).
  * After subagent spawn: Stop blocks when parent is idle or only announces spawn.
  * Up to MAX_YANKS per wave; re-arms on each new spawn.
+ *
+ * Host-enforced (PreTool): when childFinished + pending, first mutating tool
+ * is denied once — parallel work while child runs is still allowed.
  */
 import path from "node:path";
 import type { EnvConfig, HookInput } from "../protocol/types.js";
@@ -16,10 +19,12 @@ export interface SpawnFollowThroughState {
   /** Armed until progress or max yanks exhausted. */
   pending: boolean;
   lastRole?: string;
-  /** How many times we blocked this wave. */
+  /** How many times we blocked this wave (Stop). */
   yankCount: number;
   /** Host SubagentEnd fired — child done; parent still must integrate. */
   childFinished?: boolean;
+  /** PreTool already soft-denied once this wave (host-enforced). */
+  preToolYanked?: boolean;
   updatedAt: string;
 }
 
@@ -47,6 +52,7 @@ function load(input: HookInput, cfg: EnvConfig): SpawnFollowThroughState {
     lastRole: raw.lastRole,
     yankCount: typeof raw.yankCount === "number" ? raw.yankCount : 0,
     childFinished: !!raw.childFinished,
+    preToolYanked: !!raw.preToolYanked,
     updatedAt: raw.updatedAt || "",
   };
 }
@@ -71,6 +77,7 @@ export function markSpawnFollowThrough(
     lastRole: role || undefined,
     yankCount: 0,
     childFinished: false,
+    preToolYanked: false,
     updatedAt: new Date().toISOString(),
   });
 }
@@ -92,6 +99,8 @@ export function markSubagentChildFinished(
     lastRole: role || st.lastRole,
     yankCount: st.pending ? st.yankCount || 0 : 0,
     childFinished: true,
+    // New child-finished wave may re-enable one PreTool yank if Start re-armed
+    preToolYanked: st.pending ? !!st.preToolYanked : false,
     updatedAt: new Date().toISOString(),
   });
 }
@@ -99,15 +108,41 @@ export function markSubagentChildFinished(
 /** Clear pending after get_task_output / inline subagent result / real progress. */
 export function clearSpawnFollowThrough(input: HookInput, cfg: EnvConfig): void {
   const st = load(input, cfg);
-  if (!st.pending && !st.yankCount && !st.childFinished) return;
+  if (!st.pending && !st.yankCount && !st.childFinished && !st.preToolYanked) return;
   save(input, cfg, {
     schemaVersion: 2,
     pending: false,
     lastRole: st.lastRole,
     yankCount: 0,
     childFinished: false,
+    preToolYanked: false,
     updatedAt: new Date().toISOString(),
   });
+}
+
+/**
+ * PreTool deny (host-enforced, once per wave).
+ * Only when childFinished — allows parallel parent edits while subagent still runs.
+ * Call only for mutating tools.
+ */
+export function spawnFollowThroughPreDeny(
+  input: HookInput,
+  cfg: EnvConfig,
+): string | null {
+  const st = load(input, cfg);
+  if (!st.pending || !st.childFinished || st.preToolYanked) return null;
+  save(input, cfg, { ...st, preToolYanked: true });
+  const roleBit = st.lastRole ? ` (**${st.lastRole}**)` : "";
+  return [
+    "[SPAWN_FOLLOWTHROUGH] Subagent finished — recover results before more edits.",
+    `<OMG_SPAWN_FOLLOWTHROUGH pre_tool="true"${st.lastRole ? ` role="${st.lastRole}"` : ""}>`,
+    `Host reports subagent${roleBit} **finished**, but parent has not recovered/integrated output yet.`,
+    "",
+    "How to fix:",
+    "1) Call **get_task_output** (or get_command_or_subagent_output) and integrate findings, then retry, or",
+    "2) Retry this same tool once to proceed (one soft PreTool yank per wave).",
+    "</OMG_SPAWN_FOLLOWTHROUGH>",
+  ].join("\n");
 }
 
 export function isSpawnFollowThroughPending(
@@ -242,6 +277,7 @@ export function spawnFollowThroughStopReason(
       pending: false,
       yankCount: 0,
       childFinished: false,
+      preToolYanked: false,
     });
     return null;
   }
@@ -254,6 +290,7 @@ export function spawnFollowThroughStopReason(
     pending: keepPending,
     yankCount: nextYank,
     childFinished: keepPending ? st.childFinished : false,
+    preToolYanked: keepPending ? st.preToolYanked : false,
   });
   return reasonForYank(st.lastRole, nextYank, max, st.childFinished);
 }

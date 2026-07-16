@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.4] — 2026-07-16
+
+### MAGI spiral — spawn follow-through PreTool (after child finished)
+
+- **feat** `spawnFollowThroughPreDeny`: when **childFinished + pending**, first mutating tool → PreTool deny once (host-enforced)
+- Parallel parent edits **while child still running** remain allowed (`pending` without `childFinished`)
+- PreTool order: … category-discipline → **spawn-followthrough** → hashline …
+- **test** allow-while-running / deny-once-after-End / production PreTool path
+
 ## [1.1.3] — 2026-07-16
 
 ### MAGI spiral — SubagentEnd must not clear follow-through

@@ -21,8 +21,10 @@ import {
   isSpawnResultRecoveredMessage,
   markSpawnFollowThrough,
   SPAWN_FOLLOWTHROUGH_MAX_YANKS,
+  spawnFollowThroughPreDeny,
   spawnFollowThroughStopReason,
 } from "../src/features/spawn-followthrough.js";
+import { handlePreToolUse } from "../src/events/pre-tool-use.js";
 import { getSessionAgentRole } from "../src/features/session-role.js";
 
 const tmpRoots: string[] = [];
@@ -368,5 +370,71 @@ describe("host SubagentStart / SubagentEnd (v1.1 Grok Build lifecycle)", () => {
       c,
     );
     expect(isSpawnFollowThroughPending(base(ws), c)).toBe(false);
+  });
+});
+
+describe("spawnFollowThroughPreDeny (v1.1.4 host-enforced)", () => {
+  it("allows mutate while child still running (pending, not finished)", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    markSpawnFollowThrough(base(ws), c, "explore");
+    expect(spawnFollowThroughPreDeny(base(ws), c)).toBeNull();
+  });
+
+  it("denies first mutate after childFinished, then allows retry", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    handleSubagentStart(
+      base(ws, {
+        event: "subagent-start",
+        subagentType: "explore",
+        raw: { subagentType: "explore" },
+      }),
+      c,
+    );
+    handleSubagentEnd(
+      base(ws, { event: "subagent-end", subagentType: "explore" }),
+      c,
+    );
+    const first = spawnFollowThroughPreDeny(base(ws), c);
+    expect(first).toMatch(/SPAWN_FOLLOWTHROUGH|get_task_output|finished/i);
+    expect(spawnFollowThroughPreDeny(base(ws), c)).toBeNull();
+  });
+
+  it("production PreTool: End then Write deny once then allow", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"), {
+      skillGate: false,
+      hashline: false,
+      planMode: false,
+      agentGuard: false,
+      categoryDiscipline: false,
+    });
+    handleSubagentStart(
+      base(ws, {
+        event: "subagent-start",
+        subagentType: "oracle",
+        raw: { subagentType: "oracle" },
+      }),
+      c,
+    );
+    handleSubagentEnd(
+      base(ws, { event: "subagent-end", subagentType: "oracle" }),
+      c,
+    );
+    const write = {
+      raw: {},
+      event: "pre-tool-use" as const,
+      sessionId: "sft-sess",
+      cwd: ws,
+      workspaceRoot: ws,
+      toolName: "Write",
+      toolInput: { path: path.join(ws, "x.ts"), contents: "export {}\n" },
+    };
+    const r1 = handlePreToolUse(write, c);
+    expect(r1.exitCode).toBe(2);
+    expect(JSON.stringify(r1.output)).toMatch(/SPAWN_FOLLOWTHROUGH/i);
+    const r2 = handlePreToolUse(write, c);
+    expect(r2.exitCode).toBe(0);
   });
 });

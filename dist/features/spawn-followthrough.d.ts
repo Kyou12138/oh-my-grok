@@ -5,10 +5,12 @@ export interface SpawnFollowThroughState {
     /** Armed until progress or max yanks exhausted. */
     pending: boolean;
     lastRole?: string;
-    /** How many times we blocked this wave. */
+    /** How many times we blocked this wave (Stop). */
     yankCount: number;
     /** Host SubagentEnd fired — child done; parent still must integrate. */
     childFinished?: boolean;
+    /** PreTool already soft-denied once this wave (host-enforced). */
+    preToolYanked?: boolean;
     updatedAt: string;
 }
 /** PostTool spawn / SubagentStart — arm / re-arm follow-through for result recovery. */
@@ -20,6 +22,12 @@ export declare function markSpawnFollowThrough(input: HookInput, cfg: EnvConfig,
 export declare function markSubagentChildFinished(input: HookInput, cfg: EnvConfig, role?: string): void;
 /** Clear pending after get_task_output / inline subagent result / real progress. */
 export declare function clearSpawnFollowThrough(input: HookInput, cfg: EnvConfig): void;
+/**
+ * PreTool deny (host-enforced, once per wave).
+ * Only when childFinished — allows parallel parent edits while subagent still runs.
+ * Call only for mutating tools.
+ */
+export declare function spawnFollowThroughPreDeny(input: HookInput, cfg: EnvConfig): string | null;
 export declare function isSpawnFollowThroughPending(input: HookInput, cfg: EnvConfig): boolean;
 /** Tools that fetch subagent/shell task output → result recovered. */
 export declare function isResultRecoveryTool(toolName?: string): boolean;
