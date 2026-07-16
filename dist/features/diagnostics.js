@@ -87,14 +87,28 @@ export function isVerifiedMessage(msg) {
         return true;
     if (/\bOMG_VERIFIED\b/.test(msg))
         return true;
-    if (/diagnostics clean/i.test(msg))
+    // diagnostics clean — reject obvious negation
+    if (/diagnostics clean/i.test(msg) &&
+        !/\b(?:not|never|aren't|isn't)\b[^.!\n]{0,40}diagnostics\s+clean|diagnostics\s+(?:not|aren't)\s+clean/i.test(msg)) {
         return true;
+    }
     // "all tests passed" 仅当前面无紧邻否定语境时算验证,堵住 verify-gate 误放行。
     // v0.13 起 'not all tests passed';v0.14 补全缩写(don't/isn't/aren't/wasn't/...)
     // 与频度否定(rarely/hardly/barely/scarcely/seldom)——v0.13 黑名单列窄漏网。
     // 不含 'no':会误拒合法 'no issue, all tests passed'。
+    // v1.1.14: 尾随 except/but/failed 与 almost/mostly 前缀；中文「全部测试通过」。
     const NEGATED_ALL_TESTS = /\b(?:not|never|without|rarely|seldom|hardly|barely|scarcely|don'?t|doesn'?t|isn'?t|aren'?t|wasn'?t|weren'?t|won'?t|wouldn'?t|shouldn'?t|couldn'?t|mustn'?t|haven'?t|hasn'?t|hadn'?t|ain'?t|didn'?t)\b[^.!\n]*\ball tests passed\b/i;
-    if (/\ball tests passed\b/i.test(msg) && !NEGATED_ALL_TESTS.test(msg)) {
+    const HEDGED_AFTER = /\ball tests passed\b[^.!\n]{0,80}\b(except|but|however|failing|failed|error|errors|broken|still\s+fail)/i;
+    const HEDGED_BEFORE = /\b(almost|nearly|mostly|partially|roughly)\b[^.!\n]{0,40}\ball tests passed\b/i;
+    if (/\ball tests passed\b/i.test(msg)) {
+        if (NEGATED_ALL_TESTS.test(msg) || HEDGED_AFTER.test(msg) || HEDGED_BEFORE.test(msg)) {
+            return false;
+        }
+        return true;
+    }
+    // Chinese explicit pass (not partial/failed)
+    if (/(?:全部|所有)测试(?:均)?(?:已)?通过|测试(?:全部|均)(?:已)?通过/.test(msg) &&
+        !/(?:未|没有|没|并非|不)(?:全部|所有)?测试|测试(?:未|不|失败)|仍有失败|还有失败/.test(msg)) {
         return true;
     }
     return false;

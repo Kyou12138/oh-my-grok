@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.14] — 2026-07-16
+
+### MAGI spiral — verify-gate hedge + Chinese pass
+
+- **fix(isVerifiedMessage)** reject `all tests passed except/but/however/failed` and `almost/mostly all tests passed` (partial-success false verify)
+- **feat** accept Chinese `全部测试通过` / `所有测试已通过` with negation denylist
+- **test** hedge matrix + Chinese true/false
+
 ## [1.1.13] — 2026-07-16
 
 ### MAGI spiral — empty old_string + idle Chinese fluff

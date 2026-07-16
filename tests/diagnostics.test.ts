@@ -126,6 +126,25 @@ describe("diagnostics — isVerifiedMessage 真值表", () => {
     expect(isVerifiedMessage("does not all tests passed")).toBe(false);
     expect(isVerifiedMessage("is not all tests passed")).toBe(false);
   });
+
+  it("负例:all tests passed except/but/failed 不得误放行 (v1.1.14)", () => {
+    expect(isVerifiedMessage("all tests passed except two")).toBe(false);
+    expect(isVerifiedMessage("all tests passed but one failing")).toBe(false);
+    expect(isVerifiedMessage("all tests passed however 1 error remains")).toBe(
+      false,
+    );
+    expect(isVerifiedMessage("almost all tests passed")).toBe(false);
+    expect(isVerifiedMessage("mostly all tests passed")).toBe(false);
+  });
+
+  it("正例:中文全部测试通过；负例:未全部/失败 (v1.1.14)", () => {
+    expect(isVerifiedMessage("全部测试通过")).toBe(true);
+    expect(isVerifiedMessage("所有测试已通过")).toBe(true);
+    expect(isVerifiedMessage("测试全部通过")).toBe(true);
+    expect(isVerifiedMessage("未全部测试通过")).toBe(false);
+    expect(isVerifiedMessage("测试失败，仍有失败")).toBe(false);
+    expect(isVerifiedMessage("没有全部测试通过")).toBe(false);
+  });
 });
 
 describe("diagnostics — diagStopReason 三分支", () => {

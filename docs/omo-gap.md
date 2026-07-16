@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-16 · **omg version:** **1.1.13**  
+**Date:** 2026-07-16 · **omg version:** **1.1.14**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -334,6 +334,13 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **empty old_string** | 已存在文件禁止空 old_string（仅新建路径允许） |
 | **idle 中文** | 稍等/稍后继续等短状态废话 → idle yank |
 
+## Closed this spiral (v1.1.14)
+
+| Item | Behavior |
+|------|----------|
+| **verify hedge** | `all tests passed except/but/almost` 不得 markVerified |
+| **中文 VERIFIED** | 全部/所有测试通过（否定句拒绝） |
+
 ## Next spiral focus (提升)
 
 - Hashline native edit tool（宿主能力）
@@ -341,7 +348,7 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 - project-memory 仍 defer（对齐 omo #74 共识）
 - 持续扫 omo issues 中 **Grok-feasible** 门禁
 
-**推荐**: `grok plugin update` → **1.1.13**。
+**推荐**: `grok plugin update` → **1.1.14**。
 
 ## Explicit non-goals
 
