@@ -19,6 +19,11 @@ export function isIdleAssistantMessage(msg) {
         /^(working on it|on it|got it|understood|will do)[\s.]*$/i.test(t)) {
         return true;
     }
+    // Chinese status fluff without paths/tools (v1.1.13)
+    if (t.length < 48 &&
+        /^(稍等|等一下|马上|即将|稍后继续|我先看看|先这样|好的我继续|继续处理|马上处理|这就开始)/.test(t)) {
+        return true;
+    }
     // pure ellipsis / emoji noise
     if (/^[\s.。…·•\-–—*⭐✨🚀✅❌]+$/u.test(t))
         return true;
@@ -35,11 +40,12 @@ export function idleTurnStopReason(context) {
         "IDLE TURN DETECTED — no concrete progress in the last reply.",
         context,
         "",
-        "You MUST continue with a real action:",
+        "Continue with a real action:",
         "1) Read/search a file, or",
-        "2) Edit code, or",
-        "3) Run tests / diagnostics",
-        "Do not reply with only 'ok' / '继续' / status fluff.",
+        "2) Edit code (`search_replace` / Write), or",
+        "3) Run tests / diagnostics, or",
+        "4) **task** + **get_task_output** if waiting on a subagent",
+        "Do not reply with only 'ok' / '继续' / '稍等' / status fluff.",
     ].join("\n");
 }
 //# sourceMappingURL=idle-turn.js.map

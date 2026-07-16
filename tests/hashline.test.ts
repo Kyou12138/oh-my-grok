@@ -290,6 +290,49 @@ describe("hashline — Grok read_file N→ prefix strip (v1.1.10)", () => {
   });
 });
 
+describe("hashline — empty old_string on existing file (v1.1.13)", () => {
+  it("denies empty old_string when file exists", () => {
+    const ws = tmpWorkspace();
+    fs.writeFileSync(path.join(ws, "exist.ts"), "const x = 1;\n", "utf8");
+    const cfg = makeCfg();
+    recordRead(
+      makeInput(ws, { toolName: "Read", toolInput: { file_path: "exist.ts" } }),
+      cfg,
+      "exist.ts",
+    );
+    const deny = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "search_replace",
+        toolInput: {
+          file_path: "exist.ts",
+          old_string: "",
+          new_string: "const x = 2;\n",
+        },
+      }),
+      cfg,
+    );
+    expect(deny).toMatch(/Empty old_string|already exists/i);
+  });
+
+  it("allows empty old_string for brand-new file path", () => {
+    const ws = tmpWorkspace();
+    const cfg = makeCfg();
+    // no file on disk, no cache required for create-via-empty-old_string
+    const deny = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "search_replace",
+        toolInput: {
+          file_path: "brand-new.ts",
+          old_string: "",
+          new_string: "export const n = 1;\n",
+        },
+      }),
+      cfg,
+    );
+    expect(deny).toBeNull();
+  });
+});
+
 describe("hashline — post-write recache 链路", () => {
   it("recordRead → 改 → 再 recordRead 后 getCached 返回新 hash;新内容 strreplace allow,旧内容 deny", () => {
     const ws = tmpWorkspace();
@@ -571,20 +614,20 @@ describe("hashline — LINE#ID 校验分支", () => {
     expect(deny).toMatch(/expired for/i);
   });
 
-  it("(G) empty old_string —— strreplace 但 old_string 为空,hashlinePreToolDeny 返回 null(放行, L221)", () => {
+  it("(G) empty old_string on existing file —— deny (v1.1.13; was allow)", () => {
     const ws = tmpWorkspace();
     const fileAbs = path.join(ws, "empty.ts");
     fs.writeFileSync(fileAbs, "something\n", "utf8");
     const cfg = makeCfg();
 
-    // 先 Read 建缓存,避免撞 L187 的 "No fresh Read cache"
+    // 先 Read 建缓存,避免撞 "No fresh Read cache"
     recordRead(
       makeInput(ws, { toolName: "Read", toolInput: { file_path: "empty.ts" } }),
       cfg,
       "empty.ts",
     );
 
-    const allow = hashlinePreToolDeny(
+    const deny = hashlinePreToolDeny(
       makeInput(ws, {
         toolName: "strreplace",
         toolInput: {
@@ -596,7 +639,7 @@ describe("hashline — LINE#ID 校验分支", () => {
       cfg,
     );
 
-    // old_string 为空 → 直接放行(L221 return null)
-    expect(allow).toBeNull();
+    // 已存在文件 + 空 old_string → deny（仅新建路径允许）
+    expect(deny).toMatch(/Empty old_string|already exists/i);
   });
 });

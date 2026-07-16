@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.13] — 2026-07-16
+
+### MAGI spiral — empty old_string + idle Chinese fluff
+
+- **fix(hashline)** deny **empty `old_string`** when target file already exists (Grok empty-old creates files only)
+- **feat(idle)** detect Chinese status fluff (`稍等` / `稍后继续` / …); idle reason lists `task` / `get_task_output`
+- **docs** agent-guard deny text uses Grok tool names
+- **test** empty-old existing vs new path; Chinese idle matrix
+
 ## [1.1.12] — 2026-07-16
 
 ### MAGI spiral — Grok-native tool names + NotebookEdit

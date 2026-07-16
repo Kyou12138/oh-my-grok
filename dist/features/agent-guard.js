@@ -75,9 +75,9 @@ export function agentGuardDeny(input, cfg) {
         return null;
     return [
         `[AGENT_GUARD] Agent "${role}" is read-only.`,
-        "Blocked: Write / StrReplace / Edit / Delete.",
+        "Blocked: Write / search_replace / Edit / Delete.",
         "Use explore/oracle/librarian/metis/momus for research and review only.",
-        "Implementation: spawn hephaestus or stay on sisyphus/atlas main session.",
+        "Implementation: host **task** hephaestus (or stay on sisyphus/atlas main session).",
         "Clear sticky role: /agent hephaestus  (or /agent sisyphus)",
     ].join("\n");
 }

@@ -241,7 +241,21 @@ export function hashlinePreToolDeny(
         input.toolInput?.search ??
         "",
     );
-    if (!oldRaw) return null;
+    // Grok: empty old_string = create new file only. Existing file + empty = unsafe.
+    if (!oldRaw.trim()) {
+      if (current) {
+        return [
+          "[Hashline] Empty old_string is not allowed when the file already exists.",
+          `File: ${file}`,
+          "",
+          "How to fix:",
+          "1) For edits: set **old_string** to an exact contiguous snippet from disk (after Read).",
+          "2) For full rewrite: use **Write** / WriteFile with full contents (after Read if Hashline is on).",
+          "3) Empty old_string is only for creating a **new** file that does not exist yet.",
+        ].join("\n");
+      }
+      return null;
+    }
 
     // Validate LINE#ID tags if present — never silently accept mismatched anchors
     const lines = oldRaw.split(/\r?\n/);

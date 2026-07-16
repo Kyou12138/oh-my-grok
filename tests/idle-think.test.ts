@@ -80,6 +80,13 @@ describe("isIdleAssistantMessage", () => {
     expect(isIdleAssistantMessage("   ")).toBe(true);
   });
 
+  it("Chinese short status fluff → idle (v1.1.13)", () => {
+    expect(isIdleAssistantMessage("稍等")).toBe(true);
+    expect(isIdleAssistantMessage("稍后继续")).toBe(true);
+    expect(isIdleAssistantMessage("马上处理")).toBe(true);
+    expect(isIdleAssistantMessage("这就开始")).toBe(true);
+  });
+
   it("ultra-short (≤2 chars) → idle", () => {
     expect(isIdleAssistantMessage("ok")).toBe(true);
     expect(isIdleAssistantMessage("hi")).toBe(true);
