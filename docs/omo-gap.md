@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-16 · **omg version:** **1.1.1**  
+**Date:** 2026-07-16 · **omg version:** **1.1.2**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -248,14 +248,21 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **parent sticky poison** | PostTool spawn / SubagentStart **不再**把父会话 sticky 锁成子角色；避免主会话 Write 被 AGENT_GUARD 误拦 |
 | sticky 来源收紧 | 仅 `/agent` 与 host `agentName`；spawn 只 arm follow-through + category mark |
 
+## Closed this spiral (v1.1.2)
+
+| Item | Behavior |
+|------|----------|
+| **category-discipline → PreTool** | deep/visual/ultrabrain + 0 spawn 时**首次 mutating 工具 deny 一次**（宿主可强制）；与 Stop 共用 once 标志 |
+| PreTool 顺序 | agent-guard → plan-mode → category-discipline → hashline → comment → skill-gate |
+
 ## Next spiral focus (提升)
 
-- 将更多「仅 Stop 侧效」门禁中 **host 可执行** 的部分迁到 PreTool（Stop stdout 宿主丢弃）
+- 其它 Stop 侧效中可安全 PreTool 化的门禁（todo abort？diag soft-verify 保持 Stop/状态）
 - Hashline native edit（宿主）
 - 全量 project-memory（仍 defer）
 - marketplace 收录
 
-**推荐**: `grok plugin update` → **1.1.1**。
+**推荐**: `grok plugin update` → **1.1.2**。
 
 ## Explicit non-goals
 

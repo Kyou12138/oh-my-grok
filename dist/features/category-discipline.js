@@ -17,15 +17,18 @@ function load(input, cfg) {
         prompted: false,
     });
 }
-/** Called from post-tool spawn handler — bump spawn activity, clear prompted. */
+/** Called from post-tool spawn / SubagentStart — bump spawn activity, clear prompted. */
 export function markSpawnActivity(input, cfg) {
     const st = load(input, cfg);
     st.spawnCount = (st.spawnCount || 0) + 1;
     st.prompted = false;
     writeJsonAtomic(fileFor(input, cfg), st);
 }
-/** Stop gate: specialist work + zero spawns => block once per session. */
-export function categoryDisciplineStopReason(input, cfg) {
+/**
+ * Shared once-per-session yank. Marks prompted when returning a reason.
+ * Used by PreTool (host-enforced) and Stop (side-effect / future hosts).
+ */
+export function categoryDisciplineYankReason(input, cfg) {
     if (!cfg.categoryDiscipline)
         return null;
     const prompt = loadLastPrompt(input, cfg);
@@ -52,5 +55,26 @@ export function categoryDisciplineStopReason(input, cfg) {
         "Or proceed without spawning if truly unnecessary — this prompt appears at most once per session.",
         "</OMG_CATEGORY_DISCIPLINE>",
     ].join("\n");
+}
+/**
+ * PreTool deny (host-enforced). Call only for mutating tools.
+ * Same once flag as Stop so we do not double-yank.
+ */
+export function categoryDisciplinePreDeny(input, cfg) {
+    const reason = categoryDisciplineYankReason(input, cfg);
+    if (!reason)
+        return null;
+    return [
+        "[CATEGORY_DISCIPLINE] Specialist work without subagent spawn.",
+        reason,
+        "",
+        "How to fix:",
+        "1) spawn_subagent (explore / oracle / hephaestus) for the recommended consult, then retry, or",
+        "2) Retry this same tool once to proceed without spawning (one soft yank per session).",
+    ].join("\n");
+}
+/** Stop gate — same once-per-session logic (stdout ignored on current Grok host). */
+export function categoryDisciplineStopReason(input, cfg) {
+    return categoryDisciplineYankReason(input, cfg);
 }
 //# sourceMappingURL=category-discipline.js.map

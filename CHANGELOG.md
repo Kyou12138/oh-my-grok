@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.2] — 2026-07-16
+
+### MAGI spiral — category discipline on PreTool (host-enforced)
+
+- **feat(category-discipline)** first mutating tool on specialist category (deep / visual / ultrabrain) + zero spawns → **PreTool deny once** (Grok only enforces PreToolUse)
+- Shared once flag with Stop path (no double-yank); spawn / SubagentStart still clears via `markSpawnActivity`
+- PreTool order: agent-guard → plan-mode → **category-discipline** → hashline → comment → skill-gate
+- **test** PreTool production path + shared once with Stop
+
 ## [1.1.1] — 2026-07-16
 
 ### MAGI spiral — parent session sticky poison fix

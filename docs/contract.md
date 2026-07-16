@@ -34,9 +34,10 @@ oh-my-grok still **writes** `additionalContext` / Stop `decision:block` for test
 
 1. Agent guard (read-only roles)  
 2. Prometheus plan-mode path deny  
-3. Hashline (fresh Read + old_string + LINE#ID)  
-4. Comment checker hard deny (when deny mode)  
-5. Skill Gate  
+3. Category discipline (specialist work + zero spawns, once per session)  
+4. Hashline (fresh Read + old_string + LINE#ID)  
+5. Comment checker hard deny (when deny mode)  
+6. Skill Gate  
 
 ## Stop order (state machine; stdout not host-enforced)
 

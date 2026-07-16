@@ -19,9 +19,11 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  categoryDisciplinePreDeny,
   categoryDisciplineStopReason,
   markSpawnActivity,
 } from "../src/features/category-discipline.js";
+import { handlePreToolUse } from "../src/events/pre-tool-use.js";
 import { saveLastPrompt } from "../src/features/last-prompt.js";
 import type { CategoryDisciplineState } from "../src/features/category-discipline.js";
 import type { EnvConfig, HookInput } from "../src/protocol/types.js";
@@ -202,6 +204,75 @@ describe("categoryDisciplineStopReason", () => {
     // Deliberately do NOT call saveLastPrompt — loadLastPrompt returns "".
 
     expect(categoryDisciplineStopReason(inp, c)).toBeNull();
+  });
+});
+
+describe("categoryDisciplinePreDeny (v1.1.2 host-enforced)", () => {
+  it("denies first mutating path with How-to-fix prefix", () => {
+    const pluginData = tmpWorkspace();
+    const c = cfg(pluginData);
+    const inp = input(pluginData, { event: "pre-tool-use", toolName: "Write" });
+    saveLastPrompt(inp, c, "deep dive the auth architecture");
+    const reason = categoryDisciplinePreDeny(inp, c);
+    expect(reason).toMatch(/CATEGORY_DISCIPLINE|hephaestus|How to fix/i);
+  });
+
+  it("shares once flag with Stop — PreTool then Stop does not double-yank", () => {
+    const pluginData = tmpWorkspace();
+    const c = cfg(pluginData);
+    const inp = input(pluginData);
+    saveLastPrompt(inp, c, "architecture trade-off for auth");
+    expect(categoryDisciplinePreDeny(inp, c)).not.toBeNull();
+    expect(categoryDisciplineStopReason(inp, c)).toBeNull();
+    expect(categoryDisciplinePreDeny(inp, c)).toBeNull();
+  });
+
+  it("production PreTool: deep prompt + Write deny once then allow", () => {
+    const pluginData = tmpWorkspace();
+    const c = cfg(pluginData, {
+      skillGate: false,
+      hashline: false,
+      planMode: false,
+      agentGuard: false,
+    });
+    const base = {
+      raw: {},
+      event: "pre-tool-use" as const,
+      sessionId: SESSION_ID,
+      cwd: pluginData,
+      workspaceRoot: pluginData,
+      toolName: "Write",
+      toolInput: { path: path.join(pluginData, "a.ts"), contents: "export {}\n" },
+    };
+    saveLastPrompt(base, c, "deep dive multi-file auth");
+    const first = handlePreToolUse(base, c);
+    expect(first.exitCode).toBe(2);
+    expect(JSON.stringify(first.output)).toMatch(/CATEGORY_DISCIPLINE/i);
+    const second = handlePreToolUse(base, c);
+    expect(second.exitCode).toBe(0);
+  });
+
+  it("after spawn, PreTool allows deep Write immediately", () => {
+    const pluginData = tmpWorkspace();
+    const c = cfg(pluginData, {
+      skillGate: false,
+      hashline: false,
+      planMode: false,
+      agentGuard: false,
+    });
+    const base = {
+      raw: {},
+      event: "pre-tool-use" as const,
+      sessionId: SESSION_ID,
+      cwd: pluginData,
+      workspaceRoot: pluginData,
+      toolName: "Write",
+      toolInput: { path: path.join(pluginData, "b.ts"), contents: "export {}\n" },
+    };
+    saveLastPrompt(base, c, "deep dive multi-file auth");
+    markSpawnActivity(base, c);
+    const r = handlePreToolUse(base, c);
+    expect(r.exitCode).toBe(0);
   });
 });
 

@@ -1,4 +1,5 @@
 import { agentGuardDeny } from "../features/agent-guard.js";
+import { categoryDisciplinePreDeny } from "../features/category-discipline.js";
 import { commentCheckerPreDeny } from "../features/comment-checker.js";
 import { hashlinePreToolDeny } from "../features/hashline.js";
 import { planModeDeny } from "../features/prometheus.js";
@@ -17,6 +18,11 @@ export function handlePreToolUse(input, cfg) {
     const planDeny = planModeDeny(input, cfg);
     if (planDeny) {
         return { output: { decision: "deny", reason: planDeny }, exitCode: 2 };
+    }
+    // 1.5) Category discipline — specialist work + zero spawns (once; host-enforced)
+    const catDisc = categoryDisciplinePreDeny(input, cfg);
+    if (catDisc) {
+        return { output: { decision: "deny", reason: catDisc }, exitCode: 2 };
     }
     // 2) Hashline stale-edit guard (+ write-before-read)
     const hl = hashlinePreToolDeny(input, cfg);

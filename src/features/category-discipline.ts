@@ -1,7 +1,12 @@
 /**
- * Category discipline gate (v0.10) — specialist-category work
- * (deep / visual-engineering / ultrabrain) with zero session spawns
- * => block Stop once with recommended specialists. Resets on first spawn.
+ * Category discipline gate (v0.10, PreTool host-enforce v1.1.2)
+ *
+ * Specialist-category work (deep / visual-engineering / ultrabrain) with zero
+ * session spawns => yank once recommending specialists.
+ *
+ * Grok Build only enforces PreToolUse (stdout decision). Stop {decision:block}
+ * is discarded by the host — so the primary gate is PreTool on first mutate.
+ * Stop handler still calls the same once-per-session logic for tests / future hosts.
  */
 import type { EnvConfig, HookInput } from "../protocol/types.js";
 import { readJson, writeJsonAtomic } from "../state/fs.js";
@@ -35,7 +40,7 @@ function load(input: HookInput, cfg: EnvConfig): CategoryDisciplineState {
   });
 }
 
-/** Called from post-tool spawn handler — bump spawn activity, clear prompted. */
+/** Called from post-tool spawn / SubagentStart — bump spawn activity, clear prompted. */
 export function markSpawnActivity(input: HookInput, cfg: EnvConfig): void {
   const st = load(input, cfg);
   st.spawnCount = (st.spawnCount || 0) + 1;
@@ -43,8 +48,11 @@ export function markSpawnActivity(input: HookInput, cfg: EnvConfig): void {
   writeJsonAtomic(fileFor(input, cfg), st);
 }
 
-/** Stop gate: specialist work + zero spawns => block once per session. */
-export function categoryDisciplineStopReason(
+/**
+ * Shared once-per-session yank. Marks prompted when returning a reason.
+ * Used by PreTool (host-enforced) and Stop (side-effect / future hosts).
+ */
+export function categoryDisciplineYankReason(
   input: HookInput,
   cfg: EnvConfig,
 ): string | null {
@@ -68,4 +76,32 @@ export function categoryDisciplineStopReason(
     "Or proceed without spawning if truly unnecessary — this prompt appears at most once per session.",
     "</OMG_CATEGORY_DISCIPLINE>",
   ].join("\n");
+}
+
+/**
+ * PreTool deny (host-enforced). Call only for mutating tools.
+ * Same once flag as Stop so we do not double-yank.
+ */
+export function categoryDisciplinePreDeny(
+  input: HookInput,
+  cfg: EnvConfig,
+): string | null {
+  const reason = categoryDisciplineYankReason(input, cfg);
+  if (!reason) return null;
+  return [
+    "[CATEGORY_DISCIPLINE] Specialist work without subagent spawn.",
+    reason,
+    "",
+    "How to fix:",
+    "1) spawn_subagent (explore / oracle / hephaestus) for the recommended consult, then retry, or",
+    "2) Retry this same tool once to proceed without spawning (one soft yank per session).",
+  ].join("\n");
+}
+
+/** Stop gate — same once-per-session logic (stdout ignored on current Grok host). */
+export function categoryDisciplineStopReason(
+  input: HookInput,
+  cfg: EnvConfig,
+): string | null {
+  return categoryDisciplineYankReason(input, cfg);
 }
