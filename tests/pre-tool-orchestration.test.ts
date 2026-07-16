@@ -122,6 +122,32 @@ describe("pre-tool-use orchestration — 门禁顺序锁定", () => {
     expect(json).not.toMatch(/Hashline/i);
   });
 
+  it("2b. plan-mode catches traversal before hashline", () => {
+    const ws = tmpWorkspace();
+    const data = path.join(ws, "pdata");
+    const file = path.join(ws, "src", "app.ts");
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, "export const a = 1;\n", "utf8");
+    const c = cfg(data, { agentGuard: false, planMode: true, hashline: true });
+    startPlanMode(base(ws), c, "traversal");
+    const traversal = [ws, ".omg", "plans", "..", "..", "src", "app.ts"].join(
+      path.sep,
+    );
+
+    const r = handlePreToolUse(
+      base(ws, {
+        toolName: "Write",
+        toolInput: { path: traversal, contents: "export const a = 2;\n" },
+      }),
+      c,
+    );
+
+    expect(r.exitCode).toBe(2);
+    const json = JSON.stringify(r.output);
+    expect(json).toMatch(/plan-mode|Prometheus/i);
+    expect(json).not.toMatch(/Hashline/i);
+  });
+
   it("3. hashline 拦截无 Read 的 StrReplace 早于 comment-checker", () => {
     const ws = tmpWorkspace();
     const data = path.join(ws, "pdata");

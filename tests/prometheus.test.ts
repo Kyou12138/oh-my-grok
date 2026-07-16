@@ -86,6 +86,10 @@ function base(ws: string, over: Partial<HookInput> = {}): HookInput {
   };
 }
 
+function rawPath(...parts: string[]): string {
+  return parts.join(path.sep);
+}
+
 function writePlan(planPath: string, body: string): void {
   fs.mkdirSync(path.dirname(planPath), { recursive: true });
   fs.writeFileSync(planPath, body, "utf8");
@@ -528,6 +532,138 @@ describe("prometheusRoleDeny + plan-only skill skip (v1.1.26)", () => {
     );
     expect(r.exitCode).toBe(0);
     expect(r.output).toMatchObject({ decision: "allow" });
+  });
+});
+
+describe("canonical plan path boundary", () => {
+  it("allows relative, absolute, and custom-state plan targets", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    startPlanMode(input, c, "valid paths");
+
+    for (const target of [
+      path.join(".omg", "plans", "relative.md"),
+      path.join(ws, ".omg", "plans", "absolute.md"),
+    ]) {
+      expect(planModeDeny({ ...input, toolInput: { path: target } }, c)).toBeNull();
+      expect(
+        prometheusRoleDeny(
+          { ...input, toolInput: { path: target } },
+          c,
+          "prometheus",
+        ),
+      ).toBeNull();
+    }
+
+    const relativeCustom = cfg(path.join(ws, "relative-pdata"), {
+      stateDirName: ".custom",
+    });
+    const relativeInput = base(ws, { sessionId: "relative-state" });
+    const relativePm = startPlanMode(relativeInput, relativeCustom, "relative state");
+    expect(
+      planModeDeny(
+        { ...relativeInput, toolInput: { path: relativePm.planFile! } },
+        relativeCustom,
+      ),
+    ).toBeNull();
+
+    const absoluteRoot = path.join(tmpWorkspace(), "custom-state");
+    const absoluteCustom = cfg(path.join(ws, "absolute-pdata"), {
+      stateDirName: absoluteRoot,
+    });
+    const absoluteInput = base(ws, { sessionId: "absolute-state" });
+    const absolutePm = startPlanMode(absoluteInput, absoluteCustom, "absolute state");
+    expect(
+      planModeDeny(
+        { ...absoluteInput, toolInput: { path: absolutePm.planFile! } },
+        absoluteCustom,
+      ),
+    ).toBeNull();
+  });
+
+  it("allows the first plan target before plansDir exists", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    const firstPlan = path.join(ws, ".omg", "plans", "first.md");
+
+    expect(fs.existsSync(path.dirname(firstPlan))).toBe(false);
+    expect(
+      prometheusRoleDeny(
+        { ...input, toolInput: { path: firstPlan, contents: "# first\n" } },
+        c,
+        "prometheus",
+      ),
+    ).toBeNull();
+  });
+
+  it("rejects every lexical escape in both denies and the skill skip", () => {
+    const ws = tmpWorkspace();
+    const outside = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    startPlanMode(input, c, "invalid paths");
+
+    const otherRoot =
+      process.platform === "win32"
+        ? path.parse(ws).root.toLowerCase().startsWith("c:")
+          ? "D:\\"
+          : "C:\\"
+        : path.parse(outside).root;
+    const invalid = [
+      rawPath(ws, ".omg", "plans", "..", "..", "src", "app.ts"),
+      path.join(outside, ".omg", "plans", "external.md"),
+      path.join(ws, ".omg", "plans-evil", "sibling.md"),
+      path.join(ws, "src", "plan-mode.json"),
+      path.join(otherRoot, "outside", ".omg", "plans", "cross-root.md"),
+    ];
+
+    for (const target of invalid) {
+      const toolInput = { path: target, contents: "# plan\n" };
+      expect(planModeDeny({ ...input, toolInput }, c)).toMatch(/plan-mode|plans/i);
+      expect(
+        prometheusRoleDeny({ ...input, toolInput }, c, "prometheus"),
+      ).toMatch(/PROMETHEUS_ROLE|plan-only/i);
+      expect(isPlanModePlanOnlyWrite({ ...input, toolInput }, c)).toBe(false);
+    }
+  });
+
+  it("rejects a plan descendant link that escapes the boundary", () => {
+    const ws = tmpWorkspace();
+    const outside = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    startPlanMode(input, c, "link escape");
+    const link = path.join(ws, ".omg", "plans", "escape");
+    fs.symlinkSync(outside, link, process.platform === "win32" ? "junction" : "dir");
+    const toolInput = { path: path.join(link, "outside.md"), contents: "# no\n" };
+
+    expect(planModeDeny({ ...input, toolInput }, c)).toMatch(/plan-mode|plans/i);
+    expect(prometheusRoleDeny({ ...input, toolInput }, c, "prometheus")).toMatch(
+      /PROMETHEUS_ROLE|plan-only/i,
+    );
+    expect(isPlanModePlanOnlyWrite({ ...input, toolInput }, c)).toBe(false);
+  });
+
+  it("rejects a mixed MultiEdit batch", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    const pm = startPlanMode(input, c, "batch");
+    const escaped = rawPath(ws, ".omg", "plans", "..", "..", "src", "app.ts");
+    const toolInput = {
+      edits: [
+        { path: pm.planFile!, old_string: "# Plan", new_string: "# Updated" },
+        { path: escaped, old_string: "old", new_string: "new" },
+      ],
+    };
+
+    expect(planModeDeny({ ...input, toolInput }, c)).toMatch(/plan-mode|plans/i);
+    expect(prometheusRoleDeny({ ...input, toolInput }, c, "prometheus")).toMatch(
+      /PROMETHEUS_ROLE|plan-only/i,
+    );
+    expect(isPlanModePlanOnlyWrite({ ...input, toolInput }, c)).toBe(false);
   });
 });
 

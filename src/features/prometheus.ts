@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { EnvConfig, HookInput } from "../protocol/types.js";
 import { ensureDir, readJson, removeFile, writeJsonAtomic, writeTextAtomic } from "../state/fs.js";
+import { isTargetInside } from "../state/path-boundary.js";
 import { pathsFor } from "../state/paths.js";
 import {
   parsePlanTaskCheckboxes,
@@ -243,13 +244,18 @@ export function detectPlanCommand(prompt: string): {
   return { action: null, topic: "" };
 }
 
-export function isPlanWritePath(file: string): boolean {
-  const norm = file.replace(/\\/g, "/");
-  return (
-    norm.includes("/.omg/plans/") ||
-    norm.includes(".omg/plans/") ||
-    norm.endsWith("plan-mode.json")
-  );
+export function isPlanWritePath(
+  input: HookInput,
+  cfg: EnvConfig,
+  file: string,
+): boolean {
+  if (!file?.trim()) return false;
+  const plansDir = pathsFor(input.workspaceRoot, input.sessionId, cfg).plansDir;
+  return isTargetInside({
+    boundary: plansDir,
+    baseDir: input.workspaceRoot || input.cwd,
+    target: file,
+  });
 }
 
 /**
@@ -265,7 +271,7 @@ export function isPlanModePlanOnlyWrite(
   if (!pm.active) return false;
   const paths = pathsFromToolInput(input.toolInput);
   if (!paths.length) return false;
-  return paths.every(isPlanWritePath);
+  return paths.every((file) => isPlanWritePath(input, cfg, file));
 }
 
 export function planModeDeny(input: HookInput, cfg: EnvConfig): string | null {
@@ -277,7 +283,7 @@ export function planModeDeny(input: HookInput, cfg: EnvConfig): string | null {
   if (!paths.length) {
     return "[Prometheus plan-mode] Specify a path under .omg/plans/ while planning. Other writes denied.";
   }
-  const blocked = paths.filter((f) => !isPlanWritePath(f));
+  const blocked = paths.filter((file) => !isPlanWritePath(input, cfg, file));
   if (!blocked.length) return null;
   return [
     "[Prometheus plan-mode] Only writes under .omg/plans/ are allowed.",
@@ -306,7 +312,7 @@ export function prometheusRoleDeny(
       "How to fix: set path to a plan file, or /agent sisyphus to implement.",
     ].join("\n");
   }
-  const blocked = paths.filter((f) => !isPlanWritePath(f));
+  const blocked = paths.filter((file) => !isPlanWritePath(input, cfg, file));
   if (!blocked.length) return null;
   return [
     "[PROMETHEUS_ROLE] Prometheus is plan-only — implementation paths blocked.",

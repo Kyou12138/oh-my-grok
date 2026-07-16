@@ -40,7 +40,7 @@ export declare function detectPlanCommand(prompt: string): {
     action: "plan" | "start-work" | null;
     topic: string;
 };
-export declare function isPlanWritePath(file: string): boolean;
+export declare function isPlanWritePath(input: HookInput, cfg: EnvConfig, file: string): boolean;
 /**
  * True when plan-mode is active and every path in this tool call is under .omg/plans/.
  * Used to skip Skill Gate on pure plan markdown edits (v1.1.26).
