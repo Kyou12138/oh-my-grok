@@ -44,6 +44,8 @@ oh-my-grok still **writes** `additionalContext` / Stop `decision:block` for test
 8. Comment checker hard deny (when deny mode)  
 9. Skill Gate (skipped for plan-mode **plan-only** writes)  
 
+Plan-only writes are checked against the configured `plansDir` after resolving the workspace base, nearest existing ancestor, and real filesystem paths. A lexical `.omg/plans/` substring alone never grants write access.
+
 ## Stop order (state machine; stdout not host-enforced)
 
 Handlers still run and mutate `.omg` / session state (Ralph phase, boulder, spawn pending, todos).  
