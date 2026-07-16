@@ -51,6 +51,23 @@ export declare function extractTodosFromToolInput(toolInput?: Record<string, unk
 export declare function applyTodoUpdates(input: HookInput, cfg: EnvConfig, updates: TodoItem[], merge: boolean): TodoItem[];
 export declare function isTodoOpenStatus(status?: string): boolean;
 export declare function incompleteTodos(input: HookInput, cfg: EnvConfig): TodoItem[];
+export interface TodoCompleteSignalState {
+    schemaVersion: 1;
+    /** One-shot ALL_TODOS_COMPLETE Stop yank already fired for this completion wave. */
+    signaled: boolean;
+    updatedAt: string;
+}
+export declare function loadTodoCompleteSignal(input: HookInput, cfg: EnvConfig): TodoCompleteSignalState;
+export declare function markTodoCompleteSignaled(input: HookInput, cfg: EnvConfig, signaled: boolean): void;
+/**
+ * omo #4111: when all mirrored todos are closed, idle Stop used to go silent.
+ * One-shot block asks for a user-facing summary (not ultrawork spam).
+ * Substantial non-idle replies already count as the signal.
+ */
+export declare function allTodosCompleteStopReason(input: HookInput, cfg: EnvConfig, opts: {
+    idle: boolean;
+    message?: string;
+}): string | null;
 export declare function loadBoulder(input: HookInput, cfg: EnvConfig): BoulderState | null;
 export declare function setBoulder(input: HookInput, cfg: EnvConfig, state: BoulderState): void;
 export declare function clearBoulder(input: HookInput, cfg: EnvConfig): void;

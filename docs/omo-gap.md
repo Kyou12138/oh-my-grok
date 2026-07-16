@@ -1,6 +1,6 @@
 # oh-my-grok vs oh-my-openagent (omo) — capability inventory
 
-**Date:** 2026-07-16 · **omg version:** **1.1.18**  
+**Date:** 2026-07-16 · **omg version:** **1.1.19**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 ## Legend
@@ -375,6 +375,14 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **omo [#6066](https://github.com/code-yeongyu/oh-my-openagent/issues/6066)** start-work Goal | `/start-work` 在 todos mirror 为空时从 plan 任务行 seed todos → Stop todo continuation 可跟踪执行进度 |
 | **parsePlanTaskCheckboxes** | 与 countPlanTaskCheckboxes / seed 共用语法 |
 
+## Closed this spiral (v1.1.19) — omo issues
+
+| omo issue | oh-my-grok |
+|-----------|------------|
+| [#1775](https://github.com/code-yeongyu/oh-my-openagent/issues/1775) no-progress / blocked on human | `blocked`/`deferred`/`waiting`/`on_hold`/`paused` 不算 incomplete → 不再 yank continuation |
+| [#4111](https://github.com/code-yeongyu/oh-my-openagent/issues/4111) all todos complete silent stop | Stop 一次性 `ALL_TODOS_COMPLETE` 要求用户向摘要；非 idle 长回复直接标记已 signal |
+| [#4744](https://github.com/code-yeongyu/oh-my-openagent/issues/4744) Atlas loop after complete | 受益于 #1775 状态 + stagnation（v1.1.11）+ #4111 完成信号 |
+
 ## Next spiral focus (提升)
 
 - Hashline native edit tool（宿主能力）
@@ -383,7 +391,7 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 - omo #4217 stall 深化（若 host 暴露 task progress）
 - 持续扫 omo issues 中 **Grok-feasible** 门禁
 
-**推荐**: `grok plugin update` → **1.1.18**。
+**推荐**: `grok plugin update` → **1.1.19**。
 
 ## Explicit non-goals
 

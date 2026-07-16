@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.19] — 2026-07-16
+
+### MAGI spiral — todo complete signal + blocked status (omo #4111 / #1775)
+
+- **fix(isTodoOpenStatus)** treat `blocked` / `deferred` / `waiting` / `on_hold` / `paused` as closed — no continuation loop when work waits on human (omo [#1775](https://github.com/code-yeongyu/oh-my-openagent/issues/1775))
+- **feat(Stop)** one-shot `ALL_TODOS_COMPLETE` when mirror has only closed todos and reply is idle — ask for user summary instead of silent freeze (omo [#4111](https://github.com/code-yeongyu/oh-my-openagent/issues/4111)); substantial wrap-up marks signaled without re-block
+- **test** status matrix + complete-signal once + Stop path
+
 ## [1.1.18] — 2026-07-16
 
 ### MAGI spiral — plan checkbox hygiene + start-work todos (omo #6066)

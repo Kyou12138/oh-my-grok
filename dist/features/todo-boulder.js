@@ -117,12 +117,87 @@ export function applyTodoUpdates(input, cfg, updates, merge) {
     mirrorTodos(input, cfg, merged);
     return merged;
 }
+/**
+ * Statuses that do NOT need continuation (omo #1775: blocked/waiting must not loop).
+ * pending / in_progress / empty / unknown remain open.
+ */
+const CLOSED_TODO_STATUSES = new Set([
+    "completed",
+    "done",
+    "cancelled",
+    "canceled",
+    "blocked",
+    "deferred",
+    "waiting",
+    "on_hold",
+    "onhold",
+    "hold",
+    "paused",
+    "wontfix",
+    "wont_fix",
+]);
 export function isTodoOpenStatus(status) {
-    const s = (status || "").toLowerCase();
-    return s !== "completed" && s !== "done" && s !== "cancelled" && s !== "canceled";
+    const s = (status || "").toLowerCase().trim().replace(/[\s-]+/g, "_");
+    if (!s)
+        return true;
+    return !CLOSED_TODO_STATUSES.has(s);
 }
 export function incompleteTodos(input, cfg) {
     return loadTodosMirror(input, cfg).filter((t) => isTodoOpenStatus(t.status));
+}
+function todoCompleteSignalPath(input, cfg) {
+    return path.join(pathsFor(input.workspaceRoot, input.sessionId, cfg).session, "todo-complete-signal.json");
+}
+export function loadTodoCompleteSignal(input, cfg) {
+    return readJson(todoCompleteSignalPath(input, cfg), {
+        schemaVersion: 1,
+        signaled: false,
+        updatedAt: "",
+    });
+}
+export function markTodoCompleteSignaled(input, cfg, signaled) {
+    ensureDir(pathsFor(input.workspaceRoot, input.sessionId, cfg).session);
+    writeJsonAtomic(todoCompleteSignalPath(input, cfg), {
+        schemaVersion: 1,
+        signaled,
+        updatedAt: new Date().toISOString(),
+    });
+}
+/**
+ * omo #4111: when all mirrored todos are closed, idle Stop used to go silent.
+ * One-shot block asks for a user-facing summary (not ultrawork spam).
+ * Substantial non-idle replies already count as the signal.
+ */
+export function allTodosCompleteStopReason(input, cfg, opts) {
+    const mirror = loadTodosMirror(input, cfg);
+    if (!mirror.length)
+        return null;
+    const open = mirror.filter((t) => isTodoOpenStatus(t.status));
+    if (open.length > 0) {
+        // New work appeared — allow a future completion wave
+        if (loadTodoCompleteSignal(input, cfg).signaled) {
+            markTodoCompleteSignaled(input, cfg, false);
+        }
+        return null;
+    }
+    if (loadTodoCompleteSignal(input, cfg).signaled)
+        return null;
+    const msg = (opts.message || "").trim();
+    // Agent already delivered a non-idle wrap-up — mark and let Stop pass
+    if (!opts.idle && msg.length >= 40) {
+        markTodoCompleteSignaled(input, cfg, true);
+        return null;
+    }
+    markTodoCompleteSignaled(input, cfg, true);
+    const n = mirror.length;
+    const blocked = mirror.filter((t) => /^(blocked|deferred|waiting|on_hold|onhold|hold|paused)$/i.test((t.status || "").trim().replace(/[\s-]+/g, "_"))).length;
+    return [
+        "ALL_TODOS_COMPLETE — no open todos remain (omo #4111).",
+        `Closed items in mirror: ${n}${blocked ? ` (incl. ${blocked} blocked/deferred)` : ""}.`,
+        "",
+        "Give the user a brief completion summary (what shipped / verified).",
+        "Do not invent new todos unless the user asks. Do not go silent.",
+    ].join("\n");
 }
 export function loadBoulder(input, cfg) {
     const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);

@@ -5,7 +5,7 @@ import { categoryDisciplineStopReason } from "../features/category-discipline.js
 import { spawnFollowThroughStopReason } from "../features/spawn-followthrough.js";
 import { loadRalph, processLoopStop } from "../features/ralph.js";
 import { isDoneMessage } from "../features/ralph.js";
-import { boulderStopReason, clearBoulder, hasOpenPlanCheckboxes, incompleteTodos, isStopPaused, isTodoEnforcerCircuitOpen, loadBoulder, markTodoContinued, todoEnforcerAllows, todoStopReason, } from "../features/todo-boulder.js";
+import { allTodosCompleteStopReason, boulderStopReason, clearBoulder, hasOpenPlanCheckboxes, incompleteTodos, isStopPaused, isTodoEnforcerCircuitOpen, loadBoulder, markTodoContinued, todoEnforcerAllows, todoStopReason, } from "../features/todo-boulder.js";
 export function handleStop(input, cfg) {
     if (isVerifiedMessage(input.lastAssistantMessage)) {
         markVerified(input, cfg);
@@ -83,6 +83,16 @@ export function handleStop(input, cfg) {
             }
             parts.push(todoStopReason(todos));
             return { decision: "block", reason: parts.join("\n") };
+        }
+    }
+    else {
+        // 3b. omo #4111 — all closed: one-shot summary signal (no silent freeze)
+        const allDone = allTodosCompleteStopReason(input, cfg, {
+            idle,
+            message: input.lastAssistantMessage,
+        });
+        if (allDone) {
+            return { decision: "block", reason: allDone };
         }
     }
     // 4. Diagnostics

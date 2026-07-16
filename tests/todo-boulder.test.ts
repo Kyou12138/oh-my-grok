@@ -13,12 +13,15 @@ import {
   applyTodoUpdates,
   clearBoulder,
   extractTodosFromToolInput,
+  allTodosCompleteStopReason,
   hasOpenPlanCheckboxes,
   incompleteTodos,
   isAbortLikeStopReason,
   isStopPaused,
   isTodoMergeMode,
+  isTodoOpenStatus,
   loadBoulder,
+  loadTodoCompleteSignal,
   loadTodosMirror,
   markTodoContinued,
   mirrorTodos,
@@ -267,6 +270,105 @@ describe("incompleteTodos status filter", () => {
     ]);
     const open = incompleteTodos(input, c);
     expect(open.map((t) => t.content).sort()).toEqual(["a", "f"]);
+  });
+
+  it("treats blocked/deferred/waiting as closed (omo #1775 no-progress)", () => {
+    expect(isTodoOpenStatus("blocked")).toBe(false);
+    expect(isTodoOpenStatus("deferred")).toBe(false);
+    expect(isTodoOpenStatus("waiting")).toBe(false);
+    expect(isTodoOpenStatus("on_hold")).toBe(false);
+    expect(isTodoOpenStatus("on-hold")).toBe(false);
+    expect(isTodoOpenStatus("paused")).toBe(false);
+    expect(isTodoOpenStatus("pending")).toBe(true);
+    expect(isTodoOpenStatus("in_progress")).toBe(true);
+
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    mirrorTodos(input, c, [
+      { content: "need secrets", status: "blocked" },
+      { content: "later", status: "deferred" },
+      { content: "ship", status: "completed" },
+    ]);
+    expect(incompleteTodos(input, c)).toEqual([]);
+  });
+});
+
+describe("allTodosCompleteStopReason (omo #4111)", () => {
+  it("idle + all closed → one-shot ALL_TODOS_COMPLETE", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws, { lastAssistantMessage: "ok" });
+    mirrorTodos(input, c, [
+      { content: "a", status: "completed" },
+      { content: "b", status: "blocked" },
+    ]);
+    const r1 = allTodosCompleteStopReason(input, c, {
+      idle: true,
+      message: "ok",
+    });
+    expect(r1).toMatch(/ALL_TODOS_COMPLETE/);
+    expect(r1).toMatch(/summary/i);
+    expect(loadTodoCompleteSignal(input, c).signaled).toBe(true);
+
+    // second time: no re-yank
+    expect(
+      allTodosCompleteStopReason(input, c, { idle: true, message: "ok" }),
+    ).toBeNull();
+  });
+
+  it("substantial non-idle wrap-up marks signaled without block", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    mirrorTodos(input, c, [{ content: "a", status: "completed" }]);
+    const long =
+      "Shipped the auth fix and verified with npm test; all checklist items closed.";
+    expect(
+      allTodosCompleteStopReason(input, c, { idle: false, message: long }),
+    ).toBeNull();
+    expect(loadTodoCompleteSignal(input, c).signaled).toBe(true);
+  });
+
+  it("empty mirror or open todos → null; open work clears prior signal", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    expect(allTodosCompleteStopReason(input, c, { idle: true })).toBeNull();
+
+    mirrorTodos(input, c, [{ content: "a", status: "completed" }]);
+    allTodosCompleteStopReason(input, c, { idle: true, message: "ok" });
+    expect(loadTodoCompleteSignal(input, c).signaled).toBe(true);
+
+    mirrorTodos(input, c, [
+      { content: "a", status: "completed" },
+      { content: "new", status: "pending" },
+    ]);
+    expect(
+      allTodosCompleteStopReason(input, c, { idle: true, message: "ok" }),
+    ).toBeNull();
+    expect(loadTodoCompleteSignal(input, c).signaled).toBe(false);
+  });
+
+  it("Stop path: idle after all complete blocks once with ALL_TODOS_COMPLETE", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"), { todoCooldownMs: 0 });
+    mirrorTodos(base(ws), c, [
+      { content: "one", status: "completed" },
+      { content: "two", status: "cancelled" },
+    ]);
+    const stop1 = handleStop(
+      base(ws, { lastAssistantMessage: "done" }),
+      c,
+    );
+    expect(stop1).toMatchObject({ decision: "block" });
+    expect(JSON.stringify(stop1)).toMatch(/ALL_TODOS_COMPLETE/);
+
+    const stop2 = handleStop(
+      base(ws, { lastAssistantMessage: "done" }),
+      c,
+    );
+    expect(stop2).toEqual({});
   });
 });
 

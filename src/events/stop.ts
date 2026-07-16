@@ -16,6 +16,7 @@ import { spawnFollowThroughStopReason } from "../features/spawn-followthrough.js
 import { loadRalph, processLoopStop } from "../features/ralph.js";
 import { isDoneMessage } from "../features/ralph.js";
 import {
+  allTodosCompleteStopReason,
   boulderStopReason,
   clearBoulder,
   hasOpenPlanCheckboxes,
@@ -114,6 +115,15 @@ export function handleStop(input: HookInput, cfg: EnvConfig): HookOutput {
       }
       parts.push(todoStopReason(todos));
       return { decision: "block", reason: parts.join("\n") };
+    }
+  } else {
+    // 3b. omo #4111 — all closed: one-shot summary signal (no silent freeze)
+    const allDone = allTodosCompleteStopReason(input, cfg, {
+      idle,
+      message: input.lastAssistantMessage,
+    });
+    if (allDone) {
+      return { decision: "block", reason: allDone };
     }
   }
 
