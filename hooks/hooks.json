@@ -24,7 +24,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Write|WriteFile|StrReplace|SearchReplace|search_replace|search-replace|EditNotebook|NotebookEdit|notebook_edit|Delete|DeleteFile|Edit|EditFile|Create|Apply_patch|ApplyPatch|apply_patch|apply-patch|Multiedit|MultiEdit",
+        "matcher": "Write|WriteFile|StrReplace|SearchReplace|search_replace|search-replace|EditNotebook|NotebookEdit|notebook_edit|Delete|DeleteFile|Edit|EditFile|Create|CreateFile|Apply_patch|ApplyPatch|apply_patch|apply-patch|Multiedit|MultiEdit|spawn_subagent|SpawnSubagent|Task|task|call_omo_agent",
         "hooks": [
           {
             "type": "command",
@@ -56,7 +56,7 @@
         ]
       },
       {
-        "matcher": "Write|WriteFile|StrReplace|SearchReplace|search_replace|search-replace|Edit|EditFile|Create|Apply_patch|ApplyPatch|apply_patch|apply-patch|Multiedit|MultiEdit|Delete|DeleteFile",
+        "matcher": "Write|WriteFile|StrReplace|SearchReplace|search_replace|search-replace|Edit|EditFile|Create|CreateFile|Apply_patch|ApplyPatch|apply_patch|apply-patch|Multiedit|MultiEdit|Delete|DeleteFile|EditNotebook|NotebookEdit|notebook_edit",
         "hooks": [
           {
             "type": "command",

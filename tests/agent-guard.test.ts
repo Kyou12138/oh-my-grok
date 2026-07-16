@@ -311,6 +311,60 @@ describe("session-role helpers", () => {
     expect(isSpawnTool(undefined)).toBe(false);
   });
 
+  it("v1.1.25: read-only agent cannot task/spawn (PreTool hard)", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const deny = agentGuardDeny(
+      base(ws, {
+        agentName: "oracle",
+        toolName: "task",
+        toolInput: { subagent_type: "explore", prompt: "find x" },
+      }),
+      c,
+    );
+    expect(deny).toMatch(/AGENT_GUARD|read-only|spawn|task/i);
+
+    const pre = handlePreToolUse(
+      base(ws, {
+        agentName: "explore",
+        toolName: "spawn_subagent",
+        toolInput: { subagent_type: "hephaestus", prompt: "impl" },
+      }),
+      c,
+    );
+    expect(pre.exitCode).toBe(2);
+    expect(pre.output).toMatchObject({ decision: "deny" });
+  });
+
+  it("v1.1.25: atlas cannot re-delegate via task", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const deny = agentGuardDeny(
+      base(ws, {
+        agentName: "atlas",
+        toolName: "task",
+        toolInput: { subagent_type: "hephaestus", prompt: "more" },
+      }),
+      c,
+    );
+    expect(deny).toMatch(/AGENT_GUARD|re-delegate|execute/i);
+  });
+
+  it("v1.1.25: sisyphus may still task", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    expect(
+      agentGuardDeny(
+        base(ws, {
+          agentName: "sisyphus",
+          toolName: "task",
+          toolInput: { subagent_type: "explore", prompt: "x" },
+        }),
+        c,
+      ),
+    ).toBeNull();
+  });
+
   it("set / get / clear roundtrip with source", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));

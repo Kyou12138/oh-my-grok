@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.25] — 2026-07-16
+
+### MAGI spiral — Agent Guard spawn/task PreTool + NotebookEdit post-write
+
+- **feat(agent-guard)** PreTool deny `task` / `spawn_subagent` for **read-only** roles and **no-redelegate** roles (atlas/momus/sisyphus-junior) — host-enforced when matcher fires
+- **hooks** PreTool matcher adds spawn/task names; PostTool write adds NotebookEdit variants; CreateFile
+- **fix(isMutatingTool)** `createfile` recognized
+- **test** oracle/explore spawn deny; atlas task deny; sisyphus allow
+
 ## [1.1.24] — 2026-07-16
 
 ### MAGI spiral — MultiEdit old_string gate + SessionStart hard-gate tip

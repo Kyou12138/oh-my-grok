@@ -18,6 +18,7 @@ const MUTATING = new Set([
     "edit",
     "editfile",
     "create",
+    "createfile",
     "applypatch",
     "multiedit",
     "writefile",

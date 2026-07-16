@@ -3,7 +3,11 @@
  * Role sources: HookInput.agentName, env, raw payload, sticky session role.
  */
 import type { EnvConfig, HookInput } from "../protocol/types.js";
-import { getSessionAgentRole, loadSessionAgentRoleState } from "./session-role.js";
+import {
+  getSessionAgentRole,
+  isSpawnTool,
+  loadSessionAgentRoleState,
+} from "./session-role.js";
 import { isMutatingTool } from "./skill-gate.js";
 
 /** Agents that must not write/edit/delete. */
@@ -89,9 +93,32 @@ export function isReadOnlyAgent(role: string): boolean {
 
 export function agentGuardDeny(input: HookInput, cfg: EnvConfig): string | null {
   if (!cfg.agentGuard) return null;
-  if (!isMutatingTool(input.toolName)) return null;
   const role = resolveAgentRole(input, cfg);
   if (!role) return null;
+
+  // v1.1.25: host-enforced spawn deny (needs PreTool matcher on task/spawn_*)
+  // Read-only specialists and no-delegate executors must not re-task forever.
+  if (isSpawnTool(input.toolName)) {
+    if (isReadOnlyAgent(role)) {
+      return [
+        `[AGENT_GUARD] Agent "${role}" is read-only — cannot spawn/task subagents.`,
+        "Blocked: task / spawn_subagent / call_omo_agent.",
+        "Report findings only. Implementation: switch to sisyphus/hephaestus main session.",
+        "Clear sticky role: /agent hephaestus  (or /agent sisyphus)",
+      ].join("\n");
+    }
+    if (NO_DELEGATE_AGENTS.has(role)) {
+      return [
+        `[AGENT_GUARD] Agent "${role}" must execute, not re-delegate.`,
+        "Blocked: task / spawn_subagent (no-redelegate).",
+        "Do the assigned work in this session, or return results to the parent orchestrator.",
+        "Clear sticky role if you are the main orchestrator: /agent sisyphus",
+      ].join("\n");
+    }
+    return null;
+  }
+
+  if (!isMutatingTool(input.toolName)) return null;
   if (!isReadOnlyAgent(role)) return null;
   return [
     `[AGENT_GUARD] Agent "${role}" is read-only.`,
