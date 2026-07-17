@@ -13,6 +13,7 @@ import type { EnvConfig, HookInput } from "../src/protocol/types.js";
 import {
   agentGuardBanner,
   agentGuardDeny,
+  getShellCommand,
   isMutatingShellCommand,
   isReadOnlyAgent,
   isShellTool,
@@ -266,6 +267,64 @@ describe("agentGuardDeny", () => {
         toolName: "Bash",
         toolInput: {
           command: "node -e \"require('fs').writeFileSync('x.ts','1')\"",
+        },
+      }),
+      c,
+    );
+    expect(r.exitCode).toBe(2);
+    expect(JSON.stringify(r.output)).toMatch(/AGENT_GUARD|mutating shell/i);
+  });
+
+  it("getShellCommand joins argv arrays with spaces (v1.1.38)", () => {
+    const ws = tmpWorkspace();
+    // String(["node","-e",…]) === "node,-e,…" — broken for -e detection
+    const joined = getShellCommand(
+      base(ws, {
+        toolInput: {
+          command: [
+            "node",
+            "-e",
+            "require('fs').writeFileSync('leak.ts','x')",
+          ],
+        },
+      }),
+    );
+    expect(joined).toBe(
+      "node -e require('fs').writeFileSync('leak.ts','x')",
+    );
+    expect(isMutatingShellCommand(joined)).toBe(true);
+
+    const withArgs = getShellCommand(
+      base(ws, {
+        toolInput: {
+          command: "python",
+          args: ["-c", "open('x','w').write('y')"],
+        },
+      }),
+    );
+    expect(withArgs).toBe("python -c open('x','w').write('y')");
+    expect(isMutatingShellCommand(withArgs)).toBe(true);
+
+    expect(
+      getShellCommand(
+        base(ws, { toolInput: { command: ["ls", "-la"] } }),
+      ),
+    ).toBe("ls -la");
+  });
+
+  it("denies oracle Bash when command is argv array write (v1.1.38)", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const r = handlePreToolUse(
+      base(ws, {
+        agentName: "oracle",
+        toolName: "Bash",
+        toolInput: {
+          command: [
+            "node",
+            "-e",
+            "require('fs').writeFileSync('x.ts','1')",
+          ],
         },
       }),
       c,

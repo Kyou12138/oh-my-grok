@@ -87,13 +87,49 @@ export function isMutatingShellCommand(command?: string): boolean {
   return false;
 }
 
-/** Extract shell command string from tool input (command/cmd/script/…). */
+/**
+ * Extract shell command string from tool input (command/cmd/script/…).
+ * v1.1.38: argv arrays must join with spaces — `String(["node","-e",…])` becomes
+ * `node,-e,…` which breaks `-e` / write detection and open read-only/plan gates.
+ */
 export function getShellCommand(input: HookInput): string {
   const ti = input.toolInput;
   if (!ti) return "";
-  return String(
-    ti.command ?? ti.cmd ?? ti.script ?? ti.input ?? ti.code ?? "",
-  );
+
+  const parts: string[] = [];
+  const pushRaw = (v: unknown) => {
+    if (v === undefined || v === null) return;
+    if (Array.isArray(v)) {
+      for (const item of v) {
+        if (item === undefined || item === null) continue;
+        parts.push(String(item));
+      }
+      return;
+    }
+    if (typeof v === "string") {
+      if (v.trim()) parts.push(v);
+      return;
+    }
+    // rare: { cmd, args } nested
+    if (typeof v === "object") {
+      const o = v as Record<string, unknown>;
+      pushRaw(o.cmd ?? o.command ?? o.shell);
+      pushRaw(o.args ?? o.arguments ?? o.argv);
+    }
+  };
+
+  // Prefer full argv forms first
+  if (Array.isArray(ti.command) || Array.isArray(ti.cmd)) {
+    pushRaw(ti.command ?? ti.cmd);
+  } else {
+    pushRaw(ti.command ?? ti.cmd ?? ti.script ?? ti.input ?? ti.code ?? "");
+    // host may split: command + args[]
+    if (Array.isArray(ti.args) || Array.isArray(ti.arguments) || Array.isArray(ti.argv)) {
+      pushRaw(ti.args ?? ti.arguments ?? ti.argv);
+    }
+  }
+
+  return parts.join(" ").trim();
 }
 
 /** Agents that must not write/edit/delete. */

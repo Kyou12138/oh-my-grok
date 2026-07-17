@@ -11,7 +11,11 @@ export declare function isShellTool(toolName?: string): boolean;
  * and v1.1.37 one-liner write bypasses (node -e writeFileSync, python -c open w, curl -o).
  */
 export declare function isMutatingShellCommand(command?: string): boolean;
-/** Extract shell command string from tool input (command/cmd/script/…). */
+/**
+ * Extract shell command string from tool input (command/cmd/script/…).
+ * v1.1.38: argv arrays must join with spaces — `String(["node","-e",…])` becomes
+ * `node,-e,…` which breaks `-e` / write detection and open read-only/plan gates.
+ */
 export declare function getShellCommand(input: HookInput): string;
 /** Agents that must not write/edit/delete. */
 export declare const READ_ONLY_AGENTS: Set<string>;

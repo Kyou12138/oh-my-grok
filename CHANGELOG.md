@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.38] — 2026-07-17
+
+### MAGI spiral — shell argv array command join
+
+- **fix(getShellCommand)** argv arrays (`command: ["node","-e",…]`) join with spaces — `String(array)` used commas and broke `-e` / write detection (read-only + plan + prometheus shell gates false-allow)
+- **feat** also merge top-level `args` / `arguments` / `argv` with string `command`
+- **test** array writeFileSync matrix + oracle PreTool deny
+
 ## [1.1.37] — 2026-07-17
 
 ### MAGI spiral — shell write one-liner bypasses
