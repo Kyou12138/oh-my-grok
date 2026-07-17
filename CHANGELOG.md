@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.44] — 2026-07-17
+
+### MAGI spiral — more mutating shell bypasses
+
+- **fix(isMutatingShellCommand)** block `git clean` / `git restore` / `tar -x` extract / `unzip` / `rsync` / `dd … of=` / `bun|deno|composer install`
+- **keep allow** `tar -t` list-only, `git status` / `git log`
+- **test** matrix + oracle PreTool deny on `git clean -fdx`
+
 ## [1.1.43] — 2026-07-17
 
 ### MAGI spiral — Skill tool unlocks Skill Gate

@@ -30,9 +30,19 @@ export function isMutatingShellCommand(command) {
         /\b(mv|move|cp|copy|mkdir|md|touch|chmod|chown|ln|link)\b/i.test(c) ||
         /\b(sed|perl|ruby)\b[^|&;\n]*\s-i\b/i.test(c) ||
         /\b(Set-Content|Add-Content|Out-File|New-Item|Remove-Item|Move-Item|Copy-Item|Rename-Item)\b/i.test(c) ||
-        /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick)\b/i.test(c) ||
+        // v1.1.44: clean/restore rewrite tree; rm/mv already hit bare \brm\b but keep explicit
+        /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv)\b/i.test(c) ||
         /\b(npm|pnpm|yarn)\s+(i|install|uninstall|remove|publish)\b/i.test(c) ||
-        /\b(pip3?|cargo|go)\s+(install|get)\b/i.test(c)) {
+        /\b(pip3?|cargo|go|bun|deno|composer|bundle)\s+install\b/i.test(c) ||
+        /\b(pip3?|cargo|go)\s+get\b/i.test(c)) {
+        return true;
+    }
+    // Archives / sync / raw disk write (v1.1.44) — list-only tar -t stays allowed
+    if (/\bunzip\b/i.test(c) ||
+        /\brsync\b/i.test(c) ||
+        /\bdd\b[\s\S]{0,120}\bof=/i.test(c) ||
+        /\btar\b[^|&;\n]{0,80}(?:-[a-zA-Z]*x|--extract|\sx[fvc\s])/i.test(c) ||
+        /\b7z\s+x\b/i.test(c)) {
         return true;
     }
     // Download-to-file (curl -o / wget -O / Invoke-WebRequest -OutFile)

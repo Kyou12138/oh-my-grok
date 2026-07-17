@@ -258,6 +258,39 @@ describe("agentGuardDeny", () => {
     expect(isMutatingShellCommand("curl https://example.com")).toBe(false);
   });
 
+  it("blocks git clean/restore, tar extract, unzip, rsync, bun install (v1.1.44)", () => {
+    expect(isMutatingShellCommand("git clean -fd")).toBe(true);
+    expect(isMutatingShellCommand("git restore src/a.ts")).toBe(true);
+    expect(isMutatingShellCommand("tar -xzf a.tgz")).toBe(true);
+    expect(isMutatingShellCommand("tar xf a.tar")).toBe(true);
+    expect(isMutatingShellCommand("unzip package.zip")).toBe(true);
+    expect(isMutatingShellCommand("rsync -a src/ dest/")).toBe(true);
+    expect(
+      isMutatingShellCommand("dd if=/dev/zero of=big.bin bs=1M count=1"),
+    ).toBe(true);
+    expect(isMutatingShellCommand("bun install")).toBe(true);
+    expect(isMutatingShellCommand("composer install")).toBe(true);
+    // list-only / read-only still allowed
+    expect(isMutatingShellCommand("tar -tzf a.tgz")).toBe(false);
+    expect(isMutatingShellCommand("git status")).toBe(false);
+    expect(isMutatingShellCommand("git log --oneline -5")).toBe(false);
+  });
+
+  it("denies oracle git clean via PreTool (v1.1.44)", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const r = handlePreToolUse(
+      base(ws, {
+        agentName: "oracle",
+        toolName: "Bash",
+        toolInput: { command: "git clean -fdx" },
+      }),
+      c,
+    );
+    expect(r.exitCode).toBe(2);
+    expect(JSON.stringify(r.output)).toMatch(/AGENT_GUARD|mutating shell/i);
+  });
+
   it("denies oracle node -e writeFileSync via PreTool", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));
