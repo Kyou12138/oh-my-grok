@@ -482,6 +482,41 @@ describe("agentGuardDeny", () => {
     expect(isShellTool("Write")).toBe(false);
   });
 
+  it("blocks yarn global, npm exec create, julia/elixir write, useradd (v1.1.62)", () => {
+    expect(isMutatingShellCommand("yarn global add typescript")).toBe(true);
+    expect(isMutatingShellCommand("npm exec --yes create-vite@latest")).toBe(
+      true,
+    );
+    expect(
+      isMutatingShellCommand(
+        "julia -e 'open(\"a\",\"w\") do f; write(f,\"b\"); end'",
+      ),
+    ).toBe(true);
+    expect(
+      isMutatingShellCommand("elixir -e 'File.write!(\"a\",\"b\")'"),
+    ).toBe(true);
+    expect(
+      isMutatingShellCommand(
+        "erl -eval 'file:write_file(\"a\",\"b\"), halt().'",
+      ),
+    ).toBe(true);
+    expect(isMutatingShellCommand("podman compose up -d")).toBe(true);
+    expect(isMutatingShellCommand("psql -d db -c 'CREATE TABLE t(i int)'")).toBe(
+      true,
+    );
+    expect(isMutatingShellCommand("mongo --eval 'db.x.insert({a:1})'")).toBe(
+      true,
+    );
+    expect(isMutatingShellCommand("npm run db:reset")).toBe(true);
+    expect(isMutatingShellCommand("npm run migration:run")).toBe(true);
+    expect(isMutatingShellCommand("npm run prisma:generate")).toBe(true);
+    expect(isMutatingShellCommand("useradd -m bob")).toBe(true);
+    expect(isMutatingShellCommand("usermod -aG docker bob")).toBe(true);
+    expect(isMutatingShellCommand("systemctl mask x")).toBe(true);
+    expect(isMutatingShellCommand("visudo")).toBe(true);
+    expect(isMutatingShellCommand("git status")).toBe(false);
+  });
+
   it("blocks pnpm patch, tsx -e write, docker commit, make deploy (v1.1.61)", () => {
     expect(isMutatingShellCommand("pnpm patch lodash")).toBe(true);
     expect(isMutatingShellCommand("pnpm patch-commit /tmp/x")).toBe(true);
@@ -1154,6 +1189,12 @@ describe("session-role helpers", () => {
     expect(extractSpawnRole({ subagent: "hephaestus" })).toBe("hephaestus");
     expect(extractSpawnRole({ agent_role: "metis" })).toBe("metis");
     expect(extractSpawnRole({ selected_agent: "momus" })).toBe("momus");
+    // v1.1.62
+    expect(extractSpawnRole({ agentId: "hephaestus" })).toBe("hephaestus");
+    expect(extractSpawnRole({ agent_id: "librarian" })).toBe("librarian");
+    expect(extractSpawnRole({ persona: "oracle" })).toBe("oracle");
+    expect(extractSpawnRole({ worker: "explore" })).toBe("explore");
+    expect(extractSpawnRole({ delegate_to: "hephaestus" })).toBe("hephaestus");
     expect(extractSpawnRole({})).toBe("");
     expect(extractSpawnRole(undefined)).toBe("");
   });

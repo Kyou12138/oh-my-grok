@@ -206,6 +206,25 @@ describe("pathsFromToolInput", () => {
     ).toEqual(["c:/work/a.ts"]);
   });
 
+  it("file_list/entries/href/location (v1.1.62)", () => {
+    expect(pathsFromToolInput({ file_list: ["a.ts"] })).toEqual(["a.ts"]);
+    expect(pathsFromToolInput({ fileList: ["b.ts"] })).toEqual(["b.ts"]);
+    expect(pathsFromToolInput({ targets: ["c.ts"] })).toEqual(["c.ts"]);
+    expect(pathsFromToolInput({ entries: [{ path: "e.ts" }] })).toEqual([
+      "e.ts",
+    ]);
+    expect(pathsFromToolInput({ items: [{ file: "i.ts" }] })).toEqual(["i.ts"]);
+    expect(
+      pathsFromToolInput({ documents: [{ uri: "file:///tmp/d.ts" }] }),
+    ).toEqual(["/tmp/d.ts"]);
+    expect(pathsFromToolInput({ href: "file:///tmp/h.ts" })).toEqual([
+      "/tmp/h.ts",
+    ]);
+    expect(
+      pathsFromToolInput({ location: { uri: "file:///tmp/l.ts" } }),
+    ).toEqual(["/tmp/l.ts"]);
+  });
+
   it("content aliases new_content / code / value / data (v1.1.58)", () => {
     expect(
       contentSnippetsFromToolInput({ path: "a.ts", new_content: "nc" })[0]

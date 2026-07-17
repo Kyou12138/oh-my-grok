@@ -230,16 +230,37 @@ export function hasUlwCeremonyOpener(msg) {
         .replace(/^[【\[](.+)[】\]]$/, "$1")
         .trim();
     bare = bare
-        // v1.1.60/61: leading !!! / → / numbered / gong / rocket emoji / 【开场】
+        // v1.1.60–62: leading !!! / → / numbered / gong / rocket/fire emoji / 【开场】
         .replace(/^【[^】]{0,12}】\s*/u, "")
-        .replace(/^(?:[!！]+|\d+[.)、]\s*|[>*#]+\s*|[⚡🔔⚔🎯✅★☆*•·\-–—→➜➔🚀]+\s*)+/u, "")
-        .replace(/[!！.。?？🚀⚡🔔]+$/u, "")
+        .replace(/^(?:[!！]+|\d+[.)、]\s*|[>*#]+\s*|[⚡🔔⚔🎯✅★☆*•·\-–—→➜➔🚀🔥✨]+\s*)+/u, "")
+        .replace(/^[「『(\[]/, "")
+        .replace(/[」』)\]]$/, "")
+        .replace(/[!！.。?？🚀⚡🔔🔥✨]+$/u, "")
         .trim();
+    // same-line "OPENER! Goal: …" — take opener prefix only
+    const bang = bare.search(/[!！]/);
+    if (bang > 0 && bang < bare.length - 1) {
+        const head = bare.slice(0, bang + 1).trim();
+        const rest = bare.slice(bang + 1).trim();
+        if (rest && /^(goal|目标|—|-|–)/i.test(rest))
+            bare = head;
+    }
     const norm = (s) => s
-        .replace(/[!！.。?？🚀⚡🔔]+$/u, "")
+        .replace(/[!！.。?？🚀⚡🔔🔥✨]+$/u, "")
         .trim()
         .toUpperCase();
-    return ULW_CEREMONY_OPENERS.some((o) => bare === o || norm(bare) === norm(o));
+    return ULW_CEREMONY_OPENERS.some((o) => {
+        if (bare === o || norm(bare) === norm(o))
+            return true;
+        const nb = norm(bare);
+        const no = norm(o);
+        if (!nb.startsWith(no))
+            return false;
+        if (nb.length === no.length)
+            return true;
+        // trailing noise after opener (space / dash)
+        return /^[\s—–\-]/.test(nb.slice(no.length));
+    });
 }
 /** Loud Stop/PreTool deny when ULW started but opener was skipped. */
 export function ulwCeremonyIncompleteReason(task) {
@@ -519,7 +540,7 @@ export function noteUlwWrite(input, cfg, filePath) {
  * v1.1.54: tsc … --noEmit / nx run :test / pnpm -r test / gradlew check / detox|maestro
  * v1.1.56: newman / k6 / cargo tarpaulin|llvm-cov / coverage run
  */
-export const VERIFY_SHELL_RE = /\b(npm\s+(test|audit|run\s+(test|ci|typecheck|type-check|types:check|check-types|check:types|lint|check|doctor|validate|coverage|format:check|fmt:check)(:[\w-]*)?)|pnpm\s+(-[rw]\s+)?(test|audit|run\s+(test|typecheck|type-check|types:check|check-types|check:types|lint|check|coverage)|typecheck|type-check|check-types|check:types|lint)|pnpm\s+--filter\s+\S+\s+test|yarn\s+(test|audit|coverage|run\s+(test|typecheck|type-check|check-types|check:types|lint|check|coverage)|typecheck|type-check|check-types|check:types|lint)|yarn\s+workspace\s+\S+\s+test|yarn\s+workspaces\s+foreach[^|&;\n]*\btest\b|bun\s+(test|run\s+(test|lint|check|typecheck|type-check|check-types|coverage))|deno\s+(test|lint|check)|node\s+--test|tsx\s+--test|vitest|jest|mocha|ava|pytest|py\.test|python3?\s+-m\s+(pytest|unittest)|(?:python3?\s+)?manage\.py\s+test|poetry\s+run\s+pytest|uv\s+run\s+(pytest|ruff|mypy)|hatch\s+run\s+test|cargo\s+(test|nextest|clippy|check|audit|deny|tarpaulin|llvm-cov|fuzz)|cargo\s+fmt[^|&;\n]*--check|rustfmt\s+--check|nextest\s+run|go\s+(test|vet)|go\s+fmt\s+-l|gofmt\s+-l|gotestsum|ginkgo|staticcheck|govulncheck|dotnet\s+test|dotnet\s+format[^|&;\n]*--verify|mvn\b[^|&;\n]*\b(test|verify)\b|gradlew?\s+(test|check)|make\s+(test|check|lint)|just\s+(test|check|lint)|task\s+(test|check|lint)|mise\s+run\s+(test|check|lint)|turbo\s+(run\s+)?(test|lint|typecheck|type-check|check-types|check:types)|nx\s+(test|lint)|nx\s+run\s+\S*(?:test|lint|typecheck|type-check|check-types)\b|nx\s+(run-many|affected)[^|&;\n]*\b(test|lint|typecheck|type-check|check-types|check:types)\b|lerna\s+run\s+(test|lint)|rush\s+test|moon\s+run\s+[^\n]*:test\b|playwright\s+test|cypress\s+run|detox\s+test|maestro\s+test|tox|hatch\s+test|flutter\s+(test|analyze)|dart\s+(test|analyze|format\s+--set-exit-if-changed)|phpunit|pest|php\s+artisan\s+test|rspec|bin\/rspec|rails\s+test|bin\/rails\s+test|rake\s+test|mix\s+(test|credo|format\s+--check)|sbt\s+test|lein\s+test|stack\s+test|cabal\s+test|bazel\s+test|pants\s+test|buck2?\s+test|please\s+test|earthly\s+\+?test|dagger\s+run\s+test|zig\s+(?:build\s+)?test|crystal\s+spec|swift\s+test|swiftlint|xcodebuild\s+test|fastlane\s+(tests?|scan)|ctest|cmake\b[^|&;\n]*--target\s+test|meson\s+test|ninja\b[^|&;\n]*\btest\b|bats|shellspec|ng\s+test|ember\s+test|cucumber(?:-js)?|behave|robot|wdio\s+run|karma\s+start|testcafe|newman\s+run|k6\s+run|artillery\s+run|coverage\s+run|typecheck|tsc\b[^|&;\n]*--noEmit|tsc\s+(-b|--build)|vue-tsc|svelte-check|astro\s+check|oxlint|ruff\s+check|ruff\s+format\s+--check|black\s+--check|isort\s+--check|flake8|pylint|mypy|pyright|basedpyright|ty\s+check|biome\s+(check|ci)|prettier\s+--check|eslint|lint|semgrep|bandit|pip-audit|composer\s+(audit|validate|test)|bundle\s+audit|ant\s+test|sbt\s+test(?:Only)?|pint\s+--test|php-cs-fixer[^|&;\n]*--dry-run|terraform\s+(validate|fmt\s+-check)|tflint|tfsec|checkov|shellcheck|actionlint|hadolint|yamllint|markdownlint|typos|codespell|cspell|dprint\s+check|spotless\s+check|scalafmt\s+--test|rubocop|standardrb|brakeman|ktlint|opa\s+test|conftest\s+test)\b/i;
+export const VERIFY_SHELL_RE = /\b(npm\s+(test|audit|run\s+(test|ci|typecheck|type-check|types:check|check-types|check:types|lint|check|doctor|validate|coverage|format:check|fmt:check)(:[\w-]*)?)|pnpm\s+(-[rw]\s+)?(test|audit|run\s+(test|typecheck|type-check|types:check|check-types|check:types|lint|check|coverage)|typecheck|type-check|check-types|check:types|lint)|pnpm\s+--filter\s+\S+\s+test|yarn\s+(test|audit|coverage|run\s+(test|typecheck|type-check|check-types|check:types|lint|check|coverage)|typecheck|type-check|check-types|check:types|lint)|yarn\s+workspace\s+\S+\s+test|yarn\s+workspaces\s+foreach[^|&;\n]*\btest\b|bun\s+(test|run\s+(test|lint|check|typecheck|type-check|check-types|coverage))|deno\s+(test|lint|check)|node\s+--test|tsx\s+--test|vitest|jest|mocha|ava|pytest|py\.test|python3?\s+-m\s+(pytest|unittest)|(?:python3?\s+)?manage\.py\s+test|poetry\s+run\s+pytest|uv\s+run\s+(pytest|ruff|mypy)|hatch\s+run\s+test|cargo\s+(test|nextest|clippy|check|audit|deny|tarpaulin|llvm-cov|fuzz)|cargo\s+fmt[^|&;\n]*--check|rustfmt\s+--check|nextest\s+run|go\s+(test|vet)|go\s+fmt\s+-l|gofmt\s+-l|gotestsum|ginkgo|staticcheck|govulncheck|dotnet\s+test|dotnet\s+format[^|&;\n]*--verify|mvn\b[^|&;\n]*\b(test|verify)\b|gradlew?\s+(test|check)|make\s+(test|check|lint)|just\s+(test|check|lint)|task\s+(test|check|lint)|mise\s+run\s+(test|check|lint)|turbo\s+(run\s+)?(test|lint|typecheck|type-check|check-types|check:types)|nx\s+(test|lint)|nx\s+run\s+\S*(?:test|lint|typecheck|type-check|check-types)\b|nx\s+(run-many|affected)[^|&;\n]*\b(test|lint|typecheck|type-check|check-types|check:types)\b|lerna\s+run\s+(test|lint)|rush\s+test|moon\s+run\s+[^\n]*:test\b|playwright\s+test|cypress\s+run|detox\s+test|maestro\s+test|tox|hatch\s+test|flutter\s+(test|analyze)|dart\s+(test|analyze|format\s+--set-exit-if-changed)|phpunit|pest|php\s+artisan\s+test|rspec|bin\/rspec|rails\s+test|bin\/rails\s+test|rake\s+test|mix\s+(test|credo|format\s+--check)|sbt\s+test|lein\s+test|stack\s+test|cabal\s+test|bazel\s+test|pants\s+test|buck2?\s+test|please\s+test|earthly\s+\+?test|dagger\s+run\s+test|zig\s+(?:build\s+)?test|crystal\s+spec|swift\s+test|swiftlint|xcodebuild\s+test|fastlane\s+(tests?|scan)|ctest|cmake\b[^|&;\n]*--target\s+test|meson\s+test|ninja\b[^|&;\n]*\btest\b|bats|shellspec|ng\s+test|ember\s+test|cucumber(?:-js)?|behave|robot|wdio\s+run|karma\s+start|testcafe|newman\s+run|k6\s+run|artillery\s+run|coverage\s+run|typecheck|tsc\b[^|&;\n]*--noEmit|tsc\s+(-b|--build)|vue-tsc|svelte-check|astro\s+check|oxlint|ruff\s+check(?![^|&;\n]*--fix)|ruff\s+format\s+--check|black\s+--check|isort\s+--check|flake8|pylint|mypy|pyright|basedpyright|ty\s+check|biome\s+(check|ci)|coverage\s+report|nox\s+-s\s+\S+|pixi\s+run\s+(test|check|lint)|stylelint|kubeconform|kubeval|kube-linter|helm\s+lint|prettier\s+--check|eslint|lint|semgrep|bandit|pip-audit|composer\s+(audit|validate|test)|bundle\s+audit|ant\s+test|sbt\s+test(?:Only)?|pint\s+--test|php-cs-fixer[^|&;\n]*--dry-run|terraform\s+(validate|fmt\s+-check)|tflint|tfsec|checkov|shellcheck|actionlint|hadolint|yamllint|markdownlint|typos|codespell|cspell|dprint\s+check|spotless\s+check|scalafmt\s+--test|rubocop|standardrb|brakeman|ktlint|opa\s+test|conftest\s+test)\b/i;
 /** echo/printf of test names is not verification evidence. */
 const ECHO_LIKE_RE = /^(echo|printf|Write-Host|console\.log)\b/i;
 export function isVerifyShellCommand(command) {

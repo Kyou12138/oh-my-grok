@@ -217,6 +217,27 @@ describe("isIdleAssistantMessage", () => {
     }
   });
 
+  it("status fluff take care / hold on / 开干了 (v1.1.62)", () => {
+    for (const m of [
+      "I'll take care of it.",
+      "Leave it to me.",
+      "Consider it done.",
+      "Right away!",
+      "Appreciate it.",
+      "Hold on.",
+      "Looking...",
+      "明白了！",
+      "开干了",
+      "开工了",
+      "OK了。",
+      "可以的",
+      "立刻处理",
+      "这就去",
+    ]) {
+      expect(isIdleAssistantMessage(m), m).toBe(true);
+    }
+  });
+
   it("status fluff investigate / cool / 排查中 → idle (v1.1.51)", () => {
     for (const m of [
       "I'll investigate.",

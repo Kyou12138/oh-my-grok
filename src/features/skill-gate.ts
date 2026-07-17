@@ -89,17 +89,32 @@ export function isMutatingTool(name?: string): boolean {
   ) {
     return true;
   }
+  // v1.1.62: writequery / execute count as mutate even if "query" substring present
   if (
     /^mcp/.test(n) &&
-    /(?:write|delete|create|edit|append|patch|put|upload|remove|move|rename|commit|push|addobservations|createentities)/.test(
+    /(?:writefile|writequery|deletefile|createfile|editfile|execute|append|patch|put|upload|remove|move|rename|commit|push|addobservations|createentities|deleteentities|deleteobservations)/.test(
       n,
-    ) &&
-    !/(?:read|list|get|search|query|fetch|stat|glob|find|view)/.test(n)
+    )
   ) {
     return true;
   }
-  // bare mcp git commit ids (mcpgitgitcommit / mcpgitcommit)
-  if (/^mcp.*git.*commit/.test(n)) return true;
+  if (
+    /^mcp/.test(n) &&
+    /(?:write|delete|create|edit|append|patch|put|upload|remove|move|rename|commit|push)/.test(
+      n,
+    ) &&
+    !/(?:read|list|get|search|fetch|stat|glob|find|view|websearch)/.test(n)
+  ) {
+    return true;
+  }
+  // mcp git mutators (commit/add/push/checkout/reset/…)
+  if (
+    /^mcp.*git.*(?:commit|add|push|checkout|reset|rebase|merge|pull|stash|tag)/.test(
+      n,
+    )
+  ) {
+    return true;
+  }
   return false;
 }
 

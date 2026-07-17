@@ -478,6 +478,13 @@ describe("isVerifyShellCommand 词边界 + echo 段", () => {
       "composer test",
       "ant test",
       "sbt testOnly *",
+      "coverage report",
+      "nox -s tests",
+      "pixi run test",
+      "stylelint '**/*.css'",
+      "kubeconform -summary manifests",
+      "kubeval",
+      "helm lint chart",
       // v1.1.51 dart/swift/mono/fmt-check/audit
       "dart test",
       "dart analyze",
@@ -525,6 +532,9 @@ describe("isVerifyShellCommand 词边界 + echo 段", () => {
   it("verify 负例: cargo fmt / ruff format / nx build 不算校验 (v1.1.51)", () => {
     expect(isVerifyShellCommand("cargo fmt")).toBe(false);
     expect(isVerifyShellCommand("ruff format .")).toBe(false);
+    // v1.1.62: --fix is mutate, not verify evidence
+    expect(isVerifyShellCommand("ruff check --fix")).toBe(false);
+    expect(isVerifyShellCommand("ruff check .")).toBe(true);
     expect(isVerifyShellCommand("nx run-many -t build")).toBe(false);
     expect(isVerifyShellCommand("nx affected -t serve")).toBe(false);
     expect(isVerifyShellCommand("dotnet format")).toBe(false);
@@ -1221,6 +1231,13 @@ describe("ULW ceremony opener gate (v1.1.49)", () => {
     expect(hasUlwCeremonyOpener("🚀 ULTRAWORK MODE ENABLED!")).toBe(true);
     expect(hasUlwCeremonyOpener("【开场】ULTRAWORK MODE ENABLED!")).toBe(true);
     expect(hasUlwCeremonyOpener("ULTRAWORK MODE ENABLED! 🚀")).toBe(true);
+    // v1.1.62: fire/sparkle · quotes · same-line Goal
+    expect(hasUlwCeremonyOpener("🔥 ULTRAWORK MODE ENABLED!")).toBe(true);
+    expect(hasUlwCeremonyOpener("✨ ULTRAWORK MODE ENABLED!")).toBe(true);
+    expect(hasUlwCeremonyOpener("「ULTRAWORK MODE ENABLED!」")).toBe(true);
+    expect(hasUlwCeremonyOpener("(ULTRAWORK MODE ENABLED!)")).toBe(true);
+    expect(hasUlwCeremonyOpener("ULTRAWORK MODE ENABLED! Goal: x")).toBe(true);
+    expect(hasUlwCeremonyOpener("ULTRAWORK MODE ENABLED! — begin")).toBe(true);
   });
 
   it("first ULW stop without opener → CEREMONY INCOMPLETE + loop stays active", () => {

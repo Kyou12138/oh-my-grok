@@ -218,14 +218,17 @@ export function pathsFromToolInput(toolInput) {
             }
         }
     }
-    // string path arrays (v1.1.61)
+    // string path arrays (v1.1.61 + file_list/targets v1.1.62)
     for (const key of [
         "files",
         "paths",
         "filePaths",
         "file_paths",
+        "file_list",
+        "fileList",
         "target_files",
         "targetFiles",
+        "targets",
     ]) {
         const arr = toolInput[key];
         if (!Array.isArray(arr))
@@ -235,8 +238,15 @@ export function pathsFromToolInput(toolInput) {
                 push(item);
         }
     }
-    // nested envelope args/input/parameters/options (depth-1, v1.1.61)
-    for (const key of ["args", "input", "parameters", "params", "options"]) {
+    // nested envelope args/input/parameters/options/location (depth-1)
+    for (const key of [
+        "args",
+        "input",
+        "parameters",
+        "params",
+        "options",
+        "location",
+    ]) {
         const nest = toolInput[key];
         if (!nest || typeof nest !== "object" || Array.isArray(nest))
             continue;
@@ -249,6 +259,25 @@ export function pathsFromToolInput(toolInput) {
         push(n.targetFile);
         push(n.target);
         push(n.file);
+        if (typeof n.uri === "string" && /^file:/i.test(n.uri)) {
+            try {
+                push(decodeURIComponent(n.uri.replace(/^file:\/\//i, "").replace(/^\/([A-Za-z]:)/, "$1")));
+            }
+            catch {
+                push(n.uri.replace(/^file:\/\//i, ""));
+            }
+        }
+    }
+    // href as file:// (v1.1.62)
+    if (typeof toolInput.href === "string" && /^file:/i.test(toolInput.href)) {
+        try {
+            push(decodeURIComponent(toolInput.href
+                .replace(/^file:\/\//i, "")
+                .replace(/^\/([A-Za-z]:)/, "$1")));
+        }
+        catch {
+            push(toolInput.href.replace(/^file:\/\//i, ""));
+        }
     }
     // rename / move pairs (v1.1.54)
     push(toolInput.from);
@@ -278,7 +307,16 @@ export function pathsFromToolInput(toolInput) {
         push(e.target_file);
         push(e.targetFile);
     }
-    const batches = [toolInput.edits, toolInput.files, toolInput.operations, toolInput.changes];
+    // v1.1.62: entries/items/documents batches
+    const batches = [
+        toolInput.edits,
+        toolInput.files,
+        toolInput.operations,
+        toolInput.changes,
+        toolInput.entries,
+        toolInput.items,
+        toolInput.documents,
+    ];
     for (const batch of batches) {
         if (!Array.isArray(batch))
             continue;
@@ -304,6 +342,14 @@ export function pathsFromToolInput(toolInput) {
             push(o.relative_path);
             push(o.relativePath);
             push(o.full_path);
+            if (typeof o.uri === "string" && /^file:/i.test(o.uri)) {
+                try {
+                    push(decodeURIComponent(o.uri.replace(/^file:\/\//i, "").replace(/^\/([A-Za-z]:)/, "$1")));
+                }
+                catch {
+                    push(o.uri.replace(/^file:\/\//i, ""));
+                }
+            }
             push(o.fullPath);
             push(o.fs_path);
             push(o.fsPath);

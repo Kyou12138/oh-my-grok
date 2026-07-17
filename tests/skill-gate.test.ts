@@ -545,6 +545,12 @@ describe("isMutatingTool", () => {
     // v1.1.61: MCP git commit
     expect(isMutatingTool("mcp__git__git_commit")).toBe(true);
     expect(isMutatingTool("mcp__git__commit")).toBe(true);
+    // v1.1.62: write_query / git add / postgres execute
+    expect(isMutatingTool("mcp__sqlite__write_query")).toBe(true);
+    expect(isMutatingTool("mcp__git__git_add")).toBe(true);
+    expect(isMutatingTool("mcp__git__git_checkout")).toBe(true);
+    expect(isMutatingTool("mcp__postgres__execute")).toBe(true);
+    expect(isMutatingTool("mcp__brave-search__brave_web_search")).toBe(false);
   });
 
   it("host aliases WriteToFile / ReplaceInFile / SaveFile (v1.1.53)", () => {

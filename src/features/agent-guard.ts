@@ -114,7 +114,8 @@ export function isMutatingShellCommand(command?: string): boolean {
     /\b(npm|pnpm|yarn)\s+(i|install|ci|uninstall|remove|publish|add|update|upgrade|up|create|version|link|unlink|pack|prune|dedupe|shrinkwrap|patch|patch-commit)\b/i.test(
       c,
     ) ||
-    /\b(npm|pnpm|yarn)\s+run\s+(prepare|postinstall|prepublishOnly|db:migrate|db:push|db:seed|generate|codegen|migrate|seed|release|deploy|publish|clean|reset)\b/i.test(
+    // v1.1.62: db:reset / migration:run / prisma:generate
+    /\b(npm|pnpm|yarn)\s+run\s+(prepare|postinstall|prepublishOnly|db:migrate|db:push|db:seed|db:reset|generate|codegen|migrate|seed|migration:run|prisma:generate|release|deploy|publish|clean|reset)\b/i.test(
       c,
     ) ||
     /\b(npm|pnpm|yarn)\s+run\s+publish:[^\s]+/i.test(c) ||
@@ -122,6 +123,8 @@ export function isMutatingShellCommand(command?: string): boolean {
     /\bpnpm\s+approve-builds\b/i.test(c) ||
     /\bnode\s+--run\s+\S+/i.test(c) ||
     /\b(yarn|pnpm)\s+dlx\s+/i.test(c) ||
+    /\byarn\s+global\s+(add|remove|upgrade)\b/i.test(c) ||
+    /\bnpm\s+exec\b[^|&;\n]*\bcreate-/i.test(c) ||
     /\bbunx\s+/i.test(c) ||
     /\bnpm\s+create\b/i.test(c) ||
     /\b(?:pnpm|yarn)\s+create\b/i.test(c) ||
@@ -209,7 +212,7 @@ export function isMutatingShellCommand(command?: string): boolean {
       c,
     ) ||
     // v1.1.59: podman-compose / nerdctl compose
-    /\b(podman-compose|nerdctl\s+compose)\s+(up|down|build|push|pull|run|exec|restart|stop|start)\b/i.test(
+    /\b(podman-compose|podman\s+compose|nerdctl\s+compose)\s+(up|down|build|push|pull|run|exec|restart|stop|start)\b/i.test(
       c,
     ) ||
     /\bdocker\s+(build|push|pull|rmi|system\s+prune|save|load|start|stop|kill|commit|tag|cp)\b/i.test(
@@ -319,7 +322,10 @@ export function isMutatingShellCommand(command?: string): boolean {
       c,
     ) ||
     /\bsimple-git-hooks\b/i.test(c) ||
-    /\b(pm2\s+(start|stop|delete|restart)|systemctl(?:\s+--user)?\s+(start|stop|restart|enable|disable)|brew\s+services\s+(start|stop)|launchctl\s+(load|unload|bootstrap))\b/i.test(
+    /\b(pm2\s+(start|stop|delete|restart)|systemctl(?:\s+--user)?\s+(start|stop|restart|enable|disable|mask|unmask)|brew\s+services\s+(start|stop)|launchctl\s+(load|unload|bootstrap)|loginctl\s+enable-linger|update-rc\.d)\b/i.test(
+      c,
+    ) ||
+    /\b(useradd|userdel|groupadd|groupdel|usermod|passwd|visudo|chpasswd)\b/i.test(
       c,
     ) ||
     // v1.1.59: gh workflow enable|disable · run delete · extension install · crontab/at
@@ -359,9 +365,14 @@ export function isMutatingShellCommand(command?: string): boolean {
     ) ||
     /\bredis-cli\s+(config\s+set|shutdown)\b/i.test(c) ||
     /\b(clickhouse-client|cqlsh|neo4j-admin)\b/i.test(c) ||
-    /\b(psql\s+-c|mysql\s+-e|sqlite3\s+\S+\s+['\"]?(?:CREATE|INSERT|UPDATE|DELETE|DROP|\.read)|mongosh|redis-cli\s+(set|del|flushall|flushdb))\b/i.test(
+    // v1.1.62: psql -d db -c … · mongo --eval
+    /\bpsql\b[^|&;\n]*\s-c\b/i.test(c) ||
+    /\bmysql\b[^|&;\n]*\s-e\b/i.test(c) ||
+    /\bsqlite3\s+\S+\s+['\"]?(?:CREATE|INSERT|UPDATE|DELETE|DROP|\.read)/i.test(
       c,
     ) ||
+    /\bmongo(?:sh)?\b[^|&;\n]*(?:--eval|-e)\b/i.test(c) ||
+    /\bredis-cli\s+(set|del|flushall|flushdb)\b/i.test(c) ||
     /\b(curl|wget)\b[^|&;\n]*\s(-T|--upload-file|--post-file)\b/i.test(c) ||
     /\b(kubectl\s+cp|docker\s+exec|kubectl\s+exec)\b/i.test(c) ||
     /\bfind\b[^|&;\n]*\s-delete\b/i.test(c) ||
@@ -469,6 +480,25 @@ export function isMutatingShellCommand(command?: string): boolean {
   if (
     /\bRscript\b[^|&;\n]{0,40}\s-e\b/i.test(c) &&
     /\bwriteLines\s*\(/i.test(c)
+  ) {
+    return true;
+  }
+  // v1.1.62: julia / elixir / erl one-liner writes
+  if (
+    /\bjulia\b[^|&;\n]{0,40}\s-e\b/i.test(c) &&
+    /\b(?:open\s*\(|write\s*\()/i.test(c)
+  ) {
+    return true;
+  }
+  if (
+    /\belixir\b[^|&;\n]{0,40}\s-e\b/i.test(c) &&
+    /\bFile\.write/i.test(c)
+  ) {
+    return true;
+  }
+  if (
+    /\berl\b[^|&;\n]{0,60}\s-eval\b/i.test(c) &&
+    /\bfile:write_file\b/i.test(c)
   ) {
     return true;
   }

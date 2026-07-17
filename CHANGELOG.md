@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.62] — 2026-07-17
+
+### MAGI spiral — MCP write_query/git mutators + shell/path/idle/ceremony/verify
+
+- **fix(isMutatingTool)** MCP `write_query` no longer blocked by `query` false-negative; git add/checkout/push; postgres execute
+- **fix(isMutatingShellCommand)** yarn global · npm exec create · julia/elixir/erl write · podman compose · psql -d -c · mongo --eval · npm run db:reset/migration:run/prisma:generate · useradd/usermod/visudo · systemctl mask
+- **fix(VERIFY_SHELL_RE)** ruff check `--fix` not verify · coverage report · nox · pixi run test · stylelint · kubeconform/kubeval/helm lint
+- **fix(isVerifiedMessage)** tests/CI/build green · 测试全绿 / CI 绿了
+- **fix(tool-paths)** file_list/targets · entries/items/documents · href · location.uri
+- **fix(idle)** take care / hold on / 开干了 / OK了 / 可以的
+- **fix(hasUlwCeremonyOpener)** 🔥✨ · 「」() · same-line Goal after opener
+- **fix(extractSpawnRole)** agentId / persona / worker / delegate_to
+- **test** matrices across shell/MCP/path/idle/ceremony/verify/green
+
 ## [1.1.61] — 2026-07-17
 
 ### MAGI spiral — path arrays/nested envelopes + shell/idle/ceremony/verify

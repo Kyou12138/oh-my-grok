@@ -44,11 +44,17 @@ export function extractSpawnRole(toolInput) {
         toolInput.agentType ??
         toolInput.agentName ??
         toolInput.agent_name ??
+        toolInput.agentId ??
+        toolInput.agent_id ??
         toolInput.agent_role ??
         toolInput.agentRole ??
         toolInput.selected_agent ??
         toolInput.selectedAgent ??
         toolInput.specialist ??
+        toolInput.persona ??
+        toolInput.worker ??
+        toolInput.delegate_to ??
+        toolInput.delegateTo ??
         toolInput.type ??
         toolInput.role ??
         toolInput.name ??

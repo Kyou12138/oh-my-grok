@@ -132,6 +132,15 @@ export function isVerifiedMessage(msg) {
         !/(?:未|没有|没|并非|不|无法|不能|没法|难以|暂时|先算)[^。\n]{0,16}(?:全部|所有)?测试|测试(?:未|不|失败)|仍有失败|还有失败|(?:全部|所有)测试(?:均)?(?:已)?通过[^。\n]{0,12}暂时/.test(msg)) {
         return true;
     }
+    // v1.1.62: tests/CI green colloquialisms (EN/ZH)
+    if (/\b(?:tests?|ci|build|pipeline)\s+(?:are\s+|is\s+)?green\b/i.test(msg) ||
+        /(?:测试|CI|构建|流水线)\s*(?:全)?绿(?:了)?/.test(msg)) {
+        if (/\b(?:not|never|aren'?t|isn'?t|still\s+red|failing|failed)\b/i.test(msg) ||
+            /(?:未|没有|没|并非|不|仍|还).{0,8}绿/.test(msg)) {
+            return false;
+        }
+        return true;
+    }
     return false;
 }
 /**

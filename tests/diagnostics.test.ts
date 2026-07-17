@@ -94,6 +94,16 @@ describe("diagnostics — isVerifiedMessage 真值表", () => {
     expect(isVerifiedMessage("All tests passed.")).toBe(true);
     expect(isVerifiedMessage("✓ all tests passed")).toBe(true);
   });
+  it("正例:tests/CI green 口语 (v1.1.62)", () => {
+    expect(isVerifiedMessage("tests are green")).toBe(true);
+    expect(isVerifiedMessage("CI is green")).toBe(true);
+    expect(isVerifiedMessage("build is green")).toBe(true);
+    expect(isVerifiedMessage("pipeline green")).toBe(true);
+    expect(isVerifiedMessage("测试全绿")).toBe(true);
+    expect(isVerifiedMessage("CI 绿了")).toBe(true);
+    expect(isVerifiedMessage("tests are not green")).toBe(false);
+    expect(isVerifiedMessage("CI 还没绿")).toBe(false);
+  });
   it("负例:空消息返回 false", () => {
     expect(isVerifiedMessage(undefined)).toBe(false);
     expect(isVerifiedMessage("")).toBe(false);
