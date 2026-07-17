@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.40] — 2026-07-17
+
+### MAGI spiral — ULW verify shell patterns (bun/deno/yarn/make)
+
+- **fix(VERIFY_SHELL_RE)** credit `bun test` / `bun run test` / `deno test` / `yarn run test` / `make test` as ULW verify evidence (were false-negative)
+- **test** positive matrix + noteUlwShell bun → phaseReached.verify
+
 ## [1.1.39] — 2026-07-17
 
 ### MAGI spiral — PostTool shell argv for ULW verify

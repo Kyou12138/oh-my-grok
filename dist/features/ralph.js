@@ -390,8 +390,11 @@ export function noteUlwWrite(input, cfg, filePath) {
     a.updatedAt = new Date().toISOString();
     writeJsonAtomic(activityPath(input, cfg), a);
 }
-/** Commands that count as verification evidence for ULW. */
-export const VERIFY_SHELL_RE = /\b(npm\s+(test|run\s+test|run\s+ci)|pnpm\s+(test|run\s+test)|yarn\s+test|vitest|jest|pytest|cargo\s+test|go\s+test|dotnet\s+test|mvn\s+test|gradlew?\s+test|typecheck|tsc\s+--noEmit|eslint|lint|npm\s+run\s+doctor|npm\s+run\s+validate)\b/i;
+/**
+ * Commands that count as verification evidence for ULW.
+ * v1.1.40: bun/deno/yarn run test/make test (modern toolchains were false-negative).
+ */
+export const VERIFY_SHELL_RE = /\b(npm\s+(test|run\s+test|run\s+ci)|pnpm\s+(test|run\s+test)|yarn\s+(test|run\s+test)|bun\s+(test|run\s+test)|deno\s+test|vitest|jest|pytest|cargo\s+test|go\s+test|dotnet\s+test|mvn\s+test|gradlew?\s+test|make\s+test|typecheck|tsc\s+--noEmit|eslint|lint|npm\s+run\s+doctor|npm\s+run\s+validate)\b/i;
 /** echo/printf of test names is not verification evidence. */
 const ECHO_LIKE_RE = /^(echo|printf|Write-Host|console\.log)\b/i;
 export function isVerifyShellCommand(command) {

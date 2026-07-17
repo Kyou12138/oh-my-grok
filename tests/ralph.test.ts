@@ -344,10 +344,24 @@ describe("isVerifyShellCommand 词边界 + echo 段", () => {
       "lint",
       "npm run doctor",
       "npm run validate",
+      // v1.1.40 modern toolchains
+      "bun test",
+      "bun run test",
+      "deno test",
+      "yarn run test",
+      "make test",
     ];
     for (const cmd of positives) {
-      expect(isVerifyShellCommand(cmd)).toBe(true);
+      expect(isVerifyShellCommand(cmd), cmd).toBe(true);
     }
+  });
+
+  it("bun/deno/yarn-run/make test credit ULW verify via noteUlwShell (v1.1.40)", () => {
+    const ctx = makeCtx(40);
+    const input0 = stopInput(ctx, "");
+    startRalph(input0, ctx.cfg, "modern verify", "ulw");
+    noteUlwShell(input0, ctx.cfg, "bun test");
+    expect(loadRalph(input0, ctx.cfg)?.phaseReached.verify).toBe(true);
   });
 
   it("负例:非校验命令 npm install / git status → false", () => {

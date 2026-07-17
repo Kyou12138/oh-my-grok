@@ -65,7 +65,10 @@ export declare function loadUlwActivity(input: HookInput, cfg: EnvConfig): UlwAc
 export declare function resetUlwActivity(input: HookInput, cfg: EnvConfig): void;
 export declare function noteUlwRead(input: HookInput, cfg: EnvConfig, filePath?: string): void;
 export declare function noteUlwWrite(input: HookInput, cfg: EnvConfig, filePath?: string): void;
-/** Commands that count as verification evidence for ULW. */
+/**
+ * Commands that count as verification evidence for ULW.
+ * v1.1.40: bun/deno/yarn run test/make test (modern toolchains were false-negative).
+ */
 export declare const VERIFY_SHELL_RE: RegExp;
 export declare function isVerifyShellCommand(command?: string): boolean;
 /**
