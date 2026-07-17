@@ -1,5 +1,46 @@
 import { getSessionAgentRole, isSpawnTool, loadSessionAgentRoleState, } from "./session-role.js";
-import { isMutatingTool } from "./skill-gate.js";
+import { isMutatingTool, normalizeToolName } from "./skill-gate.js";
+/** Host shell/terminal tool names (letters-only normalize). */
+export function isShellTool(toolName) {
+    if (!toolName)
+        return false;
+    const n = normalizeToolName(toolName);
+    return (n === "bash" ||
+        n === "shell" ||
+        n === "execute" ||
+        n === "localshell" ||
+        n === "runterminalcommand" ||
+        n === "runterminal" ||
+        n.includes("runterminal"));
+}
+/**
+ * Shell commands that mutate the workspace (read-only agents must not run these).
+ * Allows ls/rg/git status/npm test; blocks redirects, rm, git commit, package install, …
+ */
+export function isMutatingShellCommand(command) {
+    if (!command?.trim())
+        return false;
+    // Drop fd redirects like 2>&1 / >&2 so they do not look like file writes
+    const c = command.replace(/\d*>&\d+/g, " ");
+    // stdout/stderr file redirects: >file >>file 1>file (not 2>&1 already stripped)
+    if (/(?:^|[^0-9])>{1,2}\s*["']?[^&\s"'|]+/.test(c))
+        return true;
+    if (/\b(tee|truncate|rm|rmdir|unlink|del|erase|rd)\b/i.test(c) ||
+        /\b(mv|move|cp|copy|mkdir|md|touch|chmod|chown|ln|link)\b/i.test(c) ||
+        /\b(sed|perl|ruby)\b[^|&;\n]*\s-i\b/i.test(c) ||
+        /\b(Set-Content|Add-Content|Out-File|New-Item|Remove-Item|Move-Item|Copy-Item|Rename-Item)\b/i.test(c) ||
+        /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick)\b/i.test(c) ||
+        /\b(npm|pnpm|yarn)\s+(i|install|uninstall|remove|publish)\b/i.test(c)) {
+        return true;
+    }
+    return false;
+}
+function shellCommandFromInput(input) {
+    const ti = input.toolInput;
+    if (!ti)
+        return "";
+    return String(ti.command ?? ti.cmd ?? ti.script ?? ti.input ?? ti.code ?? "");
+}
 /** Agents that must not write/edit/delete. */
 export const READ_ONLY_AGENTS = new Set([
     "oracle",
@@ -86,6 +127,21 @@ export function agentGuardDeny(input, cfg) {
                 "Blocked: task / spawn_subagent (no-redelegate).",
                 "Do the assigned work in this session, or return results to the parent orchestrator.",
                 "Clear sticky role if you are the main orchestrator: /agent sisyphus",
+            ].join("\n");
+        }
+        return null;
+    }
+    // v1.1.35: read-only agents must not mutate via shell (echo > file, rm, git commit, …)
+    // Needs PreTool matcher on Bash|Shell|run_terminal_command (hooks.json).
+    if (isShellTool(input.toolName) && isReadOnlyAgent(role)) {
+        const cmd = shellCommandFromInput(input);
+        if (isMutatingShellCommand(cmd)) {
+            return [
+                `[AGENT_GUARD] Agent "${role}" is read-only — mutating shell blocked.`,
+                `Command: ${cmd.slice(0, 200)}${cmd.length > 200 ? "…" : ""}`,
+                "Blocked: redirects (>/>>), rm/mv/cp, sed -i, git commit/push, package install, …",
+                "Allowed: ls/rg/git status/npm test (read-only investigation).",
+                "Implementation writes: switch to sisyphus/hephaestus — /agent hephaestus",
             ].join("\n");
         }
         return null;

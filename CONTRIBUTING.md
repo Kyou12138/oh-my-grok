@@ -59,7 +59,7 @@ Reload hooks with a **new session** after changing `hooks/` or `dist/`.
 1. **One hook command per event** in `hooks/hooks.json`; merge logic in `src/events/*`.
 2. **Stop order** only in `src/events/stop.ts` (state machine; stdout discarded on current Grok).
 3. **PreTool order** (breaking-change gate — keep `tests/pre-tool-orchestration.test.ts` green):  
-   Agent Guard → prometheus-role → **workspace-boundary** → plan-mode → category-discipline → spawn-followthrough → diag hard → Hashline → Comment → Skill Gate (skip for plan-mode plan-only writes).
+   Agent Guard (incl. read-only mutating-shell) → prometheus-role → **workspace-boundary** → plan-mode → category-discipline → spawn-followthrough → diag hard → Hashline → Comment → Skill Gate (skip for plan-mode plan-only writes).
 4. **Fail-open** in `src/cli.ts` catch (except intentional PreTool deny).
 5. **Windows-first:** `node dist/cli.js`, no bash launcher.
 6. **TDD for harness behavior:** add/adjust tests under `tests/` before claiming new gates.

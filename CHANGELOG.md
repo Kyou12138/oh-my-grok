@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.35] — 2026-07-17
+
+### MAGI spiral — agent-guard mutating shell (hard PreTool)
+
+- **feat(agent-guard)** read-only agents cannot run mutating shell (`>`/`>>`, rm/mv/cp, sed -i, git commit/push, npm install, …)
+- **feat** `isShellTool` + `isMutatingShellCommand`; allow ls/rg/git status/npm test (incl. `2>&1`)
+- **hooks** PreTool matcher adds Bash|bash|Shell|shell|run_terminal_command|… so host invokes guard
+- **test** shell matrix + handlePreToolUse explore redirect deny
+
 ## [1.1.34] — 2026-07-17
 
 ### MAGI spiral — Hashline CRLF/LF old_string false-stale

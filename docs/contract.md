@@ -34,7 +34,7 @@ oh-my-grok still **writes** `additionalContext` / Stop `decision:block` for test
 
 ## PreToolUse order (enforced)
 
-1. Agent guard (read-only roles + spawn/task deny for read-only / no-redelegate)  
+1. Agent guard (read-only roles + spawn/task deny for read-only / no-redelegate + **mutating shell** deny for read-only)  
 2. Prometheus **role** path deny (sticky prometheus → only `.omg/plans/`)  
 3. **Workspace boundary** — mutating paths must stay under `workspaceRoot` (no `../` / foreign abs; hard)  
 4. Prometheus plan-mode path deny  

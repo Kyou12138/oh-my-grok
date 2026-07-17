@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { isShellTool } from "../src/features/agent-guard.js";
 import {
   isMutatingTool,
   MUTATING_TOOL_IDS,
@@ -38,13 +39,20 @@ describe("hooks.json PreTool matcher coverage", () => {
     expect(preNames.length).toBeGreaterThan(10);
   });
 
-  it("every PreTool matcher name is mutating OR spawn (agent-guard surface)", () => {
+  it("every PreTool matcher name is mutating OR spawn OR shell (agent-guard surface)", () => {
     for (const name of preNames) {
-      const ok = isMutatingTool(name) || isSpawnTool(name);
-      expect(ok, `PreTool matcher "${name}" not covered by isMutatingTool|isSpawnTool`).toBe(
-        true,
-      );
+      const ok = isMutatingTool(name) || isSpawnTool(name) || isShellTool(name);
+      expect(
+        ok,
+        `PreTool matcher "${name}" not covered by isMutatingTool|isSpawnTool|isShellTool`,
+      ).toBe(true);
     }
+  });
+
+  it("PreTool includes shell aliases for read-only mutating-shell deny (v1.1.35)", () => {
+    expect(preNames).toEqual(
+      expect.arrayContaining(["Bash", "bash", "Shell", "shell", "run_terminal_command"]),
+    );
   });
 
   it("every MUTATING_TOOL_IDS has at least one PreTool matcher alias", () => {

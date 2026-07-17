@@ -13,7 +13,9 @@ import type { EnvConfig, HookInput } from "../src/protocol/types.js";
 import {
   agentGuardBanner,
   agentGuardDeny,
+  isMutatingShellCommand,
   isReadOnlyAgent,
+  isShellTool,
   READ_ONLY_AGENTS,
   resolveAgentRole,
 } from "../src/features/agent-guard.js";
@@ -210,6 +212,94 @@ describe("agentGuardDeny", () => {
         c,
       ),
     ).toBeNull();
+  });
+
+  it("isShellTool + isMutatingShellCommand matrix (v1.1.35)", () => {
+    expect(isShellTool("Bash")).toBe(true);
+    expect(isShellTool("run_terminal_command")).toBe(true);
+    expect(isShellTool("Write")).toBe(false);
+    expect(isMutatingShellCommand("echo pwned > /tmp/x")).toBe(true);
+    expect(isMutatingShellCommand("rm -rf dist")).toBe(true);
+    expect(isMutatingShellCommand("git commit -m x")).toBe(true);
+    expect(isMutatingShellCommand("npm install lodash")).toBe(true);
+    expect(isMutatingShellCommand("npm test 2>&1")).toBe(false);
+    expect(isMutatingShellCommand("ls -la && rg foo")).toBe(false);
+    expect(isMutatingShellCommand("git status")).toBe(false);
+  });
+
+  it("denies oracle Bash redirect / rm; allows ls and npm test", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    expect(
+      agentGuardDeny(
+        base(ws, {
+          agentName: "oracle",
+          toolName: "Bash",
+          toolInput: { command: "echo x > out.txt" },
+        }),
+        c,
+      ),
+    ).toMatch(/AGENT_GUARD|mutating shell|read-only/i);
+    expect(
+      agentGuardDeny(
+        base(ws, {
+          agentName: "explore",
+          toolName: "run_terminal_command",
+          toolInput: { command: "rm -rf node_modules" },
+        }),
+        c,
+      ),
+    ).toMatch(/AGENT_GUARD/i);
+    expect(
+      agentGuardDeny(
+        base(ws, {
+          agentName: "oracle",
+          toolName: "Shell",
+          toolInput: { command: "ls -la && git status" },
+        }),
+        c,
+      ),
+    ).toBeNull();
+    expect(
+      agentGuardDeny(
+        base(ws, {
+          agentName: "librarian",
+          toolName: "bash",
+          toolInput: { command: "npm test 2>&1" },
+        }),
+        c,
+      ),
+    ).toBeNull();
+  });
+
+  it("allows hephaestus mutating shell", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    expect(
+      agentGuardDeny(
+        base(ws, {
+          agentName: "hephaestus",
+          toolName: "Bash",
+          toolInput: { command: "echo x > out.txt" },
+        }),
+        c,
+      ),
+    ).toBeNull();
+  });
+
+  it("handlePreToolUse denies explore shell write (host path)", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const r = handlePreToolUse(
+      base(ws, {
+        agentName: "explore",
+        toolName: "Bash",
+        toolInput: { command: "printf hi > leak.txt" },
+      }),
+      c,
+    );
+    expect(r.exitCode).toBe(2);
+    expect(JSON.stringify(r.output)).toMatch(/AGENT_GUARD|mutating shell/i);
   });
 
   it("denies all READ_ONLY agents on Write", () => {
