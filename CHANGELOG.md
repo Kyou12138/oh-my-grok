@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.37] — 2026-07-17
+
+### MAGI spiral — shell write one-liner bypasses
+
+- **fix(isMutatingShellCommand)** block `node -e writeFileSync` / `python -c open(...,'w')` / `Path.write_text` / `curl -o` / `wget -O` / `[IO.File]::Write*` / `pip install`
+- **keep allow** bare `node -e "console.log"` / `python -c "print"` / `curl URL` without `-o`
+- **test** matrix + oracle PreTool deny on node writeFileSync
+
 ## [1.1.36] — 2026-07-17
 
 ### MAGI spiral — plan-mode / prometheus shell write bypass

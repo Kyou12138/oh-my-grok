@@ -227,6 +227,53 @@ describe("agentGuardDeny", () => {
     expect(isMutatingShellCommand("git status")).toBe(false);
   });
 
+  it("blocks node/python/curl one-liner write bypasses (v1.1.37)", () => {
+    expect(
+      isMutatingShellCommand(
+        "node -e \"require('fs').writeFileSync('leak.ts','x')\"",
+      ),
+    ).toBe(true);
+    expect(
+      isMutatingShellCommand("python -c \"open('leak.ts','w').write('x')\""),
+    ).toBe(true);
+    expect(
+      isMutatingShellCommand("python3 -c \"from pathlib import Path; Path('a').write_text('b')\""),
+    ).toBe(true);
+    expect(isMutatingShellCommand("curl -o dist.tgz https://example.com/a")).toBe(
+      true,
+    );
+    expect(isMutatingShellCommand("wget -O f.bin https://example.com/a")).toBe(
+      true,
+    );
+    expect(
+      isMutatingShellCommand(
+        "powershell -Command \"[IO.File]::WriteAllText('a','b')\"",
+      ),
+    ).toBe(true);
+    expect(isMutatingShellCommand("pip install requests")).toBe(true);
+    // non-mutating one-liners still allowed
+    expect(isMutatingShellCommand("node -e \"console.log(1)\"")).toBe(false);
+    expect(isMutatingShellCommand("python -c \"print(1)\"")).toBe(false);
+    expect(isMutatingShellCommand("curl https://example.com")).toBe(false);
+  });
+
+  it("denies oracle node -e writeFileSync via PreTool", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const r = handlePreToolUse(
+      base(ws, {
+        agentName: "oracle",
+        toolName: "Bash",
+        toolInput: {
+          command: "node -e \"require('fs').writeFileSync('x.ts','1')\"",
+        },
+      }),
+      c,
+    );
+    expect(r.exitCode).toBe(2);
+    expect(JSON.stringify(r.output)).toMatch(/AGENT_GUARD|mutating shell/i);
+  });
+
   it("denies oracle Bash redirect / rm; allows ls and npm test", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));

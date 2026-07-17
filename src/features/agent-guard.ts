@@ -26,8 +26,9 @@ export function isShellTool(toolName?: string): boolean {
 }
 
 /**
- * Shell commands that mutate the workspace (read-only agents must not run these).
- * Allows ls/rg/git status/npm test; blocks redirects, rm, git commit, package install, …
+ * Shell commands that mutate the workspace (read-only / plan / prometheus gates).
+ * Allows ls/rg/git status/npm test; blocks redirects, rm, git commit, package install,
+ * and v1.1.37 one-liner write bypasses (node -e writeFileSync, python -c open w, curl -o).
  */
 export function isMutatingShellCommand(command?: string): boolean {
   if (!command?.trim()) return false;
@@ -47,10 +48,42 @@ export function isMutatingShellCommand(command?: string): boolean {
     /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick)\b/i.test(
       c,
     ) ||
-    /\b(npm|pnpm|yarn)\s+(i|install|uninstall|remove|publish)\b/i.test(c)
+    /\b(npm|pnpm|yarn)\s+(i|install|uninstall|remove|publish)\b/i.test(c) ||
+    /\b(pip3?|cargo|go)\s+(install|get)\b/i.test(c)
   ) {
     return true;
   }
+
+  // Download-to-file (curl -o / wget -O / Invoke-WebRequest -OutFile)
+  if (
+    /\b(curl|wget)\b[^|&;\n]*\s(-o|--output|-O)\b/i.test(c) ||
+    /\bInvoke-WebRequest\b[^|&;\n]*\s-OutFile\b/i.test(c)
+  ) {
+    return true;
+  }
+
+  // .NET / PowerShell file APIs
+  if (/\[(?:System\.)?IO\.File\]::Write/i.test(c)) return true;
+
+  // node/python/deno/bun one-liners that write files (not bare console.log/print)
+  if (
+    /\b(node|nodejs|deno|bun|python3?|py)\b[^|&;\n]{0,60}\s(-e|--eval|-c)\b/i.test(
+      c,
+    )
+  ) {
+    if (
+      /\b(writeFileSync|writeFile|appendFileSync|appendFile|createWriteStream|outputFileSync|outputFile)\b/i.test(
+        c,
+      ) ||
+      /\bopen\s*\([^)]*['"]w/i.test(c) ||
+      /\bPath\s*\([^)]*\)\s*\.\s*write_text\b/i.test(c) ||
+      /\bwrite_text\s*\(/i.test(c) ||
+      /\bfs\.write\b/i.test(c)
+    ) {
+      return true;
+    }
+  }
+
   return false;
 }
 

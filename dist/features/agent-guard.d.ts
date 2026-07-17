@@ -6,8 +6,9 @@ import type { EnvConfig, HookInput } from "../protocol/types.js";
 /** Host shell/terminal tool names (letters-only normalize). */
 export declare function isShellTool(toolName?: string): boolean;
 /**
- * Shell commands that mutate the workspace (read-only agents must not run these).
- * Allows ls/rg/git status/npm test; blocks redirects, rm, git commit, package install, …
+ * Shell commands that mutate the workspace (read-only / plan / prometheus gates).
+ * Allows ls/rg/git status/npm test; blocks redirects, rm, git commit, package install,
+ * and v1.1.37 one-liner write bypasses (node -e writeFileSync, python -c open w, curl -o).
  */
 export declare function isMutatingShellCommand(command?: string): boolean;
 /** Extract shell command string from tool input (command/cmd/script/…). */
