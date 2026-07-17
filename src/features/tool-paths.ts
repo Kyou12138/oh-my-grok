@@ -176,6 +176,20 @@ export function pathsFromToolInput(
   push(toolInput.fsPath);
   push(toolInput.filename);
   push(toolInput.file);
+  push(toolInput.documentPath);
+  push(toolInput.document_path);
+  push(toolInput.resourcePath);
+  push(toolInput.resource_path);
+  // file:// URI / URL (v1.1.55)
+  for (const u of [toolInput.uri, toolInput.url]) {
+    if (typeof u === "string" && /^file:/i.test(u)) {
+      try {
+        push(decodeURIComponent(u.replace(/^file:\/\//i, "").replace(/^\/([A-Za-z]:)/, "$1")));
+      } catch {
+        push(u.replace(/^file:\/\//i, ""));
+      }
+    }
+  }
   // rename / move pairs (v1.1.54)
   push(toolInput.from);
   push(toolInput.to);

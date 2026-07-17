@@ -243,6 +243,27 @@ describe("isIdleAssistantMessage", () => {
     }
   });
 
+  it("status fluff later / cheers / 不急 (v1.1.55)", () => {
+    for (const m of [
+      "Later.",
+      "TTYL",
+      "Bye.",
+      "Cheers.",
+      "No rush.",
+      "Standing by.",
+      "I'll get back soon.",
+      "Happy to help.",
+      "不急。",
+      "慢慢来。",
+      "好滴。",
+      "没错。",
+      "是的。",
+      "没问题的。",
+    ]) {
+      expect(isIdleAssistantMessage(m), m).toBe(true);
+    }
+  });
+
   it("emoji / ellipsis noise → idle", () => {
     expect(isIdleAssistantMessage("👍")).toBe(true);
     expect(isIdleAssistantMessage("✅")).toBe(true);

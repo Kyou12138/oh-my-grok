@@ -487,6 +487,42 @@ describe("agentGuardDeny", () => {
     expect(isShellTool("Write")).toBe(false);
   });
 
+  it("blocks zip/reg/npm version/gh pr create/curl -T (v1.1.55)", () => {
+    expect(isMutatingShellCommand("zip -r a.zip dir")).toBe(true);
+    expect(isMutatingShellCommand("7z a archive.7z dir")).toBe(true);
+    expect(isMutatingShellCommand("gzip a")).toBe(true);
+    expect(isMutatingShellCommand("tar -cf a.tar dir")).toBe(true);
+    expect(isMutatingShellCommand("sponge out.txt")).toBe(true);
+    expect(isMutatingShellCommand("reg add HKCU\\x /v y /d z")).toBe(true);
+    expect(isMutatingShellCommand("icacls f /grant Everyone:F")).toBe(true);
+    expect(isMutatingShellCommand("takeown /f f")).toBe(true);
+    expect(isMutatingShellCommand("attrib +h f")).toBe(true);
+    expect(isMutatingShellCommand("defaults write com.x y 1")).toBe(true);
+    expect(isMutatingShellCommand("powershell -EncodedCommand xxx")).toBe(true);
+    expect(isMutatingShellCommand("npm version patch")).toBe(true);
+    expect(isMutatingShellCommand("npx npm-check-updates -u")).toBe(true);
+    expect(isMutatingShellCommand("ncu -u")).toBe(true);
+    expect(isMutatingShellCommand("gh pr create")).toBe(true);
+    expect(isMutatingShellCommand("gh release create v1")).toBe(true);
+    expect(isMutatingShellCommand("gh repo create")).toBe(true);
+    expect(isMutatingShellCommand("gh gist create f")).toBe(true);
+    expect(isMutatingShellCommand("curl -T f http://x")).toBe(true);
+    expect(isMutatingShellCommand("curl --upload-file f http://x")).toBe(true);
+    expect(isMutatingShellCommand("aws s3 mb s3://b")).toBe(true);
+    expect(isMutatingShellCommand("rclone delete a")).toBe(true);
+    expect(isMutatingShellCommand("redis-cli set k v")).toBe(true);
+    expect(isMutatingShellCommand("fnm install 20")).toBe(true);
+    expect(isMutatingShellCommand("nvm install 20")).toBe(true);
+    expect(isMutatingShellCommand("rustup default stable")).toBe(true);
+    expect(isMutatingShellCommand("kubectl cp ./a pod:/a")).toBe(true);
+    expect(isMutatingShellCommand("docker exec -it c sh")).toBe(true);
+    expect(isMutatingShellCommand("git tag -f v1")).toBe(true);
+    // allow pure list
+    expect(isMutatingShellCommand("tar -tf a.tar")).toBe(false);
+    expect(isMutatingShellCommand("gh pr list")).toBe(false);
+    expect(isMutatingShellCommand("gh repo view")).toBe(false);
+  });
+
   it("blocks yq/sd/jscodeshift/ast-grep/scaffold shells (v1.1.54)", () => {
     expect(isMutatingShellCommand("yq -i '.a=1' f.yaml")).toBe(true);
     expect(isMutatingShellCommand("sd 'old' 'new' file.ts")).toBe(true);

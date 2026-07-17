@@ -186,6 +186,17 @@ describe("pathsFromToolInput", () => {
       pathsFromToolInput({ old_path: "old.ts", new_path: "new.ts" }),
     ).toEqual(["old.ts", "new.ts"]);
   });
+
+  it("path aliases file:// URI and documentPath (v1.1.55)", () => {
+    expect(pathsFromToolInput({ documentPath: "a.ts" })).toEqual(["a.ts"]);
+    expect(pathsFromToolInput({ resourcePath: "b.ts" })).toEqual(["b.ts"]);
+    expect(pathsFromToolInput({ uri: "file:///tmp/c.ts" })).toEqual([
+      "/tmp/c.ts",
+    ]);
+    expect(pathsFromToolInput({ url: "file:///tmp/d.ts" })).toEqual([
+      "/tmp/d.ts",
+    ]);
+  });
 });
 
 describe("hashline apply_patch paths (v1.1.23)", () => {

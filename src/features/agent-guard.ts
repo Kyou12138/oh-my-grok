@@ -49,8 +49,8 @@ export function isMutatingShellCommand(command?: string): boolean {
   if (/(?:^|[^0-9])>{1,2}\s*["']?[^&\s"'|]+/.test(c)) return true;
 
   if (
-    /\b(tee|truncate|rm|rmdir|unlink|del|erase|rd)\b/i.test(c) ||
-    /\b(mv|move|cp|copy|mkdir|md|touch|chmod|chown|ln|link)\b/i.test(c) ||
+    /\b(tee|truncate|rm|rmdir|unlink|del|erase|rd|sponge)\b/i.test(c) ||
+    /\b(mv|move|cp|copy|mkdir|md|touch|chmod|chown|ln|link|mklink)\b/i.test(c) ||
     // sed -i / perl -pi / ruby -i.bak (v1.1.52: -pi combined flag)
     /\b(sed|perl|ruby)\b[^|&;\n]*\s-[a-z]*i[a-z.]*/i.test(c) ||
     // v1.1.54: yq/sd/dasel/fastmod/ast-grep -U / jscodeshift in-place rewrites
@@ -60,13 +60,20 @@ export function isMutatingShellCommand(command?: string): boolean {
     /\b(?:ast-grep|sg)\b[^|&;\n]*\s-U\b/i.test(c) ||
     /\bjscodeshift\b/i.test(c) ||
     /\bknip\b[^|&;\n]*--fix\b/i.test(c) ||
+    // v1.1.55: archives create; ACL/reg; version bumps; ncu -u
+    /\b(zip|gzip|bzip2|xz|zstd|pigz|lz4)\b/i.test(c) ||
+    /\b7z(?:a)?\s+a\b/i.test(c) ||
+    /\btar\b[^|&;\n]*(?:-[a-zA-Z]*c|--create|\sc[fvc\s])/i.test(c) ||
+    /\b(reg\s+(add|delete|import)|regedit)\b/i.test(c) ||
+    /\b(icacls|takeown|attrib|defaults\s+write)\b/i.test(c) ||
+    /\b(powershell|pwsh)\b[^|&;\n]*\s-(?:EncodedCommand|enc)\b/i.test(c) ||
     /\b(Set-Content|Add-Content|Out-File|New-Item|Remove-Item|Move-Item|Copy-Item|Rename-Item|Expand-Archive|Compress-Archive|Start-BitsTransfer|Tee-Object)\b/i.test(
       c,
     ) ||
     // v1.1.44: clean/restore rewrite tree; rm/mv already hit bare \brm\b but keep explicit
     // v1.1.50: pull/submodule/worktree; v1.1.51: switch/stash mutators / branch -D / remote set
     // v1.1.52: git lfs pull; v1.1.54: filter-repo / init
-    /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv|pull|submodule|worktree|switch|init)\b/i.test(
+    /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv|pull|submodule|worktree|switch|init|tag)\b/i.test(
       c,
     ) ||
     /\bgit\s+(filter-repo|filter-branch|lfs\s+pull)\b/i.test(c) ||
@@ -75,9 +82,11 @@ export function isMutatingShellCommand(command?: string): boolean {
     /\bgit\s+branch\s+-[dD]\b/i.test(c) ||
     // v1.1.45: npm ci / yarn add; v1.1.46: npm update / yarn upgrade
     // v1.1.50: npm|yarn|pnpm|bun create scaffolds
-    /\b(npm|pnpm|yarn)\s+(i|install|ci|uninstall|remove|publish|add|update|upgrade|up|create)\b/i.test(
+    // v1.1.55: npm version / ncu -u
+    /\b(npm|pnpm|yarn)\s+(i|install|ci|uninstall|remove|publish|add|update|upgrade|up|create|version)\b/i.test(
       c,
     ) ||
+    /\b(?:npx\s+)?(?:npm-check-updates|ncu)\b[^|&;\n]*\s-u\b/i.test(c) ||
     /\bbun\s+create\b/i.test(c) ||
     /\b(pip3?|cargo|go|bun|deno|composer|bundle|poetry|pipenv|gem)\s+(install|update|uninstall|remove)\b/i.test(
       c,
@@ -187,10 +196,25 @@ export function isMutatingShellCommand(command?: string): boolean {
     /\b(pm2\s+(start|stop|delete|restart)|systemctl\s+(start|stop|restart|enable|disable)|brew\s+services\s+(start|stop))\b/i.test(
       c,
     ) ||
-    /\bgh\s+(secret\s+set|variable\s+set|workflow\s+run)\b/i.test(c) ||
+    /\bgh\s+(secret\s+set|variable\s+set|workflow\s+run|pr\s+(create|merge|close|edit)|release\s+(create|delete|upload)|repo\s+(create|delete|edit|fork|sync)|gist\s+(create|delete|edit)|api\s+-X\s+(POST|PUT|PATCH|DELETE))\b/i.test(
+      c,
+    ) ||
     /\bcomposer\s+dump-?autoload\b/i.test(c) ||
     /\bdotnet\s+(publish|pack|nuget\s+push)\b/i.test(c) ||
     /\b(goreleaser|changeset)\s+(release|publish)\b/i.test(c) ||
+    /\b(fnm|nvm|mise|asdf|volta|pyenv|rbenv)\s+(install|use|local|pin|default)\b/i.test(
+      c,
+    ) ||
+    /\brustup\s+(default|toolchain|component)\b/i.test(c) ||
+    /\bpre-commit\s+autoupdate\b/i.test(c) ||
+    /\b(rclone\s+(move|delete|purge)|aws\s+s3\s+(mb|rb)|aws\s+s3api\s+(put-object|delete-object)|gcloud\s+storage\s+(rm|mv)|gsutil\s+(rm|mv)|az\s+storage\s+blob\s+(upload|delete)|vault\s+kv\s+put|redis-cli\s+set)\b/i.test(
+      c,
+    ) ||
+    /\b(psql\s+-c|sqlite3\s+\S+\s+['\"]?(?:CREATE|INSERT|UPDATE|DELETE|DROP)|mongosh)\b/i.test(
+      c,
+    ) ||
+    /\b(curl|wget)\b[^|&;\n]*\s(-T|--upload-file|--post-file)\b/i.test(c) ||
+    /\b(kubectl\s+cp|docker\s+exec|kubectl\s+exec)\b/i.test(c) ||
     /\bfind\b[^|&;\n]*\s-delete\b/i.test(c) ||
     // formatters that rewrite sources (check-only paths stay allowed)
     // v1.1.52: prettier/eslint/biome --write

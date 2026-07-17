@@ -1,7 +1,7 @@
 /**
  * Idle / empty assistant turn detection — yank agent back when work remains.
  */
-const FLUFF = /^(ok|okay|sure|sure thing|yes|no|done|thanks|thank you|thx|ty|yep|yup|nope|cool|great|perfect|awesome|noted|alright|lgtm|sgtm|wfm|wip|continue|resuming|resume|all set|all good|ship it|shipping|you got it|can do|no problem|no worries|no issue|fine|fine by me|works for me|gotcha|makes sense|fair enough|clear|roger|copy|np|kk|继续|好的|好的呀|好哒|好吧|好嘞|嗯|嗯嗯|哦|行|行吧|可以|可以可以|收到|明白|了解|知道了|懂了|懂|我明白了|我懂了|稍后|一会|没问题|了解了|着手处理|搞定|就这样|那就这样|\.{1,6}|…+|👍|✅)[.。!?！？]?$/i;
+const FLUFF = /^(ok|okay|sure|sure thing|yes|no|done|thanks|thank you|thx|ty|yep|yup|nope|cool|great|perfect|awesome|noted|alright|lgtm|sgtm|wfm|wip|continue|resuming|resume|all set|all good|ship it|shipping|you got it|can do|no problem|no worries|no issue|fine|fine by me|works for me|gotcha|makes sense|fair enough|clear|roger|copy|np|kk|later|ttyl|bye|goodbye|cheers|no rush|no hurry|anytime|any time|my pleasure|happy to help|glad to help|no sweat|no biggie|standing by|let me know|ping me|继续|好的|好的呀|好哒|好吧|好嘞|好滴|嗯|嗯嗯|嗯呐|哦|哦哦|行|行吧|可以|可以可以|收到|明白|了解|知道了|懂了|懂|我明白了|我懂了|稍后|一会|没问题|没问题的|了解了|着手处理|搞定|就这样|那就这样|不急|慢慢来|随意|对的|没错|是的|好的呢|好的哦|好的哈|\.{1,6}|…+|👍|✅)[.。!?！？,]?$/i;
 export function isIdleAssistantMessage(msg) {
     if (msg === undefined || msg === null)
         return true;
@@ -16,7 +16,7 @@ export function isIdleAssistantMessage(msg) {
     // v1.1.50: Looking into it / One moment / Hang on / Bear with me
     // v1.1.51: investigate / digging in / proceeding / almost there
     // v1.1.52: sure thing / jumping in / ship it / moving on
-    if (/^i('ll| will)\s+(continue|get (right )?on it|do that|proceed|take a look|investigate|handle it|fix it|fix that|check)\b/i.test(t) ||
+    if (/^i('ll| will)\s+(continue|get (right )?on it|do that|proceed|take a look|investigate|handle it|fix it|fix that|check|get back)\b/i.test(t) ||
         /^let me (continue|proceed|check|investigate)\b/i.test(t) ||
         /^continuing(\s+shortly)?[\s.]*$/i.test(t) ||
         /^(working on it|on it|on it now|got it|understood|will do|will do that|will do shortly)[\s.]*$/i.test(t) ||

@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.55] — 2026-07-17
+
+### MAGI spiral — provisional DONE hedges + archive/gh shells + ceremony quotes
+
+- **fix(isDoneMessage)** reject `DONE for now` / `soft DONE` / `effectively|functionally DONE` / `marked DONE` / `DONE-ish` / `(WIP)` — provisional claims must not cancel Ralph/ULW
+- **fix(hasUlwCeremonyOpener)** accept opener wrapped in backticks / quotes / `【】`
+- **fix(isMutatingShellCommand)** `zip|gzip|tar -c|7z a` / `reg add` / `icacls|takeown|attrib` / `npm version` / `ncu -u` / `gh pr|release|repo create` / `curl -T` / `aws s3 mb` / `rclone delete` / `fnm|nvm install` / `kubectl cp|docker exec`
+- **fix(VERIFY_SHELL_RE)** `mvn -B test` / `pnpm --filter … test` / `yarn workspace … test`
+- **fix(tool-paths)** `file://` URI + `documentPath` / `resourcePath`
+- **fix(idle-turn)** Later / Cheers / No rush / 不急 / 好滴
+- **test** DONE provisional matrix + shells + paths + ceremony wraps
+
 ## [1.1.54] — 2026-07-17
 
 ### MAGI spiral — PowerShell shell tools + codemod/scaffold mutators + paths

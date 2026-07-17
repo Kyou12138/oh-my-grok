@@ -221,6 +221,30 @@ describe("isDoneMessage 真值表(v0.15 否定集修复)", () => {
     expect(isDoneMessage("All green. <promise>DONE</promise>")).toBe(true);
     expect(isDoneMessage("工作完成 RALPH_DONE")).toBe(true);
   });
+
+  it("负例: provisional DONE for now / soft / effectively / marked (v1.1.55)", () => {
+    expect(isDoneMessage("<promise>DONE</promise> for now")).toBe(false);
+    expect(isDoneMessage("<promise>DONE</promise> for today")).toBe(false);
+    expect(isDoneMessage("<promise>DONE</promise> temporarily")).toBe(false);
+    expect(isDoneMessage("<promise>DONE</promise>-ish")).toBe(false);
+    expect(isDoneMessage("<promise>DONE</promise> (WIP)")).toBe(false);
+    expect(isDoneMessage("<promise>DONE</promise> wip")).toBe(false);
+    expect(isDoneMessage("soft <promise>DONE</promise>")).toBe(false);
+    expect(isDoneMessage("effectively <promise>DONE</promise>")).toBe(false);
+    expect(isDoneMessage("functionally ULW_DONE")).toBe(false);
+    expect(isDoneMessage("provisionally RALPH_DONE")).toBe(false);
+    expect(isDoneMessage("consider <promise>DONE</promise>")).toBe(false);
+    expect(isDoneMessage("treat as <promise>DONE</promise>")).toBe(false);
+    expect(isDoneMessage("marked <promise>DONE</promise>")).toBe(false);
+    expect(isDoneMessage("marked as ULW_DONE")).toBe(false);
+    expect(isDoneMessage("marking <promise>DONE</promise>")).toBe(false);
+    expect(isDoneMessage("I'll mark <promise>DONE</promise>")).toBe(false);
+    expect(isDoneMessage("shipped as <promise>DONE</promise>")).toBe(false);
+    expect(isDoneMessage("<promise>DONE</promise> shipped")).toBe(false);
+    expect(isDoneMessage("Verified end-to-end. <promise>DONE</promise>")).toBe(
+      true,
+    );
+  });
 });
 
 // ─── 2. parseGoalsFromTask ──────────────────────────────────────────
@@ -531,6 +555,11 @@ describe("isVerifyShellCommand 词边界 + echo 段", () => {
       "behave features/",
       "fastlane scan",
       "bin/rspec",
+      // v1.1.55
+      "mvn -B test",
+      "mvn -B verify",
+      "pnpm --filter web test",
+      "yarn workspace web test",
     ]) {
       expect(isVerifyShellCommand(cmd), cmd).toBe(true);
     }
@@ -1134,6 +1163,10 @@ describe("ULW ceremony opener gate (v1.1.49)", () => {
     expect(hasUlwCeremonyOpener("ULTRAWORK 模式已启动！\n目标: x")).toBe(true);
     expect(hasUlwCeremonyOpener("\n\nULTRAWORK MODE ENABLED!\nok")).toBe(true);
     expect(hasUlwCeremonyOpener("**ULTRAWORK MODE ENABLED!**\nGoal")).toBe(true);
+    // v1.1.55: backticks / quotes / fullwidth brackets
+    expect(hasUlwCeremonyOpener("`ULTRAWORK MODE ENABLED!`\nGoal")).toBe(true);
+    expect(hasUlwCeremonyOpener('"ULTRAWORK MODE ENABLED!"\nGoal')).toBe(true);
+    expect(hasUlwCeremonyOpener("【ULTRAWORK MODE ENABLED!】\nGoal")).toBe(true);
     expect(hasUlwCeremonyOpener("ok going\nULTRAWORK MODE ENABLED!")).toBe(false);
     expect(hasUlwCeremonyOpener("Looking into it.")).toBe(false);
     expect(hasUlwCeremonyOpener("")).toBe(false);
