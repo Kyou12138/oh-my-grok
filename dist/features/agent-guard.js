@@ -5,13 +5,23 @@ export function isShellTool(toolName) {
     if (!toolName)
         return false;
     const n = normalizeToolName(toolName);
+    // v1.1.54: PowerShell / pwsh / Cmd / terminal_command / run_command
     return (n === "bash" ||
         n === "shell" ||
         n === "execute" ||
+        n === "exec" ||
         n === "localshell" ||
         n === "runterminalcommand" ||
         n === "runterminal" ||
-        n.includes("runterminal"));
+        n.includes("runterminal") ||
+        n === "powershell" ||
+        n === "pwsh" ||
+        n === "cmd" ||
+        n === "cmdexe" ||
+        n === "terminal" ||
+        n === "terminalcommand" ||
+        n === "runcommand" ||
+        n === "system");
 }
 /**
  * Shell commands that mutate the workspace (read-only / plan / prometheus gates).
@@ -30,12 +40,19 @@ export function isMutatingShellCommand(command) {
         /\b(mv|move|cp|copy|mkdir|md|touch|chmod|chown|ln|link)\b/i.test(c) ||
         // sed -i / perl -pi / ruby -i.bak (v1.1.52: -pi combined flag)
         /\b(sed|perl|ruby)\b[^|&;\n]*\s-[a-z]*i[a-z.]*/i.test(c) ||
+        // v1.1.54: yq/sd/dasel/fastmod/ast-grep -U / jscodeshift in-place rewrites
+        /\byq\b[^|&;\n]*\s-i\b/i.test(c) ||
+        /\b(sd|fastmod|comby)\b/i.test(c) ||
+        /\bdasel\s+put\b/i.test(c) ||
+        /\b(?:ast-grep|sg)\b[^|&;\n]*\s-U\b/i.test(c) ||
+        /\bjscodeshift\b/i.test(c) ||
+        /\bknip\b[^|&;\n]*--fix\b/i.test(c) ||
         /\b(Set-Content|Add-Content|Out-File|New-Item|Remove-Item|Move-Item|Copy-Item|Rename-Item|Expand-Archive|Compress-Archive|Start-BitsTransfer|Tee-Object)\b/i.test(c) ||
         // v1.1.44: clean/restore rewrite tree; rm/mv already hit bare \brm\b but keep explicit
         // v1.1.50: pull/submodule/worktree; v1.1.51: switch/stash mutators / branch -D / remote set
-        // v1.1.52: git lfs pull
-        /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv|pull|submodule|worktree|switch)\b/i.test(c) ||
-        /\bgit\s+lfs\s+pull\b/i.test(c) ||
+        // v1.1.52: git lfs pull; v1.1.54: filter-repo / init
+        /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv|pull|submodule|worktree|switch|init)\b/i.test(c) ||
+        /\bgit\s+(filter-repo|filter-branch|lfs\s+pull)\b/i.test(c) ||
         /\bgit\s+stash\s+(drop|pop|apply|push|save)\b/i.test(c) ||
         /\bgit\s+remote\s+(add|set-url|remove|rm)\b/i.test(c) ||
         /\bgit\s+branch\s+-[dD]\b/i.test(c) ||
@@ -94,33 +111,44 @@ export function isMutatingShellCommand(command) {
         /\biex\s*\(/i.test(c) ||
         /\bdocker-compose\s+(up|down)\b/i.test(c) ||
         /\bdocker\s+compose\s+(up|down)\b/i.test(c) ||
-        /\bdocker\s+(build|push|pull|rmi|system\s+prune|save|load)\b/i.test(c) ||
-        /\bpodman\s+(build|push|pull)\b/i.test(c) ||
-        /\b(helm\s+(install|upgrade|uninstall|delete|rollback)|kubectl\s+(apply|create|replace|delete|patch|scale|rollout|set)|terraform\s+(apply|destroy)|pulumi\s+(up|destroy)|tofu\s+(apply|destroy)|terragrunt\s+apply)\b/i.test(c) ||
+        /\bdocker\s+(build|push|pull|rmi|system\s+prune|save|load|start|stop|kill)\b/i.test(c) ||
+        /\bpodman\s+(build|push|pull|start|stop)\b/i.test(c) ||
+        /\b(helm\s+(install|upgrade|uninstall|delete|rollback)|kubectl\s+(apply|create|replace|delete|patch|scale|rollout|set)|terraform\s+(apply|destroy)|pulumi\s+(up|destroy)|tofu\s+(apply|destroy)|terragrunt\s+apply|helmfile\s+apply)\b/i.test(c) ||
+        /\bkustomize\s+edit\b/i.test(c) ||
         /\b(cdk|serverless|sam|sls)\s+(deploy|destroy)\b/i.test(c) ||
         /\bgcloud\s+(run\s+deploy|app\s+deploy|storage\s+cp)\b/i.test(c) ||
         /\bamplify\s+push\b/i.test(c) ||
         /\bnpx\s+create-/i.test(c) ||
         /\bnpx\s+(husky|msw)\s+init\b/i.test(c) ||
-        /\b(vercel|netlify|firebase|fly|wrangler)\s+deploy\b/i.test(c) ||
+        /\b(vercel|netlify|firebase|fly|flyctl|wrangler)\s+deploy\b/i.test(c) ||
+        /\bflyctl\s+secrets\s+set\b/i.test(c) ||
         /\bwrangler\s+pages\s+deploy\b/i.test(c) ||
         /\brailway\s+up\b/i.test(c) ||
-        /\bsupabase\s+db\s+(push|reset)\b/i.test(c) ||
+        /\bsupabase\s+(db\s+(push|reset)|migration|functions\s+deploy)\b/i.test(c) ||
         /\b(?:npx\s+)?prisma\s+(migrate|db\s+push|db\s+seed|db\s+pull|generate)\b/i.test(c) ||
-        /\bdrizzle-kit\s+push\b/i.test(c) ||
-        /\balembic\s+upgrade\b/i.test(c) ||
+        /\bdrizzle-kit\s+(push|generate|drop)\b/i.test(c) ||
+        /\balembic\s+(upgrade|revision|downgrade)\b/i.test(c) ||
+        /\bflask\s+db\s+(upgrade|migrate)\b/i.test(c) ||
         /\bknex\s+migrate:/i.test(c) ||
         /\bsequelize\s+db:migrate\b/i.test(c) ||
         /\btypeorm\s+migration:run\b/i.test(c) ||
         /\b(diesel\s+migration|goose\s+up|flyway\s+migrate|liquibase\s+update)\b/i.test(c) ||
-        /\brails\s+db:(migrate|seed|reset)\b/i.test(c) ||
+        /\brails\s+(db:(migrate|seed|reset)|generate|destroy|g)\b/i.test(c) ||
         /\brake\s+db:migrate\b/i.test(c) ||
-        /\bphp\s+artisan\s+(migrate|db:seed)\b/i.test(c) ||
-        /\b(?:python3?\s+)?manage\.py\s+migrate\b/i.test(c) ||
+        /\bphp\s+artisan\s+(migrate|db:seed|make:)\b/i.test(c) ||
+        /\b(?:python3?\s+)?manage\.py\s+(migrate|makemigrations|collectstatic|loaddata|flush)\b/i.test(c) ||
+        // scaffolds / codegen (v1.1.54)
+        /\b(?:nx\s+(g|generate)|ng\s+(g|generate)|nest\s+g)\b/i.test(c) ||
+        /\b(expo\s+prebuild|eas\s+(build|submit)|adb\s+install)\b/i.test(c) ||
         /\b(psql\s+-f|pg_restore|mongorestore)\b/i.test(c) ||
         /\baws\s+s3\s+(cp|sync|mv|rm)\b/i.test(c) ||
         /\b(scp|sftp)\b/i.test(c) ||
-        /\b(pre-commit|husky|lefthook|yorkie)\s+install\b/i.test(c) ||
+        /\b(pre-commit|husky|lefthook|yorkie)\s+(install|add)\b/i.test(c) ||
+        /\b(pm2\s+(start|stop|delete|restart)|systemctl\s+(start|stop|restart|enable|disable)|brew\s+services\s+(start|stop))\b/i.test(c) ||
+        /\bgh\s+(secret\s+set|variable\s+set|workflow\s+run)\b/i.test(c) ||
+        /\bcomposer\s+dump-?autoload\b/i.test(c) ||
+        /\bdotnet\s+(publish|pack|nuget\s+push)\b/i.test(c) ||
+        /\b(goreleaser|changeset)\s+(release|publish)\b/i.test(c) ||
         /\bfind\b[^|&;\n]*\s-delete\b/i.test(c) ||
         // formatters that rewrite sources (check-only paths stay allowed)
         // v1.1.52: prettier/eslint/biome --write

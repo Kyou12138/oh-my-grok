@@ -171,6 +171,21 @@ describe("pathsFromToolInput", () => {
       "src/x.ts",
     ]);
   });
+
+  it("path aliases fileName / fullPath / from-to (v1.1.54)", () => {
+    expect(pathsFromToolInput({ fileName: "a.ts" })).toEqual(["a.ts"]);
+    expect(pathsFromToolInput({ file_name: "b.ts" })).toEqual(["b.ts"]);
+    expect(pathsFromToolInput({ relative_path: "c.ts" })).toEqual(["c.ts"]);
+    expect(pathsFromToolInput({ fullPath: "/tmp/d.ts" })).toEqual(["/tmp/d.ts"]);
+    expect(pathsFromToolInput({ fsPath: "e.ts" })).toEqual(["e.ts"]);
+    expect(pathsFromToolInput({ from: "a.ts", to: "b.ts" })).toEqual([
+      "a.ts",
+      "b.ts",
+    ]);
+    expect(
+      pathsFromToolInput({ old_path: "old.ts", new_path: "new.ts" }),
+    ).toEqual(["old.ts", "new.ts"]);
+  });
 });
 
 describe("hashline apply_patch paths (v1.1.23)", () => {

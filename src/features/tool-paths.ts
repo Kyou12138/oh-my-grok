@@ -159,13 +159,35 @@ export function pathsFromToolInput(
   push(toolInput.path);
   push(toolInput.filePath);
   push(toolInput.filepath); // v1.1.53 lowercase join
+  push(toolInput.file_name);
+  push(toolInput.fileName);
   push(toolInput.target_file);
   push(toolInput.targetFile);
   push(toolInput.target_path);
   push(toolInput.targetPath);
   push(toolInput.target); // some hosts use bare target
+  push(toolInput.relative_path);
+  push(toolInput.relativePath);
+  push(toolInput.full_path);
+  push(toolInput.fullPath);
+  push(toolInput.abs_path);
+  push(toolInput.absolutePath);
+  push(toolInput.fs_path);
+  push(toolInput.fsPath);
   push(toolInput.filename);
   push(toolInput.file);
+  // rename / move pairs (v1.1.54)
+  push(toolInput.from);
+  push(toolInput.to);
+  push(toolInput.old_path);
+  push(toolInput.oldPath);
+  push(toolInput.new_path);
+  push(toolInput.newPath);
+  push(toolInput.source_path);
+  push(toolInput.sourcePath);
+  push(toolInput.destination);
+  push(toolInput.destination_path);
+  push(toolInput.destinationPath);
   // NotebookEdit / Jupyter
   push(toolInput.notebook_path);
   push(toolInput.notebookPath);
@@ -181,13 +203,25 @@ export function pathsFromToolInput(
       push(o.path);
       push(o.filePath);
       push(o.filepath);
+      push(o.file_name);
+      push(o.fileName);
       push(o.target_file);
       push(o.targetFile);
       push(o.target_path);
       push(o.targetPath);
       push(o.target);
+      push(o.relative_path);
+      push(o.relativePath);
+      push(o.full_path);
+      push(o.fullPath);
+      push(o.fs_path);
+      push(o.fsPath);
       push(o.filename);
       push(o.file);
+      push(o.from);
+      push(o.to);
+      push(o.old_path);
+      push(o.new_path);
     }
   }
 

@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.54] — 2026-07-17
+
+### MAGI spiral — PowerShell shell tools + codemod/scaffold mutators + paths
+
+- **feat(hard)** `isShellTool` + hooks: `PowerShell` / `pwsh` / `Cmd` / `terminal_command` / `run_command` / `Exec`
+- **fix(isMutatingShellCommand)** `yq -i` / `sd` / `jscodeshift` / `ast-grep -U` / `fastmod` / `knip --fix` / `git filter-repo|init` / `nx g|ng generate|nest g|rails generate` / `php artisan make:` / `manage.py makemigrations` / `docker start|stop` / `pm2|systemctl` / `flyctl` / `gh secret|workflow` / `helmfile|kustomize edit`
+- **fix(tool-paths)** `fileName` / `fullPath` / `fsPath` / `from`+`to` / `old_path`+`new_path`
+- **fix(hashline)** strip `L12:` editor line prefixes
+- **fix(VERIFY_SHELL_RE)** `tsc … --noEmit` / `nx run *:test` / `pnpm -r test` / `gradlew check` / `detox|maestro|cucumber-js|behave`
+- **test** shell tool + codemod + path + verify matrices
+
 ## [1.1.53] — 2026-07-17
 
 ### MAGI spiral — mutating tool aliases + path/unwrap + format shells

@@ -20,6 +20,7 @@ import {
   READ_ONLY_AGENTS,
   resolveAgentRole,
 } from "../src/features/agent-guard.js";
+// isShellTool used in v1.1.54 PowerShell matrix
 import {
   clearSessionAgentRole,
   detectAgentCommand,
@@ -473,6 +474,53 @@ describe("agentGuardDeny", () => {
     expect(isMutatingShellCommand("npx prettier --check .")).toBe(false);
     expect(isMutatingShellCommand("npx biome check .")).toBe(false);
     expect(isMutatingShellCommand("terraform plan")).toBe(false);
+  });
+
+  it("isShellTool covers PowerShell/pwsh/Cmd (v1.1.54)", () => {
+    expect(isShellTool("PowerShell")).toBe(true);
+    expect(isShellTool("pwsh")).toBe(true);
+    expect(isShellTool("Cmd")).toBe(true);
+    expect(isShellTool("cmd")).toBe(true);
+    expect(isShellTool("terminal_command")).toBe(true);
+    expect(isShellTool("run_command")).toBe(true);
+    expect(isShellTool("Exec")).toBe(true);
+    expect(isShellTool("Write")).toBe(false);
+  });
+
+  it("blocks yq/sd/jscodeshift/ast-grep/scaffold shells (v1.1.54)", () => {
+    expect(isMutatingShellCommand("yq -i '.a=1' f.yaml")).toBe(true);
+    expect(isMutatingShellCommand("sd 'old' 'new' file.ts")).toBe(true);
+    expect(isMutatingShellCommand("jscodeshift -t transform.js src")).toBe(true);
+    expect(isMutatingShellCommand("ast-grep -U -p 'foo' -r 'bar'")).toBe(true);
+    expect(isMutatingShellCommand("sg -U -p x -r y")).toBe(true);
+    expect(isMutatingShellCommand("fastmod -i old new")).toBe(true);
+    expect(isMutatingShellCommand("knip --fix")).toBe(true);
+    expect(isMutatingShellCommand("git filter-repo")).toBe(true);
+    expect(isMutatingShellCommand("git init")).toBe(true);
+    expect(isMutatingShellCommand("nx g @nx/react:app")).toBe(true);
+    expect(isMutatingShellCommand("ng generate component foo")).toBe(true);
+    expect(isMutatingShellCommand("nest g resource users")).toBe(true);
+    expect(isMutatingShellCommand("rails generate model User")).toBe(true);
+    expect(isMutatingShellCommand("php artisan make:migration x")).toBe(true);
+    expect(isMutatingShellCommand("python manage.py makemigrations")).toBe(true);
+    expect(isMutatingShellCommand("python manage.py collectstatic")).toBe(true);
+    expect(isMutatingShellCommand("alembic revision --autogenerate")).toBe(true);
+    expect(isMutatingShellCommand("flask db upgrade")).toBe(true);
+    expect(isMutatingShellCommand("docker stop c")).toBe(true);
+    expect(isMutatingShellCommand("docker start c")).toBe(true);
+    expect(isMutatingShellCommand("pm2 start app.js")).toBe(true);
+    expect(isMutatingShellCommand("systemctl restart nginx")).toBe(true);
+    expect(isMutatingShellCommand("flyctl deploy")).toBe(true);
+    expect(isMutatingShellCommand("gh secret set FOO")).toBe(true);
+    expect(isMutatingShellCommand("helmfile apply")).toBe(true);
+    expect(isMutatingShellCommand("kustomize edit set image x=y")).toBe(true);
+    expect(isMutatingShellCommand("composer dump-autoload")).toBe(true);
+    expect(isMutatingShellCommand("drizzle-kit generate")).toBe(true);
+    expect(isMutatingShellCommand("supabase migration new x")).toBe(true);
+    // still allow reads
+    expect(isMutatingShellCommand("yq '.a' f.yaml")).toBe(false);
+    expect(isMutatingShellCommand("docker ps")).toBe(false);
+    expect(isMutatingShellCommand("ast-grep -p 'foo'")).toBe(false);
   });
 
   it("blocks black/cargo fmt/gofmt/eslint --fix (v1.1.53)", () => {

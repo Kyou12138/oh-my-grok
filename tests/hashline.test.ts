@@ -338,6 +338,9 @@ describe("hashline — Grok read_file N→ prefix strip (v1.1.10)", () => {
     expect(stripHashlinePrefixes("1->hello\n2->world")).toBe("hello\nworld");
     expect(stripHashlinePrefixes("  1→hello\n\t2#AB| body")).toBe("hello\nbody");
     expect(stripHashlinePrefixes("  3#CD| x")).toBe("x");
+    // v1.1.54 L12: editor style
+    expect(stripHashlinePrefixes("L12: const x = 1")).toBe("const x = 1");
+    expect(stripHashlinePrefixes("  L3: body")).toBe("body");
   });
 
   it("search_replace allows old_string with ASCII -> read prefixes after Read", () => {

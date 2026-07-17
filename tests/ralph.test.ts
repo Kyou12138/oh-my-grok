@@ -519,9 +519,23 @@ describe("isVerifyShellCommand 词边界 + echo 段", () => {
       "composer validate",
       "pint --test",
       "php-cs-fixer fix --dry-run",
+      // v1.1.54
+      "tsc -p tsconfig.json --noEmit",
+      "nx run myapp:test",
+      "pnpm -r test",
+      "pnpm -w test",
+      "./gradlew check",
+      "detox test",
+      "maestro test flows/",
+      "cucumber-js features/",
+      "behave features/",
+      "fastlane scan",
+      "bin/rspec",
     ]) {
       expect(isVerifyShellCommand(cmd), cmd).toBe(true);
     }
+    // build-only nx run must not credit verify
+    expect(isVerifyShellCommand("nx run myapp:build")).toBe(false);
   });
 
   it("bun/deno/yarn-run/make test credit ULW verify via noteUlwShell (v1.1.40)", () => {

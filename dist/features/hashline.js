@@ -116,10 +116,13 @@ const LINE_REF = /^\s*(\d+)#([A-Z0-9]{2})\|\s?(.*)$/;
  * Leading whitespace allowed (v1.1.41).
  */
 const GROK_READ_LINE = /^\s*(\d+)(?:→|->)(.*)$/;
+/** Some hosts / editors: `L12: body` (v1.1.54). */
+const L_COLON_LINE = /^\s*L(\d+):\s?(.*)$/i;
 /**
  * Strip display prefixes from old_string before disk match:
  * - Hashline anchors: `N#TAG| body`
  * - Grok read_file: `N→body` / `N->body` (agents often paste tool output into old_string)
+ * - Editor style: `L12: body`
  */
 export function stripHashlinePrefixes(text) {
     return text
@@ -131,6 +134,9 @@ export function stripHashlinePrefixes(text) {
         const grok = line.match(GROK_READ_LINE);
         if (grok)
             return grok[2];
+        const lc = line.match(L_COLON_LINE);
+        if (lc)
+            return lc[2];
         return line;
     })
         .join("\n");
