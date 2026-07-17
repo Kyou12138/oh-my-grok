@@ -74,6 +74,17 @@ function base(ws: string, over: Partial<HookInput> = {}): HookInput {
 }
 
 describe("findCommentSlop", () => {
+  it("flags this is a function / check if / validate / 这是一个 (v1.1.56)", () => {
+    expect(findCommentSlop("// This is a function that does stuff\n", "a.ts").length).toBeGreaterThan(0);
+    expect(findCommentSlop("// Check if valid\n", "a.ts").length).toBeGreaterThan(0);
+    expect(findCommentSlop("// Validate input\n", "a.ts").length).toBeGreaterThan(0);
+    expect(findCommentSlop("// Loop through items\n", "a.ts").length).toBeGreaterThan(0);
+    expect(findCommentSlop("// Fetch data from server\n", "a.ts").length).toBeGreaterThan(0);
+    expect(findCommentSlop("// Initialize the state\n", "a.ts").length).toBeGreaterThan(0);
+    expect(findCommentSlop("// 这是一个函数\n", "a.ts").length).toBeGreaterThan(0);
+    expect(findCommentSlop("// 设置默认值\n", "a.ts").length).toBeGreaterThan(0);
+  });
+
   it("flags English restating / implements / handles", () => {
     const hits = findCommentSlop(
       [

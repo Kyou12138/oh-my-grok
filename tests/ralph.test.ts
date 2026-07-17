@@ -560,6 +560,13 @@ describe("isVerifyShellCommand 词边界 + echo 段", () => {
       "mvn -B verify",
       "pnpm --filter web test",
       "yarn workspace web test",
+      // v1.1.56
+      "newman run collection.json",
+      "k6 run script.js",
+      "artillery run s.yml",
+      "cargo tarpaulin",
+      "cargo llvm-cov",
+      "coverage run -m pytest",
     ]) {
       expect(isVerifyShellCommand(cmd), cmd).toBe(true);
     }

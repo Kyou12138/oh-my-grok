@@ -154,20 +154,58 @@ export function isMutatingShellCommand(command?: string): boolean {
       c,
     ) ||
     /\bpodman\s+(build|push|pull|start|stop)\b/i.test(c) ||
-    /\b(helm\s+(install|upgrade|uninstall|delete|rollback)|kubectl\s+(apply|create|replace|delete|patch|scale|rollout|set)|terraform\s+(apply|destroy)|pulumi\s+(up|destroy)|tofu\s+(apply|destroy)|terragrunt\s+apply|helmfile\s+apply)\b/i.test(
+    /\b(helm\s+(install|upgrade|uninstall|delete|rollback)|kubectl\s+(apply|create|replace|delete|patch|scale|rollout|set)|terraform\s+(apply|destroy|init|import)|pulumi\s+(up|destroy|config|stack)|tofu\s+(apply|destroy|init)|terragrunt\s+apply|helmfile\s+apply)\b/i.test(
       c,
     ) ||
     /\bkustomize\s+edit\b/i.test(c) ||
-    /\b(cdk|serverless|sam|sls)\s+(deploy|destroy)\b/i.test(c) ||
-    /\bgcloud\s+(run\s+deploy|app\s+deploy|storage\s+cp)\b/i.test(c) ||
+    /\b(cdk|serverless|sam|sls)\s+(deploy|destroy|bootstrap|build)\b/i.test(c) ||
+    /\b(ansible-playbook|ansible-galaxy|packer\s+build|vagrant\s+(up|destroy|provision))\b/i.test(
+      c,
+    ) ||
+    /\bgcloud\s+(run\s+deploy|app\s+deploy|functions\s+deploy|storage\s+cp)\b/i.test(
+      c,
+    ) ||
+    /\baws\s+(cloudformation\s+deploy|lambda\s+update-function-code|ecs\s+update-service)\b/i.test(
+      c,
+    ) ||
+    /\baz\s+(webapp\s+up|group\s+create|aks\s+create|containerapp\s+up)\b/i.test(
+      c,
+    ) ||
+    /\b(heroku\s+(create|config:set|container:push)|fly\s+(secrets\s+set|apps\s+create)|railway\s+variables\s+set)\b/i.test(
+      c,
+    ) ||
     /\bamplify\s+push\b/i.test(c) ||
     /\bnpx\s+create-/i.test(c) ||
     /\bnpx\s+(husky|msw)\s+init\b/i.test(c) ||
     /\b(vercel|netlify|firebase|fly|flyctl|wrangler)\s+deploy\b/i.test(c) ||
+    /\b(vercel|netlify)\s+(env|link)\b/i.test(c) ||
     /\bflyctl\s+secrets\s+set\b/i.test(c) ||
-    /\bwrangler\s+pages\s+deploy\b/i.test(c) ||
+    /\bwrangler\s+(pages\s+deploy|secret\s+put|kv:key\s+put|r2\s+object\s+put|d1\s+execute)\b/i.test(
+      c,
+    ) ||
     /\brailway\s+up\b/i.test(c) ||
-    /\bsupabase\s+(db\s+(push|reset)|migration|functions\s+deploy)\b/i.test(c) ||
+    /\bsupabase\s+(db\s+(push|reset)|migration|functions\s+deploy|link|start|stop)\b/i.test(
+      c,
+    ) ||
+    // publish / release (v1.1.56)
+    /\b(npm|pnpm|yarn|bun)\s+publish\b/i.test(c) ||
+    /\b(cargo\s+publish|twine\s+upload|poetry\s+publish|gem\s+push|dart\s+pub\s+publish|flutter\s+pub\s+publish|mvn\s+(deploy|install|package)|gradle(?:w)?\s+(publish|assembleRelease)|dotnet\s+(publish|pack|nuget\s+push))\b/i.test(
+      c,
+    ) ||
+    /\b(goreleaser|semantic-release|changeset|lerna|nx\s+release)\b/i.test(c) ||
+    // codegen / package managers iOS/mobile
+    /\b(openapi-generator|graphql-codegen|buf\s+generate|protoc|cap\s+sync|pod\s+(install|update)|swift\s+package\s+(resolve|update)|xcodebuild|fastlane\s+(gym|match|deliver))\b/i.test(
+      c,
+    ) ||
+    // project scaffolds
+    /\b(laravel\s+new|rails\s+new|django-admin\s+startproject|nest\s+new|vue\s+create)\b/i.test(
+      c,
+    ) ||
+    /\b(sops\s+-e|ssh-keygen|gpg\s+--import|install\s+-m)\b/i.test(c) ||
+    /\bsqlx\s+(migrate|database)\b/i.test(c) ||
+    /\b(typeorm\s+migration:generate|knex\s+migrate:make|sea-orm-cli|hasura\s+migrate|wp\s+plugin\s+install|drush\s+en)\b/i.test(
+      c,
+    ) ||
     /\b(?:npx\s+)?prisma\s+(migrate|db\s+push|db\s+seed|db\s+pull|generate)\b/i.test(
       c,
     ) ||

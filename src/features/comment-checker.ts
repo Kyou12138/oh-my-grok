@@ -26,11 +26,12 @@ export interface CommentAggregateState {
 }
 
 /** Patterns that typically restate code without adding intent. */
+// v1.1.56: this is a function / check if / validate / loop / fetch / initialize
 const SLOP_LINE =
-  /^\s*(?:\/\/|\/\*+|\*|#)\s*(?:this\s+(?:function|method|class|component|variable|constant|code|file|hook|handler|module)|returns?\s+the\s+|gets?\s+the\s+|sets?\s+the\s+|imports?\s+|exports?\s+|defines?\s+|creates?\s+a\s+|implements?\s+the\s+|handles?\s+the\s+|helper\s+function|utility\s+function|main\s+function|entry\s+point|TODO:\s*implement|FIXME:\s*implement)/i;
+  /^\s*(?:\/\/|\/\*+|\*|#)\s*(?:this\s+(?:is\s+a\s+)?(?:function|method|class|component|variable|constant|code|file|hook|handler|module)|returns?\s+the\s+|gets?\s+the\s+|sets?\s+the\s+|imports?\s+|exports?\s+|defines?\s+|creates?\s+a\s+|implements?\s+the\s+|handles?\s+the\s+|helper\s+function|utility\s+function|main\s+function|entry\s+point|check\s+if\b|validate\s+|loop\s+through|iterate\s+over|call\s+the\s+|fetch\s+(?:data|the)|initialize\s+(?:the\s+)?|cleanup\s+on\b|TODO:\s*implement|FIXME:\s*implement)/i;
 
 const CHINESE_SLOP =
-  /^\s*(?:\/\/|\/\*+|\*|#)\s*(?:这个(?:函数|方法|类|组件|变量|文件|模块)|用于(?:计算|处理|获取|设置|实现)|返回(?:了)?|获取(?:了)?)/;
+  /^\s*(?:\/\/|\/\*+|\*|#)\s*(?:这个(?:函数|方法|类|组件|变量|文件|模块)|这是一个(?:函数|方法|类|组件)|用于(?:计算|处理|获取|设置|实现)|返回(?:了)?|获取(?:了)?|设置(?:默认值|了)?)/;
 
 const EMOJI_COMMENT =
   /^\s*(?:\/\/|\/\*+|\*|#).*(?:🚀|✨|🎉|💡|🔥|✅|❌|👉|⭐|😊|👍)/;

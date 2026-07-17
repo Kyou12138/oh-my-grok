@@ -178,6 +178,36 @@ describe("diagnostics — isVerifiedMessage 真值表", () => {
     expect(isVerifiedMessage("all tests passed")).toBe(true);
     expect(isVerifiedMessage("全部测试通过")).toBe(true);
   });
+
+  it("负例: provisional soft/effectively/for now VERIFIED (v1.1.56)", () => {
+    expect(isVerifiedMessage("soft <promise>VERIFIED</promise>")).toBe(false);
+    expect(isVerifiedMessage("effectively <promise>VERIFIED</promise>")).toBe(
+      false,
+    );
+    expect(isVerifiedMessage("provisionally OMG_VERIFIED")).toBe(false);
+    expect(isVerifiedMessage("<promise>VERIFIED</promise> for now")).toBe(
+      false,
+    );
+    expect(isVerifiedMessage("<promise>VERIFIED</promise> temporarily")).toBe(
+      false,
+    );
+    expect(isVerifiedMessage("<promise>VERIFIED</promise>-ish")).toBe(false);
+    expect(isVerifiedMessage("<promise>VERIFIED</promise> (WIP)")).toBe(false);
+    expect(isVerifiedMessage("marked <promise>VERIFIED</promise>")).toBe(false);
+    expect(isVerifiedMessage("marked as OMG_VERIFIED")).toBe(false);
+    expect(isVerifiedMessage("consider <promise>VERIFIED</promise>")).toBe(
+      false,
+    );
+    expect(isVerifiedMessage("all tests passed for now")).toBe(false);
+    expect(isVerifiedMessage("soft all tests passed")).toBe(false);
+    expect(isVerifiedMessage("暂时全部测试通过")).toBe(false);
+    expect(isVerifiedMessage("先算全部测试通过")).toBe(false);
+    // honest verify still true
+    expect(isVerifiedMessage("CI green. <promise>VERIFIED</promise>")).toBe(
+      true,
+    );
+    expect(isVerifiedMessage("all tests passed")).toBe(true);
+  });
 });
 
 describe("diagnostics — diagStopReason 三分支", () => {

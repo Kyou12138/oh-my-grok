@@ -563,6 +563,29 @@ describe("isMutatingTool", () => {
       expect(isMutatingTool(name), name).toBe(true);
     }
   });
+
+  it("host aliases SearchAndReplace / RewriteFile / ApplyDiff (v1.1.56)", () => {
+    for (const name of [
+      "SearchAndReplace",
+      "search_and_replace",
+      "FindAndReplace",
+      "find_and_replace",
+      "RewriteFile",
+      "rewrite_file",
+      "ModifyFile",
+      "modify_file",
+      "ChangeFile",
+      "change_file",
+      "ApplyDiff",
+      "apply_diff",
+      "DiffEdit",
+      "diff_edit",
+      "Patch",
+      "patch",
+    ]) {
+      expect(isMutatingTool(name), name).toBe(true);
+    }
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════

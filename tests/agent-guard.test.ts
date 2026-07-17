@@ -487,6 +487,59 @@ describe("agentGuardDeny", () => {
     expect(isShellTool("Write")).toBe(false);
   });
 
+  it("blocks terraform init / ansible / publish / codegen (v1.1.56)", () => {
+    expect(isMutatingShellCommand("terraform init")).toBe(true);
+    expect(isMutatingShellCommand("tofu init")).toBe(true);
+    expect(isMutatingShellCommand("terraform import aws_s3_bucket.b n")).toBe(
+      true,
+    );
+    expect(isMutatingShellCommand("ansible-playbook site.yml")).toBe(true);
+    expect(isMutatingShellCommand("packer build t.pkr.hcl")).toBe(true);
+    expect(isMutatingShellCommand("vagrant up")).toBe(true);
+    expect(isMutatingShellCommand("cdk bootstrap")).toBe(true);
+    expect(isMutatingShellCommand("sam build")).toBe(true);
+    expect(isMutatingShellCommand("sam deploy")).toBe(true);
+    expect(isMutatingShellCommand("gcloud functions deploy fn")).toBe(true);
+    expect(
+      isMutatingShellCommand(
+        "aws cloudformation deploy --template-file t.yaml --stack-name s",
+      ),
+    ).toBe(true);
+    expect(isMutatingShellCommand("az webapp up")).toBe(true);
+    expect(isMutatingShellCommand("heroku create")).toBe(true);
+    expect(isMutatingShellCommand("fly secrets set A=1")).toBe(true);
+    expect(isMutatingShellCommand("vercel env add")).toBe(true);
+    expect(isMutatingShellCommand("wrangler secret put KEY")).toBe(true);
+    expect(isMutatingShellCommand("supabase start")).toBe(true);
+    expect(isMutatingShellCommand("npm publish")).toBe(true);
+    expect(isMutatingShellCommand("cargo publish")).toBe(true);
+    expect(isMutatingShellCommand("twine upload dist/*")).toBe(true);
+    expect(isMutatingShellCommand("mvn deploy")).toBe(true);
+    expect(isMutatingShellCommand("gradlew assembleRelease")).toBe(true);
+    expect(isMutatingShellCommand("goreleaser release --clean")).toBe(true);
+    expect(isMutatingShellCommand("changeset publish")).toBe(true);
+    expect(isMutatingShellCommand("nx release")).toBe(true);
+    expect(isMutatingShellCommand("buf generate")).toBe(true);
+    expect(isMutatingShellCommand("graphql-codegen")).toBe(true);
+    expect(isMutatingShellCommand("pod update")).toBe(true);
+    expect(isMutatingShellCommand("swift package resolve")).toBe(true);
+    expect(isMutatingShellCommand("xcodebuild archive -scheme App")).toBe(true);
+    expect(isMutatingShellCommand("rails new app")).toBe(true);
+    expect(isMutatingShellCommand("laravel new app")).toBe(true);
+    expect(isMutatingShellCommand("nest new api")).toBe(true);
+    expect(isMutatingShellCommand("django-admin startproject mysite")).toBe(
+      true,
+    );
+    expect(isMutatingShellCommand("sqlx migrate run")).toBe(true);
+    expect(isMutatingShellCommand("sops -e -i secrets.yaml")).toBe(true);
+    expect(isMutatingShellCommand("ssh-keygen -t ed25519")).toBe(true);
+    expect(isMutatingShellCommand("install -m 644 a b")).toBe(true);
+    // allow reads
+    expect(isMutatingShellCommand("terraform plan")).toBe(false);
+    expect(isMutatingShellCommand("terraform validate")).toBe(false);
+    expect(isMutatingShellCommand("pulumi preview")).toBe(false);
+  });
+
   it("blocks zip/reg/npm version/gh pr create/curl -T (v1.1.55)", () => {
     expect(isMutatingShellCommand("zip -r a.zip dir")).toBe(true);
     expect(isMutatingShellCommand("7z a archive.7z dir")).toBe(true);

@@ -36,6 +36,8 @@ export const MUTATING_TOOL_IDS = [
   "strreplaceeditor",
   "replaceinfile", // ReplaceInFile / replace_in_file
   "replacestringinfile",
+  "searchandreplace", // SearchAndReplace
+  "findandreplace",
   "editnotebook",
   "notebookedit", // Grok / Claude NotebookEdit CamelCase → notebookedit
   "delete",
@@ -52,7 +54,13 @@ export const MUTATING_TOOL_IDS = [
   "overwritefile",
   "savefile",
   "updatefile",
+  "modifyfile",
+  "changefile",
+  "rewritefile",
   "patchfile",
+  "applydiff",
+  "diffedit",
+  "patch",
   "insert",
   "insertfile",
   "append",

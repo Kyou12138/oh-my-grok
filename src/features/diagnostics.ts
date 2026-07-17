@@ -102,6 +102,7 @@ export function isVerifiedMessage(msg?: string): boolean {
 
   // v1.1.46: deferred/future verify claims must not markVerified (align isDoneMessage v1.1.45)
   // e.g. "I will mark VERIFIED later", "pending OMG_VERIFIED", "will claim all tests passed after CI"
+  // v1.1.56: provisional soft/effectively/for now VERIFIED — align isDoneMessage v1.1.55
   const VERIFY_MARK =
     /(?:<promise>VERIFIED<\/promise>|OMG_VERIFIED|\ball tests passed\b)/i;
   const ZH_PASS_MARK =
@@ -109,12 +110,20 @@ export function isVerifiedMessage(msg?: string): boolean {
   const DEFERRED_BEFORE =
     /\b(will|going\s+to|gonna|plan(?:ning)?\s+to|intend(?:ing)?\s+to|should|must|need\s+to|about\s+to|pending|todo|skip(?:ping)?|wait(?:ing)?|before|later|soon)\b[^.!\n]{0,80}(?:<promise>VERIFIED<\/promise>|OMG_VERIFIED|\ball tests passed\b)/i;
   const DEFERRED_AFTER =
-    /(?:<promise>VERIFIED<\/promise>|OMG_VERIFIED|\ball tests passed\b)[^.!\n]{0,80}\b(later|after|once|when|until|then|pending|todo|skip|wait|yet|soon)\b/i;
+    /(?:<promise>VERIFIED<\/promise>|OMG_VERIFIED|\ball tests passed\b)[^.!\n]{0,80}\b(later|after|once|when|until|then|pending|todo|skip|wait|yet|soon|for\s+now|for\s+today|temporarily|temporary|wip)\b/i;
   const DEFERRED_ZH =
-    /(?:稍后|待会|之后|以后|还要|尚未)[^。\n]{0,24}(?:全部|所有)?测试|(?:全部|所有)测试(?:均)?(?:已)?通过[^。\n]{0,16}(?:之后|以后|later)|(?:稍后|待会|之后)[^。\n]{0,16}(?:VERIFIED|OMG_VERIFIED)|(?:VERIFIED|OMG_VERIFIED)[^。\n]{0,16}(?:之后|以后)/i;
+    /(?:稍后|待会|之后|以后|还要|尚未|暂时|先算)[^。\n]{0,24}(?:全部|所有)?测试|(?:全部|所有)测试(?:均)?(?:已)?通过[^。\n]{0,16}(?:之后|以后|later|暂时)|(?:稍后|待会|之后|暂时|先算)[^。\n]{0,16}(?:VERIFIED|OMG_VERIFIED)|(?:VERIFIED|OMG_VERIFIED)[^。\n]{0,16}(?:之后|以后|暂时)/i;
+  const PROVISIONAL_BEFORE =
+    /\b(soft|provisional(?:ly)?|functional(?:ly)?|effective(?:ly)?|temporary|consider|treat\s+as|marking|marked(?:\s+as)?|i(?:'ll|\s+will)\s+mark)\b[^.!\n]{0,80}(?:<promise>VERIFIED<\/promise>|OMG_VERIFIED|\ball tests passed\b)/i;
+  const PROVISIONAL_AFTER =
+    /(?:<promise>VERIFIED<\/promise>|OMG_VERIFIED)(?:-ish|\s*\(\s*wip\s*\)|\s+wip\b)/i;
   if (
     (VERIFY_MARK.test(msg) || ZH_PASS_MARK.test(msg)) &&
-    (DEFERRED_BEFORE.test(msg) || DEFERRED_AFTER.test(msg) || DEFERRED_ZH.test(msg))
+    (DEFERRED_BEFORE.test(msg) ||
+      DEFERRED_AFTER.test(msg) ||
+      DEFERRED_ZH.test(msg) ||
+      PROVISIONAL_BEFORE.test(msg) ||
+      PROVISIONAL_AFTER.test(msg))
   ) {
     return false;
   }
@@ -136,12 +145,13 @@ export function isVerifiedMessage(msg?: string): boolean {
   // 不含 'no':会误拒合法 'no issue, all tests passed'。
   // v1.1.14: 尾随 except/but/failed 与 almost/mostly 前缀；中文「全部测试通过」。
   // v1.1.28: cannot/unable/impossible/refuse/missing/far from 不得 markVerified
+  // v1.1.56: for now / soft / temporary 后缀
   const NEGATED_ALL_TESTS =
     /\b(?:not|never|without|cannot|can'?t|unable|impossible|refuse|refusing|missing|far\s+from|rarely|seldom|hardly|barely|scarcely|don'?t|doesn'?t|isn'?t|aren'?t|wasn'?t|weren'?t|won'?t|wouldn'?t|shouldn'?t|couldn'?t|mustn'?t|haven'?t|hasn'?t|hadn'?t|ain'?t|didn'?t)\b[^.!\n]*\ball tests passed\b/i;
   const HEDGED_AFTER =
-    /\ball tests passed\b[^.!\n]{0,80}\b(except|but|however|failing|failed|error|errors|broken|still\s+fail)/i;
+    /\ball tests passed\b[^.!\n]{0,80}\b(except|but|however|failing|failed|error|errors|broken|still\s+fail|for\s+now|for\s+today|temporarily|temporary|wip)\b/i;
   const HEDGED_BEFORE =
-    /\b(almost|nearly|mostly|partially|roughly)\b[^.!\n]{0,40}\ball tests passed\b/i;
+    /\b(almost|nearly|mostly|partially|roughly|soft|provisional(?:ly)?|effective(?:ly)?|temporary|consider)\b[^.!\n]{0,40}\ball tests passed\b/i;
   if (/\ball tests passed\b/i.test(msg)) {
     if (NEGATED_ALL_TESTS.test(msg) || HEDGED_AFTER.test(msg) || HEDGED_BEFORE.test(msg)) {
       return false;
@@ -149,9 +159,10 @@ export function isVerifiedMessage(msg?: string): boolean {
     return true;
   }
   // Chinese explicit pass (not partial/failed); v1.1.28 不能/无法/没法 否定
+  // v1.1.56: 暂时/先算 不得 markVerified
   if (
     /(?:全部|所有)测试(?:均)?(?:已)?通过|测试(?:全部|均)(?:已)?通过/.test(msg) &&
-    !/(?:未|没有|没|并非|不|无法|不能|没法|难以)[^。\n]{0,16}(?:全部|所有)?测试|测试(?:未|不|失败)|仍有失败|还有失败/.test(
+    !/(?:未|没有|没|并非|不|无法|不能|没法|难以|暂时|先算)[^。\n]{0,16}(?:全部|所有)?测试|测试(?:未|不|失败)|仍有失败|还有失败|(?:全部|所有)测试(?:均)?(?:已)?通过[^。\n]{0,12}暂时/.test(
       msg,
     )
   ) {

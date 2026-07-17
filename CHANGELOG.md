@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.56] — 2026-07-17
+
+### MAGI spiral — provisional VERIFIED + deploy/publish shells + edit aliases
+
+- **fix(isVerifiedMessage)** reject soft/effectively/for now/marked VERIFIED and 暂时/先算全部测试通过 (align DONE v1.1.55)
+- **feat(hard)** mutating aliases: `SearchAndReplace` / `RewriteFile` / `ModifyFile` / `ApplyDiff` / `Patch` + hooks Pre/Post
+- **fix(isMutatingShellCommand)** terraform init/import · ansible/packer/vagrant · cdk/sam bootstrap · gcloud/aws/az deploy · publish (npm/cargo/twine/mvn) · goreleaser/changeset · openapi/buf/codegen · rails/laravel/nest new · sops/ssh-keygen
+- **fix(VERIFY_SHELL_RE)** newman / k6 / artillery / cargo tarpaulin|llvm-cov / coverage run
+- **fix(comment-checker)** this is a function / check if / validate / loop / fetch / 这是一个
+- **test** VERIFIED provisional + shell + tool alias + slop matrices
+
 ## [1.1.55] — 2026-07-17
 
 ### MAGI spiral — provisional DONE hedges + archive/gh shells + ceremony quotes

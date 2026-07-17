@@ -295,7 +295,11 @@ function hashlineDenyOneFile(input, cfg, file, toolNorm, checkOldString) {
             toolNorm.includes("searchreplace") ||
             toolNorm.includes("replace") ||
             toolNorm.includes("fileedit") ||
-            toolNorm.includes("patchfile") ||
+            toolNorm.includes("patch") ||
+            toolNorm.includes("diff") ||
+            toolNorm.includes("modify") ||
+            toolNorm.includes("rewrite") ||
+            toolNorm.includes("changefile") ||
             toolNorm.includes("insert") ||
             toolNorm.includes("append") ||
             toolNorm === "edit" ||
@@ -325,7 +329,10 @@ function hashlineDenyOneFile(input, cfg, file, toolNorm, checkOldString) {
         toolNorm === "createorupdatefile" ||
         toolNorm === "overwritefile" ||
         toolNorm === "savefile" ||
-        toolNorm === "updatefile";
+        toolNorm === "updatefile" ||
+        toolNorm === "rewritefile" ||
+        toolNorm === "modifyfile" ||
+        toolNorm === "changefile";
     if (isFullWrite && current) {
         const hasKey = input.toolInput &&
             ("contents" in input.toolInput ||
