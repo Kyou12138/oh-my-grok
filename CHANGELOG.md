@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.33] — 2026-07-17
+
+### MAGI spiral — OpenCode-style PostTool matcher aliases (host exact match)
+
+- **fix(hooks)** PostTool Read: bare `read` + `read-file` (OpenCode pack; was only Read|read_file|ReadFile)
+- **fix(hooks)** PostTool Todo: `todowrite` / `todo-write` / `Todo_Write` — todo mirror was silent when host used OpenCode id
+- **fix(hooks)** PostTool Shell: lowercase `bash` / `shell` — ULW shell→verify never armed on exact-match hosts
+- **docs** grok-build-source pitfall note; matcher tests lock aliases
+- **why hard:** without PostTool Read, Hashline cache + Skill Gate never unlock → permanent PreTool deny false-positive
+
 ## [1.1.32] — 2026-07-17
 
 ### MAGI spiral — workspace write boundary (hard PreTool)

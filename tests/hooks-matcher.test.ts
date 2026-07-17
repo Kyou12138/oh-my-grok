@@ -103,3 +103,36 @@ function preNamesHasSnake(): boolean {
     pre.includes("delete_file")
   );
 }
+
+function matcherForCli(fragment: string): string[] {
+  const hooks = loadHooks();
+  for (const e of (hooks.PostToolUse || []) as {
+    matcher?: string;
+    hooks?: { command?: string }[];
+  }[]) {
+    const cmd = e.hooks?.[0]?.command || "";
+    if (cmd.includes(fragment)) return splitMatcher(e.matcher || "");
+  }
+  return [];
+}
+
+describe("hooks.json PostTool read/todo/shell OpenCode aliases (v1.1.33)", () => {
+  it("Read matcher includes bare read + read-file (OpenCode / host packs)", () => {
+    const names = matcherForCli("post-tool-read");
+    expect(names).toEqual(
+      expect.arrayContaining(["Read", "read", "read_file", "ReadFile", "read-file"]),
+    );
+  });
+
+  it("Todo matcher includes todowrite / todo-write (OpenCode todowrite)", () => {
+    const names = matcherForCli("post-tool-todo");
+    expect(names).toEqual(
+      expect.arrayContaining(["TodoWrite", "todo_write", "todowrite", "todo-write"]),
+    );
+  });
+
+  it("Shell matcher includes lowercase bash|shell (exact host match)", () => {
+    const names = matcherForCli("post-tool-shell");
+    expect(names).toEqual(expect.arrayContaining(["Bash", "bash", "Shell", "shell"]));
+  });
+});

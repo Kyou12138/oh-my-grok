@@ -85,8 +85,10 @@ End only marks `childFinished`; clear via recovery tools / progress / recovered 
 
 ## v1.1.7 pitfall (matcher exact / case-sensitive)
 
-Simple-form `matcher` strings (only `[A-Za-z0-9_|]`) are **exact** equality per `|` term — not regex, not case-insensitive.  
+Simple-form `matcher` strings (only `[A-Za-z0-9_|-]`) are **exact** equality per `|` term — not regex, not case-insensitive.  
 List both `search_replace` and `SearchReplace` (and similar) or the host will skip the hook.
+
+**v1.1.33:** OpenCode-style tool packs use bare `read`, `todowrite`, `bash` — host matchers must list those lowercase ids or PostTool Hashline / Skill Gate load / todo mirror / ULW shell never fire.
 
 ## v1.1.8 Grok native tools (xai-grok-tools)
 

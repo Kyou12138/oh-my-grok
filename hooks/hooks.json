@@ -36,7 +36,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Read|read_file|ReadFile",
+        "matcher": "Read|read|read_file|ReadFile|read-file",
         "hooks": [
           {
             "type": "command",
@@ -46,7 +46,7 @@
         ]
       },
       {
-        "matcher": "TodoWrite|todo_write",
+        "matcher": "TodoWrite|todo_write|todowrite|todo-write|Todo_Write",
         "hooks": [
           {
             "type": "command",
@@ -66,7 +66,7 @@
         ]
       },
       {
-        "matcher": "Bash|Shell|run_terminal_command|run_terminal|Execute|LocalShell",
+        "matcher": "Bash|bash|Shell|shell|run_terminal_command|run_terminal|Execute|LocalShell",
         "hooks": [
           {
             "type": "command",
