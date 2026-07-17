@@ -296,6 +296,17 @@ describe("agentGuardDeny", () => {
     expect(isMutatingShellCommand("winget install Git.Git")).toBe(true);
   });
 
+  it("blocks poetry/cargo add/docker compose/helm/npx create (v1.1.47)", () => {
+    expect(isMutatingShellCommand("poetry install")).toBe(true);
+    expect(isMutatingShellCommand("cargo add serde")).toBe(true);
+    expect(isMutatingShellCommand("uv sync")).toBe(true);
+    expect(isMutatingShellCommand("docker compose up -d")).toBe(true);
+    expect(isMutatingShellCommand("helm install x .")).toBe(true);
+    expect(isMutatingShellCommand("kubectl apply -f deploy.yaml")).toBe(true);
+    expect(isMutatingShellCommand("terraform apply")).toBe(true);
+    expect(isMutatingShellCommand("npx create-next-app app")).toBe(true);
+  });
+
   it("denies oracle git clean via PreTool (v1.1.44)", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));

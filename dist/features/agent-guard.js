@@ -34,13 +34,16 @@ export function isMutatingShellCommand(command) {
         /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv)\b/i.test(c) ||
         // v1.1.45: npm ci / yarn add; v1.1.46: npm update / yarn upgrade
         /\b(npm|pnpm|yarn)\s+(i|install|ci|uninstall|remove|publish|add|update|upgrade|up)\b/i.test(c) ||
-        /\b(pip3?|cargo|go|bun|deno|composer|bundle)\s+install\b/i.test(c) ||
+        /\b(pip3?|cargo|go|bun|deno|composer|bundle|poetry)\s+install\b/i.test(c) ||
         /\b(pip3?|cargo|go)\s+get\b/i.test(c) ||
-        /\b(conda|choco|winget|apt(?:-get)?|brew)\s+install\b/i.test(c)) {
+        /\bcargo\s+add\b/i.test(c) ||
+        /\b(conda|choco|winget|apt(?:-get)?|brew)\s+install\b/i.test(c) ||
+        /\buv\s+(pip\s+install|sync|add)\b/i.test(c)) {
         return true;
     }
     // Archives / sync / raw disk write (v1.1.44) — list-only tar -t stays allowed
     // v1.1.46: git clone / curl|bash pipes / degit
+    // v1.1.47: docker compose up / helm|kubectl|terraform apply / npx create-*
     if (/\bunzip\b/i.test(c) ||
         /\brsync\b/i.test(c) ||
         /\b(xcopy|robocopy)\b/i.test(c) ||
@@ -50,7 +53,10 @@ export function isMutatingShellCommand(command) {
         /\bpatch\b[^|&;\n]*\s-p\d/i.test(c) ||
         /\bgit\s+clone\b/i.test(c) ||
         /\bdegit\b/i.test(c) ||
-        /\b(?:curl|wget)\b[^|&;\n]{0,120}\|\s*(?:ba)?sh\b/i.test(c)) {
+        /\b(?:curl|wget)\b[^|&;\n]{0,120}\|\s*(?:ba)?sh\b/i.test(c) ||
+        /\bdocker\s+compose\s+up\b/i.test(c) ||
+        /\b(helm\s+install|kubectl\s+apply|terraform\s+apply|pulumi\s+up)\b/i.test(c) ||
+        /\bnpx\s+create-/i.test(c)) {
         return true;
     }
     // Download-to-file (curl -o / wget -O / Invoke-WebRequest -OutFile)

@@ -367,6 +367,14 @@ describe("isVerifyShellCommand 词边界 + echo 段", () => {
       "deno test",
       "yarn run test",
       "make test",
+      // v1.1.47 nextest / task runners / e2e
+      "cargo nextest run",
+      "just test",
+      "task test",
+      "npx playwright test",
+      "cypress run",
+      "tox",
+      "hatch test",
     ];
     for (const cmd of positives) {
       expect(isVerifyShellCommand(cmd), cmd).toBe(true);

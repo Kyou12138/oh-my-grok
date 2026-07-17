@@ -67,7 +67,8 @@ export declare function noteUlwRead(input: HookInput, cfg: EnvConfig, filePath?:
 export declare function noteUlwWrite(input: HookInput, cfg: EnvConfig, filePath?: string): void;
 /**
  * Commands that count as verification evidence for ULW.
- * v1.1.40: bun/deno/yarn run test/make test (modern toolchains were false-negative).
+ * v1.1.40: bun/deno/yarn run test/make test
+ * v1.1.47: cargo nextest / just|task test / playwright|cypress / tox|hatch
  */
 export declare const VERIFY_SHELL_RE: RegExp;
 export declare function isVerifyShellCommand(command?: string): boolean;

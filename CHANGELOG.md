@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.47] — 2026-07-17
+
+### MAGI spiral — ULW verify runners + infra/package shell writes
+
+- **fix(VERIFY_SHELL_RE)** credit `cargo nextest` / `just test` / `task test` / `playwright test` / `cypress run` / `tox` / `hatch test`
+- **fix(isMutatingShellCommand)** `poetry install` / `cargo add` / `uv sync` / `docker compose up` / `helm|kubectl|terraform apply` / `npx create-*`
+- **test** verify + shell matrices
+
 ## [1.1.46] — 2026-07-17
 
 ### MAGI spiral — deferred VERIFIED false-positive + clone/update shell
