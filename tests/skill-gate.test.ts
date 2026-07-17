@@ -20,7 +20,10 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   isMutatingTool,
+  isSkillLoadTool,
+  markSkillFromToolCall,
   markSkillLoaded,
+  markSkillLoadedById,
   refreshCatalog,
   scanSkillCatalog,
   skillGateDenyReason,
@@ -29,6 +32,8 @@ import {
   type SkillGateState,
   type SkillMeta,
 } from "../src/features/skill-gate.js";
+import { handlePostToolRead } from "../src/events/post-tool.js";
+import { handlePreToolUse } from "../src/events/pre-tool-use.js";
 import {
   saveLastPrompt,
   saveLastPrompt as persistLastPrompt,
@@ -663,6 +668,81 @@ describe("scanSkillCatalog / markSkillLoaded / refreshCatalog", () => {
     );
     const state = markSkillLoaded(input(ws), c, td);
     expect(state.loaded).toContain("test-driven-development");
+  });
+
+  it("isSkillLoadTool + markSkillLoadedById / Skill tool (v1.1.43)", () => {
+    expect(isSkillLoadTool("Skill")).toBe(true);
+    expect(isSkillLoadTool("load_skill")).toBe(true);
+    expect(isSkillLoadTool("UseSkill")).toBe(true);
+    expect(isSkillLoadTool("Read")).toBe(false);
+
+    const ws = tmpWorkspace();
+    const data = path.join(ws, "pdata");
+    buildPluginTree(ws);
+    const c = cfg(data, { pluginRoot: ws, skillGate: true, hashline: false });
+    const inp = input(ws);
+    refreshCatalog(inp, c);
+    markSkillLoadedById(inp, c, "test-driven-development");
+    const st = markSkillFromToolCall(
+      {
+        ...inp,
+        toolName: "Skill",
+        toolInput: { skill: "brainstorming" },
+      },
+      c,
+    );
+    expect(st.loaded).toContain("test-driven-development");
+    expect(st.loaded).toContain("brainstorming");
+  });
+
+  it("Skill tool PostTool unlocks Skill Gate for subsequent Write (v1.1.43)", () => {
+    const ws = tmpWorkspace();
+    const data = path.join(ws, "pdata");
+    buildPluginTree(ws);
+    const c = cfg(data, {
+      pluginRoot: ws,
+      skillGate: true,
+      hashline: false,
+      agentGuard: false,
+    });
+    const inp = input(ws);
+    persistLastPrompt(inp, c, "please implement with TDD and unit tests");
+    refreshCatalog(inp, c);
+
+    // Without Skill load — TDD intent blocks Write
+    const denied = handlePreToolUse(
+      {
+        ...inp,
+        event: "pre-tool-use",
+        toolName: "Write",
+        toolInput: { path: path.join(ws, "foo.test.ts"), contents: "export {}\n" },
+      },
+      c,
+    );
+    expect(denied.exitCode).toBe(2);
+    expect(JSON.stringify(denied.output)).toMatch(/Skill Gate/i);
+
+    // Host Skill tool (no Read of SKILL.md)
+    handlePostToolRead(
+      {
+        ...inp,
+        event: "post-tool-read",
+        toolName: "Skill",
+        toolInput: { name: "test-driven-development" },
+      },
+      c,
+    );
+
+    const allowed = handlePreToolUse(
+      {
+        ...inp,
+        event: "pre-tool-use",
+        toolName: "Write",
+        toolInput: { path: path.join(ws, "foo.test.ts"), contents: "export {}\n" },
+      },
+      c,
+    );
+    expect(allowed.exitCode).toBe(0);
   });
 });
 

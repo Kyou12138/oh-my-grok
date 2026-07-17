@@ -28,6 +28,15 @@ export declare function scanSkillCatalog(pluginRoot: string): SkillMeta[];
 export declare function loadSkillGateState(input: HookInput, cfg: EnvConfig): SkillGateState;
 export declare function saveSkillGateState(input: HookInput, cfg: EnvConfig, state: SkillGateState): void;
 export declare function refreshCatalog(input: HookInput, cfg: EnvConfig): SkillGateState;
+/** Host Skill / load_skill tool names (letters-only). v1.1.43 */
+export declare function isSkillLoadTool(toolName?: string): boolean;
+/** Register a catalog skill id/name as loaded (idempotent). */
+export declare function markSkillLoadedById(input: HookInput, cfg: EnvConfig, skillId: string): SkillGateState;
+/**
+ * Skill tool / Skill.md path → mark gate unlocked.
+ * Hosts may load skills without Read(SKILL.md); without this, Skill Gate hard-denies forever.
+ */
+export declare function markSkillFromToolCall(input: HookInput, cfg: EnvConfig): SkillGateState;
 export declare function markSkillLoaded(input: HookInput, cfg: EnvConfig, filePath: string): SkillGateState;
 export declare function suggestedSkillsForContext(catalog: SkillMeta[], context: string): SkillMeta[];
 export declare function skillGateDenyReason(state: SkillGateState, context?: string): string | null;

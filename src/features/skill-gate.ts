@@ -120,6 +120,90 @@ export function refreshCatalog(input: HookInput, cfg: EnvConfig): SkillGateState
   return state;
 }
 
+/** Host Skill / load_skill tool names (letters-only). v1.1.43 */
+export function isSkillLoadTool(toolName?: string): boolean {
+  if (!toolName) return false;
+  const n = normalizeToolName(toolName);
+  return (
+    n === "skill" ||
+    n === "loadskill" ||
+    n === "skillload" ||
+    n === "useskill" ||
+    n === "runskill" ||
+    n === "invokeskill" ||
+    n === "skilltool" ||
+    n === "activateskill"
+  );
+}
+
+/** Register a catalog skill id/name as loaded (idempotent). */
+export function markSkillLoadedById(
+  input: HookInput,
+  cfg: EnvConfig,
+  skillId: string,
+): SkillGateState {
+  const state = loadSkillGateState(input, cfg);
+  const id = (skillId || "").trim();
+  if (!id) return state;
+  const hit = state.catalog.find(
+    (c) =>
+      c.id.toLowerCase() === id.toLowerCase() ||
+      c.name.toLowerCase() === id.toLowerCase(),
+  );
+  if (!hit) return state;
+  if (!state.loaded.includes(hit.id)) {
+    state.loaded.push(hit.id);
+    saveSkillGateState(input, cfg, state);
+  }
+  return state;
+}
+
+/**
+ * Skill tool / Skill.md path → mark gate unlocked.
+ * Hosts may load skills without Read(SKILL.md); without this, Skill Gate hard-denies forever.
+ */
+export function markSkillFromToolCall(
+  input: HookInput,
+  cfg: EnvConfig,
+): SkillGateState {
+  let state = loadSkillGateState(input, cfg);
+  if (!state.catalog.length) state = refreshCatalog(input, cfg);
+
+  const ti = input.toolInput || {};
+  const candidates: string[] = [];
+  for (const k of [
+    "skill",
+    "skill_name",
+    "skillName",
+    "skill_id",
+    "skillId",
+    "name",
+    "id",
+  ]) {
+    const v = ti[k];
+    if (typeof v === "string" && v.trim()) candidates.push(v.trim());
+  }
+  // path-like fields pointing at SKILL.md
+  for (const k of ["path", "file_path", "filePath", "target_file", "skill_path", "skillPath"]) {
+    const v = ti[k];
+    if (typeof v === "string" && v.trim()) {
+      if (/skill\.md$/i.test(v)) {
+        return markSkillLoaded(input, cfg, v);
+      }
+      candidates.push(v.trim());
+    }
+  }
+
+  for (const c of candidates) {
+    // bare id or path segment that matches catalog
+    const base = c.replace(/\\/g, "/").split("/").filter(Boolean).pop() || c;
+    const id = base.replace(/\.md$/i, "");
+    if (id.toLowerCase() === "skill") continue;
+    markSkillLoadedById(input, cfg, id);
+  }
+  return loadSkillGateState(input, cfg);
+}
+
 export function markSkillLoaded(
   input: HookInput,
   cfg: EnvConfig,

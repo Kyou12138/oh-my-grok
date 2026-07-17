@@ -36,7 +36,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Read|read|read_file|ReadFile|read-file",
+        "matcher": "Read|read|read_file|ReadFile|read-file|Skill|skill|LoadSkill|load_skill|load-skill|UseSkill|use_skill|use-skill|InvokeSkill|invoke_skill",
         "hooks": [
           {
             "type": "command",

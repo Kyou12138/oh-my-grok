@@ -17,7 +17,11 @@ import {
   noteUlwWrite,
 } from "../features/ralph.js";
 import { extractSpawnRole, isSpawnTool } from "../features/session-role.js";
-import { markSkillLoaded } from "../features/skill-gate.js";
+import {
+  isSkillLoadTool,
+  markSkillFromToolCall,
+  markSkillLoaded,
+} from "../features/skill-gate.js";
 import { markSpawnActivity } from "../features/category-discipline.js";
 import {
   clearSpawnFollowThrough,
@@ -61,6 +65,15 @@ function mergeContext(...parts: string[]): HookOutput {
 }
 
 export function handlePostToolRead(input: HookInput, cfg: EnvConfig): HookOutput {
+  // v1.1.43: host Skill / load_skill tools unlock Skill Gate without Read(SKILL.md)
+  if (isSkillLoadTool(input.toolName)) {
+    const st = markSkillFromToolCall(input, cfg);
+    const loaded = st.loaded.slice(-3).join(", ") || "(none matched catalog)";
+    return mergeContext(
+      `<OMG_SKILL_GATE loaded_via="skill_tool">Skill tool observed — loaded: ${loaded}</OMG_SKILL_GATE>`,
+    );
+  }
+
   const file = fileFromInput(input);
   const parts: string[] = [];
   if (file) {

@@ -132,6 +132,13 @@ describe("hooks.json PostTool read/todo/shell OpenCode aliases (v1.1.33)", () =>
     );
   });
 
+  it("Read matcher includes Skill tool aliases for skill-gate unlock (v1.1.43)", () => {
+    const names = matcherForCli("post-tool-read");
+    expect(names).toEqual(
+      expect.arrayContaining(["Skill", "skill", "load_skill", "use_skill"]),
+    );
+  });
+
   it("Todo matcher includes todowrite / todo-write (OpenCode todowrite)", () => {
     const names = matcherForCli("post-tool-todo");
     expect(names).toEqual(

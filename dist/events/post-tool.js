@@ -6,7 +6,7 @@ import { recordRead } from "../features/hashline.js";
 import { activateHostPlanMode, endPlanMode, isHostEnterPlanTool, isHostExitPlanTool, } from "../features/prometheus.js";
 import { isVerifyShellCommand, noteUlwRead, noteUlwShell, noteUlwWrite, } from "../features/ralph.js";
 import { extractSpawnRole, isSpawnTool } from "../features/session-role.js";
-import { markSkillLoaded } from "../features/skill-gate.js";
+import { isSkillLoadTool, markSkillFromToolCall, markSkillLoaded, } from "../features/skill-gate.js";
 import { markSpawnActivity } from "../features/category-discipline.js";
 import { clearSpawnFollowThrough, isInlineSubagentResult, isResultRecoveryTool, markSpawnFollowThrough, } from "../features/spawn-followthrough.js";
 import { applyTodoUpdates, extractTodosFromToolInput, incompleteTodos, isPlanMarkdownPath, isTodoMergeMode, resetTodoEnforcer, syncTodosFromPlanCheckboxes, } from "../features/todo-boulder.js";
@@ -33,6 +33,12 @@ function mergeContext(...parts) {
     return additionalContext ? { additionalContext } : {};
 }
 export function handlePostToolRead(input, cfg) {
+    // v1.1.43: host Skill / load_skill tools unlock Skill Gate without Read(SKILL.md)
+    if (isSkillLoadTool(input.toolName)) {
+        const st = markSkillFromToolCall(input, cfg);
+        const loaded = st.loaded.slice(-3).join(", ") || "(none matched catalog)";
+        return mergeContext(`<OMG_SKILL_GATE loaded_via="skill_tool">Skill tool observed — loaded: ${loaded}</OMG_SKILL_GATE>`);
+    }
     const file = fileFromInput(input);
     const parts = [];
     if (file) {

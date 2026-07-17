@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.43] — 2026-07-17
+
+### MAGI spiral — Skill tool unlocks Skill Gate
+
+- **feat** `isSkillLoadTool` / `markSkillLoadedById` / `markSkillFromToolCall` — host Skill/load_skill/use_skill marks catalog skills loaded
+- **hooks** PostTool read matcher includes Skill|skill|load_skill|use_skill|…
+- **why hard:** without Read(SKILL.md), Skill Gate permanently denied mutating tools after Skill tool load
+- **test** Skill tool → Write allow under TDD intent
+
 ## [1.1.42] — 2026-07-17
 
 ### MAGI spiral — unwrap nested toolInput (arguments/parameters)
