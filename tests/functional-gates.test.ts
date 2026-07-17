@@ -466,6 +466,28 @@ describe("ULW/Ralph wow loop regression", () => {
       /开场仪式未完成|CEREMONY INCOMPLETE|OPENING RITUAL/i,
     );
   });
+
+  it("PreTool denies Write before ULW ceremony (v1.1.58)", () => {
+    const ws = tmpWorkspace();
+    const data = path.join(ws, "pdata");
+    const c = cfg(data, { hashline: false, skillGate: false });
+    handleUserPrompt(
+      base(ws, { event: "user-prompt", prompt: "/ulw-loop ship it" }),
+      c,
+    );
+    const pre = handlePreToolUse(
+      base(ws, {
+        event: "pre-tool-use",
+        toolName: "Write",
+        toolInput: { path: "x.ts", content: "export {}" },
+      }),
+      c,
+    );
+    expect(pre.output.decision).toBe("deny");
+    expect(pre.output.reason).toMatch(
+      /开场仪式未完成|CEREMONY INCOMPLETE|OPENING RITUAL/i,
+    );
+  });
 });
 
 describe("CLI entry path (dist/cli.js)", () => {

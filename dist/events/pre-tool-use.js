@@ -5,6 +5,7 @@ import { diagPreDeny } from "../features/diagnostics.js";
 import { hashlinePreToolDeny } from "../features/hashline.js";
 import { isPlanModePlanOnlyWrite, planModeDeny, prometheusRoleDeny, } from "../features/prometheus.js";
 import { skillGateContext } from "../features/last-prompt.js";
+import { ulwCeremonyPreDeny } from "../features/ralph.js";
 import { isMutatingTool, loadSkillGateState, refreshCatalog, skillGateDenyReason, } from "../features/skill-gate.js";
 import { spawnFollowThroughPreDeny } from "../features/spawn-followthrough.js";
 import { workspaceBoundaryDeny } from "../features/workspace-boundary.js";
@@ -13,6 +14,12 @@ export function handlePreToolUse(input, cfg) {
     const agentDeny = agentGuardDeny(input, cfg);
     if (agentDeny) {
         return { output: { decision: "deny", reason: agentDeny }, exitCode: 2 };
+    }
+    // 0.25) ULW opening ceremony — hard deny mutates until opener (v1.1.58)
+    // Runs before short-circuit so Write/Shell mutates both hit the ritual gate.
+    const ceremonyDeny = ulwCeremonyPreDeny(input, cfg);
+    if (ceremonyDeny) {
+        return { output: { decision: "deny", reason: ceremonyDeny }, exitCode: 2 };
     }
     const shell = isShellTool(input.toolName);
     // Shell is not isMutatingTool — still must hit plan/prometheus gates (v1.1.36)
@@ -24,7 +31,7 @@ export function handlePreToolUse(input, cfg) {
     if (roleDeny) {
         return { output: { decision: "deny", reason: roleDeny }, exitCode: 2 };
     }
-    // Shell lane: agent-guard + prometheus-role + plan-mode only
+    // Shell lane: agent-guard + ceremony + prometheus-role + plan-mode only
     // (skip Hashline / Skill Gate / workspace paths — no file tool envelope)
     if (shell) {
         const planDenyShell = planModeDeny(input, cfg);

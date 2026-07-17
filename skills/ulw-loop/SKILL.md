@@ -20,8 +20,14 @@ Also: `/ultrawork`, `/ulw`, bare or **mid-sentence** `ulw` / `ultrawork`.
 
 When ULW **starts** (or you re-enter an active ULW session), treat the first reply as a **ritual**, not a casual ack.
 
-Hook inject + disk: `.omg/ulw-loop/CEREMONY.md` (survives if inject is dropped).  
-**Stop gate (v1.1.49):** first non-empty line must be the opener or Stop returns `CEREMONY INCOMPLETE` / 开场仪式未完成 — loop stays active; DONE is blocked until ceremony opens.
+Hook inject + disk: `.omg/ulw-loop/CEREMONY.md` (survives if inject is dropped).
+
+**Hard gates:**
+
+| Gate | Since | Behavior |
+|------|-------|----------|
+| **PreTool** | v1.1.58 | Write / Edit / mutating shell **denied** until opener seen |
+| **Stop** | v1.1.49 | Skip opener → `CEREMONY INCOMPLETE` / 开场仪式未完成；loop 保持；DONE 被拦 |
 
 ### Required first message shape
 
@@ -44,12 +50,15 @@ ULTRAWORK 模式已启动！
 1. **Line 1** — exactly `ULTRAWORK MODE ENABLED!` or `ULTRAWORK 模式已启动！` (no prefix/suffix/fence)
 2. **Line 2** — one-line goal restatement
 3. **From paragraph 3** — enter **explore** with concrete tools; no pure status chatter
+4. **Only after ceremony** — Write / implement / mutating shell
 
 【誓词 OATH】未 explore 不写 · 未 verify 不 DONE · 未仪式不开工
 
-禁止：`ok` / `继续` / `好的` · 跳过开场 · 未 VERIFIED 就 DONE
+禁止：`ok` / `继续` / `好的` · 跳过开场 · 先写后喊 · 未 VERIFIED 就 DONE
 
-Motto: **开始。推巨石。不得空转。** 🔔 鸣锣开场## Phases (state machine)
+Motto: **开始。推巨石。不得空转。** 🔔 鸣锣开场
+
+## Phases (state machine)
 
 | Phase | You must |
 |-------|----------|

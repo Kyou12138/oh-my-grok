@@ -80,18 +80,28 @@ export function contentSnippetsFromToolInput(toolInput) {
         toolInput.file ??
         "");
     // v1.1.53: text/body/new_text/replacement aliases used by some hosts
+    // v1.1.58: new_content / code / value / data
     const topContent = toolInput.contents ??
         toolInput.content ??
         toolInput.body ??
         toolInput.text ??
+        toolInput.code ??
+        toolInput.source_code ??
+        toolInput.sourceCode ??
         toolInput.new_string ??
         toolInput.newString ??
         toolInput.new_str ??
         toolInput.new_text ??
         toolInput.newText ??
+        toolInput.new_content ??
+        toolInput.newContent ??
+        toolInput.updated_content ??
+        toolInput.updatedContent ??
         toolInput.replacement ??
         toolInput.source ??
-        toolInput.replace;
+        toolInput.replace ??
+        toolInput.value ??
+        toolInput.data;
     if (typeof topContent === "string" && topContent) {
         pushSnippet(topPath, topContent);
     }
@@ -117,14 +127,19 @@ export function contentSnippetsFromToolInput(toolInput) {
                 o.content ??
                 o.body ??
                 o.text ??
+                o.code ??
                 o.new_string ??
                 o.newString ??
                 o.new_str ??
                 o.new_text ??
                 o.newText ??
+                o.new_content ??
+                o.newContent ??
                 o.replacement ??
                 o.source ??
-                o.replace;
+                o.replace ??
+                o.value ??
+                o.data;
             pushSnippet(fp, c);
         }
     }
@@ -168,8 +183,13 @@ export function pathsFromToolInput(toolInput) {
     push(toolInput.document_path);
     push(toolInput.resourcePath);
     push(toolInput.resource_path);
-    // file:// URI / URL (v1.1.55)
-    for (const u of [toolInput.uri, toolInput.url]) {
+    // file:// URI / URL (v1.1.55 + documentUri v1.1.58)
+    for (const u of [
+        toolInput.uri,
+        toolInput.url,
+        toolInput.documentUri,
+        toolInput.document_uri,
+    ]) {
         if (typeof u === "string" && /^file:/i.test(u)) {
             try {
                 push(decodeURIComponent(u.replace(/^file:\/\//i, "").replace(/^\/([A-Za-z]:)/, "$1")));

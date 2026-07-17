@@ -66,28 +66,35 @@ export function isMutatingShellCommand(command?: string): boolean {
     /\btar\b[^|&;\n]*(?:-[a-zA-Z]*c|--create|\sc[fvc\s])/i.test(c) ||
     /\b(reg\s+(add|delete|import)|regedit)\b/i.test(c) ||
     /\b(icacls|takeown|attrib|defaults\s+write)\b/i.test(c) ||
-    /\b(powershell|pwsh)\b[^|&;\n]*\s-(?:EncodedCommand|enc)\b/i.test(c) ||
+    // v1.1.58: -File scripts; ni alias
+    /\b(powershell|pwsh)\b[^|&;\n]*\s-(?:EncodedCommand|enc|File|f)\b/i.test(c) ||
     /\b(Set-Content|Add-Content|Out-File|New-Item|Remove-Item|Move-Item|Copy-Item|Rename-Item|Expand-Archive|Compress-Archive|Start-BitsTransfer|Tee-Object)\b/i.test(
       c,
     ) ||
+    /\bni\s+(?:-ItemType\s+\S+\s+)?["']?[^|&;\s]+/i.test(c) ||
     // v1.1.44: clean/restore rewrite tree; rm/mv already hit bare \brm\b but keep explicit
     // v1.1.50: pull/submodule/worktree; v1.1.51: switch/stash mutators / branch -D / remote set
     // v1.1.52: git lfs pull; v1.1.54: filter-repo / init
-    /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv|pull|submodule|worktree|switch|init|tag)\b/i.test(
+    // v1.1.58: config (not --get/--list), stash (not list/show), branch -M, update-index
+    /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv|pull|submodule|worktree|switch|init|tag|update-index)\b/i.test(
       c,
     ) ||
     /\bgit\s+(filter-repo|filter-branch|lfs\s+pull)\b/i.test(c) ||
-    /\bgit\s+stash\s+(drop|pop|apply|push|save)\b/i.test(c) ||
+    (/\bgit\s+stash\b/i.test(c) && !/\bgit\s+stash\s+(list|show)\b/i.test(c)) ||
+    (/\bgit\s+config\b/i.test(c) &&
+      !/\bgit\s+config\s+(--get|--list|-l|--get-regexp)\b/i.test(c)) ||
     /\bgit\s+remote\s+(add|set-url|remove|rm)\b/i.test(c) ||
-    /\bgit\s+branch\s+-[dD]\b/i.test(c) ||
+    /\bgit\s+branch\s+(-[dDmM]|--delete|--move|--copy|-c)\b/i.test(c) ||
     // v1.1.45: npm ci / yarn add; v1.1.46: npm update / yarn upgrade
     // v1.1.50: npm|yarn|pnpm|bun create scaffolds
     // v1.1.55: npm version / ncu -u
-    /\b(npm|pnpm|yarn)\s+(i|install|ci|uninstall|remove|publish|add|update|upgrade|up|create|version)\b/i.test(
+    // v1.1.58: link/pack/prune/dedupe + lifecycle scripts that often mutate
+    /\b(npm|pnpm|yarn)\s+(i|install|ci|uninstall|remove|publish|add|update|upgrade|up|create|version|link|unlink|pack|prune|dedupe|shrinkwrap)\b/i.test(
       c,
     ) ||
+    /\b(npm|pnpm|yarn)\s+run\s+(prepare|postinstall|prepublishOnly)\b/i.test(c) ||
     /\b(?:npx\s+)?(?:npm-check-updates|ncu)\b[^|&;\n]*\s-u\b/i.test(c) ||
-    /\bbun\s+create\b/i.test(c) ||
+    /\bbun\s+(create|link)\b/i.test(c) ||
     /\b(pip3?|cargo|go|bun|deno|composer|bundle|poetry|pipenv|gem)\s+(install|update|uninstall|remove)\b/i.test(
       c,
     ) ||
@@ -115,7 +122,9 @@ export function isMutatingShellCommand(command?: string): boolean {
     /\bcorepack\s+(enable|prepare)\b/i.test(c) ||
     /\bmix\s+(deps\.get|ecto\.(migrate|setup|create|drop))\b/i.test(c) ||
     /\bpod\s+install\b/i.test(c) ||
-    /\bmake\s+(install|uninstall|clean)\b/i.test(c) ||
+    /\bmake\s+(install|uninstall|clean|distclean)\b/i.test(c) ||
+    /\bninja\s+-t\s+clean\b/i.test(c) ||
+    /\bcmake\b[^|&;\n]*--target\s+clean\b/i.test(c) ||
     // PowerShell: Clear-Content; cmd ren/rename (not "render" — use exact tokens)
     /\bClear-Content\b/i.test(c) ||
     /\bren\s+\S+/i.test(c) ||
@@ -252,7 +261,7 @@ export function isMutatingShellCommand(command?: string): boolean {
     /\b(pm2\s+(start|stop|delete|restart)|systemctl\s+(start|stop|restart|enable|disable)|brew\s+services\s+(start|stop))\b/i.test(
       c,
     ) ||
-    /\bgh\s+(secret\s+set|variable\s+set|workflow\s+run|pr\s+(create|merge|close|edit)|release\s+(create|delete|upload)|repo\s+(create|delete|edit|fork|sync)|gist\s+(create|delete|edit)|api\s+-X\s+(POST|PUT|PATCH|DELETE))\b/i.test(
+    /\bgh\s+(secret\s+set|variable\s+set|workflow\s+run|run\s+(cancel|rerun)|pr\s+(create|merge|close|edit|comment|checkout)|issue\s+(create|close|edit|comment)|release\s+(create|delete|upload)|repo\s+(create|delete|edit|fork|sync)|gist\s+(create|delete|edit)|api\s+-X\s+(POST|PUT|PATCH|DELETE)|api\b[^|&;\n]*dispatches)\b/i.test(
       c,
     ) ||
     /\bcomposer\s+dump-?autoload\b/i.test(c) ||
@@ -266,12 +275,22 @@ export function isMutatingShellCommand(command?: string): boolean {
     /\b(rclone\s+(move|delete|purge)|aws\s+s3\s+(mb|rb)|aws\s+s3api\s+(put-object|delete-object)|gcloud\s+storage\s+(rm|mv)|gsutil\s+(rm|mv)|az\s+storage\s+blob\s+(upload|delete)|vault\s+kv\s+put|redis-cli\s+set)\b/i.test(
       c,
     ) ||
-    /\b(psql\s+-c|sqlite3\s+\S+\s+['\"]?(?:CREATE|INSERT|UPDATE|DELETE|DROP)|mongosh)\b/i.test(
+    /\b(psql\s+-c|mysql\s+-e|sqlite3\s+\S+\s+['\"]?(?:CREATE|INSERT|UPDATE|DELETE|DROP|\.read)|mongosh|redis-cli\s+(set|del|flushall|flushdb))\b/i.test(
       c,
     ) ||
     /\b(curl|wget)\b[^|&;\n]*\s(-T|--upload-file|--post-file)\b/i.test(c) ||
     /\b(kubectl\s+cp|docker\s+exec|kubectl\s+exec)\b/i.test(c) ||
     /\bfind\b[^|&;\n]*\s-delete\b/i.test(c) ||
+    /\bfallocate\b/i.test(c) ||
+    // secrets / env inject
+    /\b(sops\s+-d|op\s+inject|doppler\s+secrets\s+set|infisical\s+secrets\s+set|dotenvx\s+set)\b/i.test(
+      c,
+    ) ||
+    /\b(code|cursor)\s+--(install|uninstall)-extension\b/i.test(c) ||
+    /\b(nx\s+migrate|rush\s+(update|purge)|turbo\s+gen)\b/i.test(c) ||
+    /\b(knex\s+seed:|sequelize\s+db:seed|typeorm\s+schema:sync|atlas\s+schema\s+apply)\b/i.test(
+      c,
+    ) ||
     // formatters that rewrite sources (check-only paths stay allowed)
     // v1.1.52: prettier/eslint/biome --write
     // v1.1.53: black/isort/gofmt/cargo fmt/eslint --fix/dotnet format/…
@@ -314,14 +333,15 @@ export function isMutatingShellCommand(command?: string): boolean {
   // .NET / PowerShell file APIs
   if (/\[(?:System\.)?IO\.File\]::Write/i.test(c)) return true;
 
-  // node/python/deno/bun/php one-liners that write files (not bare console.log/print)
+  // node/python/deno/bun/php/ruby one-liners that write files (not bare console.log/print)
+  // v1.1.58: Bun.write / Deno.writeTextFile / File.write
   if (
-    /\b(node|nodejs|deno|bun|python3?|py)\b[^|&;\n]{0,60}\s(-e|--eval|-c)\b/i.test(
+    /\b(node|nodejs|deno|bun|python3?|py)\b[^|&;\n]{0,60}\s(-e|--eval|-c|eval)\b/i.test(
       c,
     )
   ) {
     if (
-      /\b(writeFileSync|writeFile|appendFileSync|appendFile|createWriteStream|outputFileSync|outputFile)\b/i.test(
+      /\b(writeFileSync|writeFile|appendFileSync|appendFile|createWriteStream|outputFileSync|outputFile|Bun\.write|writeTextFileSync|writeTextFile)\b/i.test(
         c,
       ) ||
       /\bopen\s*\([^)]*['"]w/i.test(c) ||
@@ -336,6 +356,9 @@ export function isMutatingShellCommand(command?: string): boolean {
     /\bphp\b[^|&;\n]{0,40}\s-r\b/i.test(c) &&
     /\bfile_put_contents\b/i.test(c)
   ) {
+    return true;
+  }
+  if (/\bruby\b[^|&;\n]{0,40}\s-e\b/i.test(c) && /\bFile\.write\b/i.test(c)) {
     return true;
   }
 

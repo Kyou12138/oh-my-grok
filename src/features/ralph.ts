@@ -3,8 +3,14 @@ import path from "node:path";
 import type { EnvConfig, HookInput } from "../protocol/types.js";
 import { ensureDir, readJson, readText, removeFile, writeJsonAtomic, writeTextAtomic } from "../state/fs.js";
 import { pathsFor } from "../state/paths.js";
-import { incompleteTodos } from "./todo-boulder.js";
+import {
+  getShellCommand,
+  isMutatingShellCommand,
+  isShellTool,
+} from "./agent-guard.js";
 import { isVerifiedMessage, loadDiag } from "./diagnostics.js";
+import { isMutatingTool } from "./skill-gate.js";
+import { incompleteTodos } from "./todo-boulder.js";
 
 const DONE_MARKERS = [
   "<promise>DONE</promise>",
@@ -47,7 +53,8 @@ export interface RalphState {
   /**
    * ULW opening ceremony completed (first non-empty assistant line was
    * ULTRAWORK MODE ENABLED! / ULTRAWORK 模式已启动！).
-   * v1.1.49 — soft Stop gate until true; ralph mode ignores.
+   * v1.1.49 Stop soft-yank; v1.1.58 PreTool hard-deny on mutates until true.
+   * ralph mode ignores (always opened).
    */
   ceremonyOpened: boolean;
 }
@@ -296,23 +303,27 @@ export function hasUlwCeremonyOpener(msg?: string): boolean {
   );
 }
 
-/** Loud Stop yank when ULW started but opener was skipped. */
+/** Loud Stop/PreTool deny when ULW started but opener was skipped. */
 export function ulwCeremonyIncompleteReason(task: string): string {
   const goal = (task || "ultrawork").trim().slice(0, 200);
   return [
     CEREMONY_BAR,
     "【开场仪式未完成 / OPENING RITUAL INCOMPLETE — CEREMONY】",
     CEREMONY_BAR,
-    "ULTRAWORK / ULW LOOP — 你跳过了开场仪式。未喊口号，不得开工，更不得 DONE。",
+    "ULTRAWORK / ULW LOOP — 你跳过了开场仪式。",
+    "未喊口号 · 不得写文件 · 不得变异 shell · 不得 DONE。",
+    "（PreTool 硬拦写操作 · Stop 拦截跳过开场的空转）",
     "",
-    "🔔 鸣锣三声 · Strike the gong · 再开场：",
+    "🔔 鸣锣三声 · STRIKE THE GONG ×3 · 再开场：",
     "",
-    "1. **第一行**整行输出其一（无前缀/后缀/代码围栏）：",
-    "     ULTRAWORK MODE ENABLED!",
-    "     ULTRAWORK 模式已启动！",
-    "2. **第二行**复述目标：",
-    `     Goal: ${goal}`,
-    "3. **第三段起**立即 explore（Read / 搜索 / spawn explore）",
+    "┌─ 仪式三步 ─────────────────────────────────────────┐",
+    "│ 1. **第一行**整行口号（无前缀/后缀/代码围栏）：      │",
+    "│      ULTRAWORK MODE ENABLED!                        │",
+    "│      ULTRAWORK 模式已启动！                         │",
+    "│ 2. **第二行**复述目标：                             │",
+    `│      Goal: ${goal.slice(0, 40).padEnd(40)} │`,
+    "│ 3. **第三段起**立即 explore（Read / 搜索 / explore）│",
+    "└────────────────────────────────────────────────────┘",
     "",
     "【誓词 OATH】未 explore 不写 · 未 verify 不 DONE · 未仪式不开工",
     "Full text: `.omg/ulw-loop/CEREMONY.md`",
@@ -320,6 +331,39 @@ export function ulwCeremonyIncompleteReason(task: string): string {
     "  开始。推巨石。不得空转。 · Begin. Push the boulder. No idle turns.",
     CEREMONY_BAR,
   ].join("\n");
+}
+
+/**
+ * v1.1.58 host-truth: ULW mutates blocked until ceremony opener seen.
+ * Read/search/non-mutating shell stay allowed so explore can start after
+ * the verbal ritual; Write/Edit/mutating shell denied hard.
+ * If `lastAssistantMessage` already opens with the slogan, mark opened and allow.
+ */
+export function ulwCeremonyPreDeny(
+  input: HookInput,
+  cfg: EnvConfig,
+): string | null {
+  const state = loadRalph(input, cfg);
+  if (!state?.active || state.mode !== "ulw") return null;
+
+  if (state.ceremonyOpened) return null;
+
+  // Same-turn: opener already in assistant text → open ceremony and allow
+  if (hasUlwCeremonyOpener(input.lastAssistantMessage)) {
+    state.ceremonyOpened = true;
+    persist(input, cfg, state);
+    return null;
+  }
+
+  const shell = isShellTool(input.toolName);
+  if (shell) {
+    const cmd = getShellCommand(input);
+    if (!isMutatingShellCommand(cmd)) return null;
+  } else if (!isMutatingTool(input.toolName)) {
+    return null;
+  }
+
+  return ulwCeremonyIncompleteReason(state.task);
 }
 
 /**
@@ -335,12 +379,18 @@ export function ulwCeremonyBanner(
     return [
       '<ultrawork-mode active="true">',
       CEREMONY_BAR,
-      "  **ULTRAWORK MODE STILL ON.** · 模式仍在运行",
+      "  🔔  ULTRAWORK 仍在运行 · MODE STILL ON · 续推巨石",
       CEREMONY_BAR,
-      `Goal: ${goal}`,
-      "Continue explore → implement → verify. 不得空转；未 VERIFIED 不得 DONE。",
-      "若本轮是重新接手：第一行仍须 `ULTRAWORK MODE ENABLED!` 或 `ULTRAWORK 模式已启动！`",
+      `🎯 Goal: ${goal}`,
+      "Phases: explore → implement → verify · 不得空转 · 未 VERIFIED 不得 DONE",
+      "",
+      "若本轮是重新接手 / 新对话切入：先完成开场仪式——",
+      "  第一行 `ULTRAWORK MODE ENABLED!` 或 `ULTRAWORK 模式已启动！`",
+      "  第二行复述 Goal · 第三段起 explore",
+      "未开场：PreTool **硬拦**写文件/变异 shell；Stop → CEREMONY INCOMPLETE",
       "State: `.omg/ulw-loop/` · ceremony: `.omg/ulw-loop/CEREMONY.md`",
+      CEREMONY_BAR,
+      "  开始。推巨石。不得空转。",
       CEREMONY_BAR,
       "</ultrawork-mode>",
     ].join("\n");
@@ -358,25 +408,28 @@ export function ulwCeremonyBanner(
   return [
     "<ultrawork-mode>",
     CEREMONY_BAR,
-    "  🔔  鸣锣开场 · STRIKE THE GONG · ULW OPENING",
+    "  🔔🔔🔔  鸣锣开场 · STRIKE THE GONG · ULW OPENING RITUAL",
     headline,
     subtitle,
     CEREMONY_BAR,
     "",
-    "【开场仪式 OPENING RITUAL — 必做，不可跳过】",
+    "【开场仪式 OPENING RITUAL — 必做，不可跳过 · host 硬门】",
     "",
-    "1. **第一行**必须整行输出下列之一（不得加前缀/后缀/代码围栏）：",
-    "     `ULTRAWORK MODE ENABLED!`",
-    "     `ULTRAWORK 模式已启动！`",
-    "2. **第二行**用一句话复述目标（见 Goal）。",
-    "3. **第三段起**立即进入 **explore**（Read / 搜索 / spawn explore）— 不得只表态。",
+    "┌─ 三步仪式 ──────────────────────────────────────────┐",
+    "│ 1. **第一行**必须整行口号（无前缀/后缀/代码围栏）：  │",
+    "│      ULTRAWORK MODE ENABLED!                         │",
+    "│      ULTRAWORK 模式已启动！                          │",
+    "│ 2. **第二行**一句话复述目标（见 Goal）               │",
+    "│ 3. **第三段起**立即 **explore**（Read/搜索/explore） │",
+    "│    — 不得只表态 · 不得先写文件                      │",
+    "└─────────────────────────────────────────────────────┘",
     "",
     "【誓词 OATH】",
     "  未 explore 不写 · 未 verify 不 DONE · 未仪式不开工。",
     "  I will not write before explore, not DONE before verify, not work before ceremony.",
     "",
     "禁止：只回 ok / 继续 / 好的 · 跳过开场 · 空转闲聊 · 未 VERIFIED 就 DONE",
-    "Stop 会拦截跳过开场的回复（CEREMONY INCOMPLETE）直至第一行口号出现。",
+    "硬门：未开场 → PreTool 拒绝 Write/Edit/变异 shell；Stop → CEREMONY INCOMPLETE",
     "",
     `🎯 Goal: ${goal}`,
     "Phases: explore → implement → verify",
@@ -570,7 +623,7 @@ export function noteUlwWrite(input: HookInput, cfg: EnvConfig, filePath?: string
  * v1.1.56: newman / k6 / cargo tarpaulin|llvm-cov / coverage run
  */
 export const VERIFY_SHELL_RE =
-  /\b(npm\s+(test|audit|run\s+(test|ci|typecheck|lint|check|doctor|validate|format:check|fmt:check)(:[\w-]*)?)|pnpm\s+(-[rw]\s+)?(test|audit|run\s+test|typecheck|lint)|pnpm\s+--filter\s+\S+\s+test|yarn\s+(test|audit|run\s+test|typecheck|lint)|yarn\s+workspace\s+\S+\s+test|yarn\s+workspaces\s+foreach[^|&;\n]*\btest\b|bun\s+(test|run\s+(test|lint))|deno\s+(test|lint|check)|node\s+--test|tsx\s+--test|vitest|jest|mocha|ava|pytest|py\.test|python3?\s+-m\s+(pytest|unittest)|(?:python3?\s+)?manage\.py\s+test|poetry\s+run\s+pytest|uv\s+run\s+(pytest|ruff|mypy)|hatch\s+run\s+test|cargo\s+(test|nextest|clippy|audit|deny|tarpaulin|llvm-cov|fuzz)|cargo\s+fmt[^|&;\n]*--check|rustfmt\s+--check|nextest\s+run|go\s+(test|vet)|go\s+fmt\s+-l|gofmt\s+-l|gotestsum|ginkgo|staticcheck|govulncheck|dotnet\s+test|dotnet\s+format[^|&;\n]*--verify|mvn\b[^|&;\n]*\b(test|verify)\b|gradlew?\s+(test|check)|make\s+(test|check|lint)|just\s+(test|check|lint)|task\s+(test|check|lint)|turbo\s+(run\s+)?(test|lint)|nx\s+(test|lint)|nx\s+run\s+\S*(?:test|lint|typecheck)\b|nx\s+(run-many|affected)[^|&;\n]*\b(test|lint|typecheck)\b|lerna\s+run\s+(test|lint)|rush\s+test|moon\s+run\s+[^\n]*:test\b|playwright\s+test|cypress\s+run|detox\s+test|maestro\s+test|tox|hatch\s+test|flutter\s+(test|analyze)|dart\s+(test|analyze|format\s+--set-exit-if-changed)|phpunit|pest|php\s+artisan\s+test|rspec|bin\/rspec|rails\s+test|bin\/rails\s+test|rake\s+test|mix\s+(test|credo|format\s+--check)|sbt\s+test|lein\s+test|stack\s+test|cabal\s+test|bazel\s+test|zig\s+(?:build\s+)?test|crystal\s+spec|swift\s+test|swiftlint|xcodebuild\s+test|fastlane\s+(tests?|scan)|ctest|meson\s+test|ninja\s+test|bats|shellspec|ng\s+test|ember\s+test|cucumber(?:-js)?|behave|robot|wdio\s+run|karma\s+start|testcafe|newman\s+run|k6\s+run|artillery\s+run|coverage\s+run|typecheck|tsc\b[^|&;\n]*--noEmit|tsc\s+(-b|--build)|vue-tsc|svelte-check|astro\s+check|oxlint|ruff\s+check|ruff\s+format\s+--check|black\s+--check|isort\s+--check|flake8|pylint|mypy|pyright|biome\s+(check|ci)|prettier\s+--check|eslint|lint|semgrep|bandit|pip-audit|composer\s+(audit|validate)|bundle\s+audit|pint\s+--test|php-cs-fixer[^|&;\n]*--dry-run|terraform\s+(validate|fmt\s+-check)|tflint|tfsec|checkov|shellcheck|actionlint|hadolint|yamllint|markdownlint|typos|codespell|cspell|dprint\s+check|spotless\s+check|scalafmt\s+--test|rubocop|standardrb|brakeman|ktlint|opa\s+test|conftest\s+test)\b/i;
+  /\b(npm\s+(test|audit|run\s+(test|ci|typecheck|type-check|types:check|lint|check|doctor|validate|format:check|fmt:check)(:[\w-]*)?)|pnpm\s+(-[rw]\s+)?(test|audit|run\s+test|typecheck|type-check|lint)|pnpm\s+--filter\s+\S+\s+test|yarn\s+(test|audit|run\s+test|typecheck|type-check|lint)|yarn\s+workspace\s+\S+\s+test|yarn\s+workspaces\s+foreach[^|&;\n]*\btest\b|bun\s+(test|run\s+(test|lint|typecheck|type-check))|deno\s+(test|lint|check)|node\s+--test|tsx\s+--test|vitest|jest|mocha|ava|pytest|py\.test|python3?\s+-m\s+(pytest|unittest)|(?:python3?\s+)?manage\.py\s+test|poetry\s+run\s+pytest|uv\s+run\s+(pytest|ruff|mypy)|hatch\s+run\s+test|cargo\s+(test|nextest|clippy|audit|deny|tarpaulin|llvm-cov|fuzz)|cargo\s+fmt[^|&;\n]*--check|rustfmt\s+--check|nextest\s+run|go\s+(test|vet)|go\s+fmt\s+-l|gofmt\s+-l|gotestsum|ginkgo|staticcheck|govulncheck|dotnet\s+test|dotnet\s+format[^|&;\n]*--verify|mvn\b[^|&;\n]*\b(test|verify)\b|gradlew?\s+(test|check)|make\s+(test|check|lint)|just\s+(test|check|lint)|task\s+(test|check|lint)|turbo\s+(run\s+)?(test|lint|typecheck)|nx\s+(test|lint)|nx\s+run\s+\S*(?:test|lint|typecheck)\b|nx\s+(run-many|affected)[^|&;\n]*\b(test|lint|typecheck)\b|lerna\s+run\s+(test|lint)|rush\s+test|moon\s+run\s+[^\n]*:test\b|playwright\s+test|cypress\s+run|detox\s+test|maestro\s+test|tox|hatch\s+test|flutter\s+(test|analyze)|dart\s+(test|analyze|format\s+--set-exit-if-changed)|phpunit|pest|php\s+artisan\s+test|rspec|bin\/rspec|rails\s+test|bin\/rails\s+test|rake\s+test|mix\s+(test|credo|format\s+--check)|sbt\s+test|lein\s+test|stack\s+test|cabal\s+test|bazel\s+test|zig\s+(?:build\s+)?test|crystal\s+spec|swift\s+test|swiftlint|xcodebuild\s+test|fastlane\s+(tests?|scan)|ctest|meson\s+test|ninja\b[^|&;\n]*\btest\b|bats|shellspec|ng\s+test|ember\s+test|cucumber(?:-js)?|behave|robot|wdio\s+run|karma\s+start|testcafe|newman\s+run|k6\s+run|artillery\s+run|coverage\s+run|typecheck|tsc\b[^|&;\n]*--noEmit|tsc\s+(-b|--build)|vue-tsc|svelte-check|astro\s+check|oxlint|ruff\s+check|ruff\s+format\s+--check|black\s+--check|isort\s+--check|flake8|pylint|mypy|pyright|biome\s+(check|ci)|prettier\s+--check|eslint|lint|semgrep|bandit|pip-audit|composer\s+(audit|validate)|bundle\s+audit|pint\s+--test|php-cs-fixer[^|&;\n]*--dry-run|terraform\s+(validate|fmt\s+-check)|tflint|tfsec|checkov|shellcheck|actionlint|hadolint|yamllint|markdownlint|typos|codespell|cspell|dprint\s+check|spotless\s+check|scalafmt\s+--test|rubocop|standardrb|brakeman|ktlint|opa\s+test|conftest\s+test)\b/i;
 
 /** echo/printf of test names is not verification evidence. */
 const ECHO_LIKE_RE = /^(echo|printf|Write-Host|console\.log)\b/i;

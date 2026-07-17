@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.58] — 2026-07-17
+
+### MAGI spiral — ULW 开场仪式 PreTool 硬门 + shell/path/verify 旁路
+
+- **feat(hard/ulw)** `ulwCeremonyPreDeny` — ULW 活跃且未开场时，PreTool **硬拦** Write/Edit 与变异 shell（Read / `git status` 等仍允许 explore）
+- **feat(ulw)** 同轮 `lastAssistantMessage` 含口号 → 立即 `ceremonyOpened=true` 并放行
+- **feat(ulw)** 开场 banner / incomplete / resume / `skills/ulw-loop` 加强鸣锣 · 三步仪式框 · PreTool 硬门文案
+- **fix(isMutatingShellCommand)** `git config` 写 / `stash` 非 list / `branch -M` / `update-index` · `npm pack|link|prune` · `Bun.write` / Deno write / `File.write` · `pwsh -File` · `ni` · `gh issue|pr comment` · redis FLUSH · sops/op · nx migrate / turbo gen / knex seed
+- **fix(tool-paths)** `new_content` / `code` / `value` / `data` · `documentUri` file://
+- **fix(VERIFY_SHELL_RE)** `type-check` / `types:check` / bun typecheck · `ninja … test`
+- **test** ceremony PreTool 矩阵 + shell/path/verify 旁路
+- **docs** Agents.md PreTool 顺序含 ULW ceremony
+
 ## [1.1.57] — 2026-07-17
 
 ### MAGI spiral — docker compose verbs + k8s deploy tools + spawn role fields

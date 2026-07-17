@@ -40,10 +40,12 @@ import {
   startRalph,
   ulwCeremonyBanner,
   ulwCeremonyIncompleteReason,
+  ulwCeremonyPreDeny,
   ulwDoneGate,
   writeUlwCeremonyFile,
   type RalphState,
 } from "../src/features/ralph.js";
+import { handlePreToolUse } from "../src/events/pre-tool-use.js";
 import { handleUserPrompt } from "../src/events/user-prompt.js";
 import type { EnvConfig, HookInput } from "../src/protocol/types.js";
 
@@ -446,11 +448,16 @@ describe("isVerifyShellCommand 词边界 + echo 段", () => {
       "tsc --build",
       "vue-tsc --noEmit",
       "npm run typecheck",
+      "npm run type-check",
+      "npm run types:check",
       "npm run lint",
       "npm run check",
       "pnpm typecheck",
+      "pnpm type-check",
       "pnpm lint",
       "yarn typecheck",
+      "yarn type-check",
+      "bun run typecheck",
       // v1.1.51 dart/swift/mono/fmt-check/audit
       "dart test",
       "dart analyze",
@@ -1265,5 +1272,129 @@ describe("ULW ceremony opener gate (v1.1.49)", () => {
     );
     expect(out.block).toBe(true);
     expect(out.reason).not.toMatch(/CEREMONY INCOMPLETE|开场仪式未完成/i);
+  });
+});
+
+// ─── ULW ceremony PreTool hard gate (v1.1.58) ────────────────────────
+describe("ULW ceremony PreTool hard gate (v1.1.58)", () => {
+  function preInput(
+    ctx: Ctx,
+    over: Partial<HookInput> & { toolName: string },
+  ): HookInput {
+    return {
+      raw: {},
+      event: "pre-tool-use",
+      sessionId: ctx.sessionId,
+      cwd: ctx.ws,
+      workspaceRoot: ctx.ws,
+      toolInput: {},
+      ...over,
+    };
+  }
+
+  it("denies Write before ceremony opener", () => {
+    const ctx = makeCtx(58);
+    const base = stopInput(ctx, "");
+    startRalph(base, ctx.cfg, "ship oauth", "ulw");
+    const deny = ulwCeremonyPreDeny(
+      preInput(ctx, {
+        toolName: "Write",
+        toolInput: { path: "a.ts", content: "x" },
+      }),
+      ctx.cfg,
+    );
+    expect(deny).toMatch(/开场仪式未完成|CEREMONY INCOMPLETE|OPENING RITUAL/i);
+    expect(deny).toMatch(/PreTool|硬拦|写/);
+  });
+
+  it("denies mutating shell before ceremony", () => {
+    const ctx = makeCtx(59);
+    startRalph(stopInput(ctx, ""), ctx.cfg, "ship oauth", "ulw");
+    const deny = ulwCeremonyPreDeny(
+      preInput(ctx, {
+        toolName: "Shell",
+        toolInput: { command: "rm -rf dist" },
+      }),
+      ctx.cfg,
+    );
+    expect(deny).toMatch(/开场仪式未完成|CEREMONY INCOMPLETE/i);
+  });
+
+  it("allows Read and read-only shell before ceremony (explore path)", () => {
+    const ctx = makeCtx(60);
+    startRalph(stopInput(ctx, ""), ctx.cfg, "ship oauth", "ulw");
+    expect(
+      ulwCeremonyPreDeny(
+        preInput(ctx, { toolName: "Read", toolInput: { path: "a.ts" } }),
+        ctx.cfg,
+      ),
+    ).toBeNull();
+    expect(
+      ulwCeremonyPreDeny(
+        preInput(ctx, {
+          toolName: "Shell",
+          toolInput: { command: "git status" },
+        }),
+        ctx.cfg,
+      ),
+    ).toBeNull();
+  });
+
+  it("opener in lastAssistantMessage opens ceremony and allows Write", () => {
+    const ctx = makeCtx(61);
+    startRalph(stopInput(ctx, ""), ctx.cfg, "ship oauth", "ulw");
+    const deny = ulwCeremonyPreDeny(
+      preInput(ctx, {
+        toolName: "Write",
+        toolInput: { path: "a.ts", content: "x" },
+        lastAssistantMessage:
+          "ULTRAWORK MODE ENABLED!\nGoal: ship oauth\nexploring…",
+      }),
+      ctx.cfg,
+    );
+    expect(deny).toBeNull();
+    expect(loadRalph(stopInput(ctx, ""), ctx.cfg)?.ceremonyOpened).toBe(true);
+  });
+
+  it("handlePreToolUse host path denies Write without ceremony", () => {
+    const ctx = makeCtx(62);
+    startRalph(stopInput(ctx, ""), ctx.cfg, "ship oauth", "ulw");
+    const r = handlePreToolUse(
+      preInput(ctx, {
+        toolName: "Write",
+        toolInput: { path: "a.ts", content: "x" },
+      }),
+      ctx.cfg,
+    );
+    expect(r.output.decision).toBe("deny");
+    expect(r.output.reason).toMatch(/开场仪式未完成|CEREMONY INCOMPLETE/i);
+  });
+
+  it("ralph mode Write is not blocked by ULW ceremony", () => {
+    const ctx = makeCtx(63);
+    startRalph(stopInput(ctx, ""), ctx.cfg, "keep going", "ralph");
+    expect(
+      ulwCeremonyPreDeny(
+        preInput(ctx, {
+          toolName: "Write",
+          toolInput: { path: "a.ts", content: "x" },
+        }),
+        ctx.cfg,
+      ),
+    ).toBeNull();
+  });
+
+  it("banner / incomplete reason shout PreTool hard gate + ritual frame", () => {
+    const start = ulwCeremonyBanner("fix login", "start");
+    expect(start).toMatch(/鸣锣开场|STRIKE THE GONG/i);
+    expect(start).toMatch(/开场仪式|OPENING RITUAL/i);
+    expect(start).toMatch(/PreTool|硬门|硬拦/);
+    expect(start).toMatch(/三步仪式|三步/);
+    const active = ulwCeremonyBanner("fix login", "active");
+    expect(active).toMatch(/仍在运行|STILL ON/i);
+    expect(active).toMatch(/PreTool|硬拦|CEREMONY INCOMPLETE/i);
+    const incomplete = ulwCeremonyIncompleteReason("fix login");
+    expect(incomplete).toMatch(/PreTool|硬拦/);
+    expect(incomplete).toMatch(/鸣锣/);
   });
 });

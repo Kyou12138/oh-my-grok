@@ -166,6 +166,26 @@ describe("pathsFromToolInput", () => {
     ).toBe("nt");
   });
 
+  it("content aliases new_content / code / value / data (v1.1.58)", () => {
+    expect(
+      contentSnippetsFromToolInput({ path: "a.ts", new_content: "nc" })[0]
+        ?.content,
+    ).toBe("nc");
+    expect(
+      contentSnippetsFromToolInput({ path: "a.ts", code: "code body" })[0]
+        ?.content,
+    ).toBe("code body");
+    expect(
+      contentSnippetsFromToolInput({ path: "a.ts", value: "val" })[0]?.content,
+    ).toBe("val");
+    expect(
+      contentSnippetsFromToolInput({ path: "a.ts", data: "datax" })[0]?.content,
+    ).toBe("datax");
+    expect(pathsFromToolInput({ documentUri: "file:///tmp/x.ts" })).toEqual([
+      "/tmp/x.ts",
+    ]);
+  });
+
   it("parses *** Updated File: past tense (v1.1.53)", () => {
     expect(pathsFromApplyPatchText("*** Updated File: src/x.ts\n@@\n")).toEqual([
       "src/x.ts",

@@ -31,7 +31,8 @@ export interface RalphState {
     /**
      * ULW opening ceremony completed (first non-empty assistant line was
      * ULTRAWORK MODE ENABLED! / ULTRAWORK 模式已启动！).
-     * v1.1.49 — soft Stop gate until true; ralph mode ignores.
+     * v1.1.49 Stop soft-yank; v1.1.58 PreTool hard-deny on mutates until true.
+     * ralph mode ignores (always opened).
      */
     ceremonyOpened: boolean;
 }
@@ -59,8 +60,15 @@ export declare const ULW_CEREMONY_OPENERS: readonly ["ULTRAWORK MODE ENABLED!", 
  * Allows optional surrounding **bold** markers; rejects if opener is buried mid-message.
  */
 export declare function hasUlwCeremonyOpener(msg?: string): boolean;
-/** Loud Stop yank when ULW started but opener was skipped. */
+/** Loud Stop/PreTool deny when ULW started but opener was skipped. */
 export declare function ulwCeremonyIncompleteReason(task: string): string;
+/**
+ * v1.1.58 host-truth: ULW mutates blocked until ceremony opener seen.
+ * Read/search/non-mutating shell stay allowed so explore can start after
+ * the verbal ritual; Write/Edit/mutating shell denied hard.
+ * If `lastAssistantMessage` already opens with the slogan, mark opened and allow.
+ */
+export declare function ulwCeremonyPreDeny(input: HookInput, cfg: EnvConfig): string | null;
 /**
  * omo-style ULW opening ceremony (soft inject + disk file + Stop gate).
  * Loud frame + ordered ritual — first assistant reply MUST open with ULTRAWORK MODE ENABLED!

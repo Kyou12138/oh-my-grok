@@ -472,6 +472,47 @@ describe("agentGuardDeny", () => {
     expect(isMutatingShellCommand("terraform plan")).toBe(false);
   });
 
+  it("blocks git config/stash write, npm pack/link, Bun.write, gh issue (v1.1.58)", () => {
+    expect(isMutatingShellCommand("git config user.email a@b.c")).toBe(true);
+    expect(isMutatingShellCommand("git config --global core.editor vim")).toBe(
+      true,
+    );
+    expect(isMutatingShellCommand("git config --get user.email")).toBe(false);
+    expect(isMutatingShellCommand("git config --list")).toBe(false);
+    expect(isMutatingShellCommand("git stash -u")).toBe(true);
+    expect(isMutatingShellCommand("git stash")).toBe(true);
+    expect(isMutatingShellCommand("git stash show")).toBe(false);
+    expect(isMutatingShellCommand("git branch -M main")).toBe(true);
+    expect(isMutatingShellCommand("git update-index --assume-unchanged a")).toBe(
+      true,
+    );
+    expect(isMutatingShellCommand("npm pack")).toBe(true);
+    expect(isMutatingShellCommand("npm link")).toBe(true);
+    expect(isMutatingShellCommand("npm run prepare")).toBe(true);
+    expect(isMutatingShellCommand("pnpm prune")).toBe(true);
+    expect(isMutatingShellCommand("bun -e 'await Bun.write(\"a\",\"b\")'")).toBe(
+      true,
+    );
+    expect(
+      isMutatingShellCommand('deno eval "Deno.writeTextFileSync(\'a\',\'b\')"'),
+    ).toBe(true);
+    expect(isMutatingShellCommand('ruby -e \'File.write("a","b")\'')).toBe(true);
+    expect(isMutatingShellCommand("pwsh -File setup.ps1")).toBe(true);
+    expect(isMutatingShellCommand('ni foo.txt -Value "x"')).toBe(true);
+    expect(isMutatingShellCommand("gh issue create --title t")).toBe(true);
+    expect(isMutatingShellCommand("gh issue comment 1 --body b")).toBe(true);
+    expect(isMutatingShellCommand("gh pr comment 1 --body b")).toBe(true);
+    expect(isMutatingShellCommand("gh run cancel 1")).toBe(true);
+    expect(isMutatingShellCommand("redis-cli FLUSHALL")).toBe(true);
+    expect(isMutatingShellCommand("fallocate -l 1G big.bin")).toBe(true);
+    expect(isMutatingShellCommand("sops -d secrets.yaml")).toBe(true);
+    expect(isMutatingShellCommand("op inject -i .env.tpl -o .env")).toBe(true);
+    expect(isMutatingShellCommand("nx migrate latest")).toBe(true);
+    expect(isMutatingShellCommand("turbo gen library")).toBe(true);
+    expect(isMutatingShellCommand("knex seed:run")).toBe(true);
+    expect(isMutatingShellCommand("atlas schema apply")).toBe(true);
+  });
+
   it("blocks prettier --write / wrangler / tofu / archives / irm|iex (v1.1.52)", () => {
     expect(isMutatingShellCommand("npx prettier --write .")).toBe(true);
     expect(isMutatingShellCommand("npx biome check --write .")).toBe(true);
