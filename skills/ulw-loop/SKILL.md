@@ -26,8 +26,10 @@ Hook inject + disk: `.omg/ulw-loop/CEREMONY.md` (survives if inject is dropped).
 
 | Gate | Since | Behavior |
 |------|-------|----------|
-| **PreTool** | v1.1.58 | Write / Edit / mutating shell **denied** until opener seen |
+| **PreTool ceremony** | v1.1.58 | Write / Edit / mutating shell **denied** until opener seen |
+| **PreTool explore** | v1.1.63 | After ceremony, mutates still **denied** until at least one Read (未 explore 不写) |
 | **Stop** | v1.1.49 | Skip opener → `CEREMONY INCOMPLETE` / 开场仪式未完成；loop 保持；DONE 被拦 |
+| **DONE evidence** | v1.1.63 | implement writes required unless task is **research-only**；stall×3 escalate / ×5 critical |
 
 ### Required first message shape
 
@@ -93,9 +95,15 @@ Recommended finish:
 | `.omg/ulw-loop/state.json` | Machine state (phase, stalls) |
 | `.omg/ulw-loop/log/iter-NNN-*.md` | Per-iteration audit log |
 
-## Stall
+## Stall (omo-aligned escalation)
 
-If a round has **no Read/Write**, Stop injects STALL and demands a strategy change.
+| stallCount | Stop signal |
+|------------|-------------|
+| 1–2 | STALL DETECTED — change strategy |
+| ≥3 | STALL ESCALATED — must spawn explore/oracle or run real verify |
+| ≥5 | STALL CRITICAL — narrow scope / report blocker; no fluff |
+
+Shell (e.g. `npm test`) counts as progress when implement already reached.
 
 ## Cancel
 

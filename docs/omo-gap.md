@@ -1,6 +1,6 @@
 # oh-my-grok capability map (vs Vanilla Grok / omo)
 
-**Date:** 2026-07-17 · **omg version:** **1.1.62**  
+**Date:** 2026-07-18 · **omg version:** **1.1.63**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 **Product peer:** omo **Codex Light** 同温层（纪律 + 状态），**不是** Ultimate 全量 OS。  
@@ -760,14 +760,24 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **VERIFY / green** | ruff --fix 不计入 verify · coverage/nox/pixi · tests/CI green 口语 |
 | **paths / idle / ceremony / spawn** | file_list/entries/href · hold on/开干了 · 🔥/「」/同句 Goal · agentId/persona |
 
+## Closed this spiral (v1.1.63) — ULW loop omo-align (explore hard + implement DONE + stall)
+
+| Item | Behavior |
+|------|----------|
+| **PreTool explore** | `ulwExplorePreDeny` 未 explore 硬拦写（ceremony 之后） |
+| **DONE gate** | 必须 implement writes（research-only 例外）；修 shell-verify 旁路 implement |
+| **stall** | ×3 ESCALATED · ×5 CRITICAL；UserPrompt stall 提示 |
+| **mid-turn phase** | noteUlwRead/Write 立即落盘 phaseReached |
+
 ## Next spiral focus (提升)
 
 - **marketplace** + 传播资产（GIF）— 安装转化  
 - **Harness Light 架构** → [harness-light-architecture.md](./harness-light-architecture.md)  
 - Hashline native edit tool（宿主能力）  
 - project-memory 仍 defer（omo #74）  
+- loop：可选 max-stall circuit / research 任务自动标注  
 
-**推荐**: pin **v1.1.62** · `grok plugin update`。
+**推荐**: pin **v1.1.63** · `grok plugin update`。
 
 ## Explicit non-goals
 

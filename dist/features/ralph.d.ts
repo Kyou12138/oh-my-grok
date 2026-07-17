@@ -70,6 +70,16 @@ export declare function ulwCeremonyIncompleteReason(task: string): string;
  */
 export declare function ulwCeremonyPreDeny(input: HookInput, cfg: EnvConfig): string | null;
 /**
+ * Research / audit / map-only tasks may skip implement writes (omo research path).
+ * Default shipping/fix tasks still require implement evidence.
+ */
+export declare function isUlwResearchOnlyTask(task?: string): boolean;
+/**
+ * v1.1.63 host-truth: 未 explore 不写 — after ceremony, mutates still blocked
+ * until at least one Read (phaseReached.explore). Aligns omo oath + Hard PreTool.
+ */
+export declare function ulwExplorePreDeny(input: HookInput, cfg: EnvConfig): string | null;
+/**
  * omo-style ULW opening ceremony (soft inject + disk file + Stop gate).
  * Loud frame + ordered ritual — first assistant reply MUST open with ULTRAWORK MODE ENABLED!
  */
@@ -120,6 +130,7 @@ export declare function markGoalDone(state: RalphState, text: string): RalphStat
 export declare function writeProgressLog(input: HookInput, cfg: EnvConfig, state: RalphState, kind: string, note: string): void;
 export declare function ralphStopReason(state: RalphState, opts?: {
     stall?: boolean;
+    stallCount?: number;
 }): string;
 /** Process one Stop event for an active loop. Returns block reason or null if loop ended cleanly. */
 export declare function processLoopStop(input: HookInput, cfg: EnvConfig, state: RalphState): {

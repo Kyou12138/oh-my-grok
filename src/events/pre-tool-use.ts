@@ -14,7 +14,7 @@ import {
   prometheusRoleDeny,
 } from "../features/prometheus.js";
 import { skillGateContext } from "../features/last-prompt.js";
-import { ulwCeremonyPreDeny } from "../features/ralph.js";
+import { ulwCeremonyPreDeny, ulwExplorePreDeny } from "../features/ralph.js";
 import {
   isMutatingTool,
   loadSkillGateState,
@@ -42,6 +42,12 @@ export function handlePreToolUse(
   const ceremonyDeny = ulwCeremonyPreDeny(input, cfg);
   if (ceremonyDeny) {
     return { output: { decision: "deny", reason: ceremonyDeny }, exitCode: 2 };
+  }
+
+  // 0.26) ULW explore-before-write — hard deny mutates until Read evidence (v1.1.63)
+  const exploreDeny = ulwExplorePreDeny(input, cfg);
+  if (exploreDeny) {
+    return { output: { decision: "deny", reason: exploreDeny }, exitCode: 2 };
   }
 
   const shell = isShellTool(input.toolName);

@@ -17,7 +17,7 @@ rules/   — always injected on UserPrompt
 
 1. One hook registration per event; merge UserPrompt in `user-prompt.ts`.
 2. Stop chain order only in `events/stop.ts`: Ralph → Boulder → Todo → plan checkboxes.
-3. PreTool order: Agent Guard → ULW ceremony → plan-mode → Hashline → CommentChecker → Skill Gate.
+3. PreTool order: Agent Guard → ULW ceremony → ULW explore-before-write → plan-mode → Hashline → CommentChecker → Skill Gate.
 4. Fail-open in `cli.ts` catch.
 5. No bash launcher — Windows uses `node dist/cli.js`.
 6. Do not dual-enable mihazs oh-my-grok.

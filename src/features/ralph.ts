@@ -397,6 +397,73 @@ export function ulwCeremonyPreDeny(
 }
 
 /**
+ * Research / audit / map-only tasks may skip implement writes (omo research path).
+ * Default shipping/fix tasks still require implement evidence.
+ */
+export function isUlwResearchOnlyTask(task?: string): boolean {
+  if (!task?.trim()) return false;
+  const t = task.trim();
+  // Explicit EN research markers (\b ok for latin)
+  if (
+    /\b(research(?:-only)?|investigate|audit(?:-only)?|analyze|analysis|survey|recon|map\s+the|explore\s+only|read-only|readonly)\b/i.test(
+      t,
+    )
+  ) {
+    return true;
+  }
+  // CJK markers — no \b (word boundary is latin-only in JS)
+  if (/(?:只读|仅探索|调研|审查|审计|分析|摸底|盘点)/.test(t)) {
+    return true;
+  }
+  // Pure question / locate without fix|ship|implement keywords
+  if (
+    /^(what|where|how|why|which|find|locate|list|summarize|explain)\b/i.test(t) &&
+    !/\b(fix|implement|ship|add|write|build|refactor|migrate|feature|bug|patch|deploy)\b/i.test(
+      t,
+    )
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * v1.1.63 host-truth: 未 explore 不写 — after ceremony, mutates still blocked
+ * until at least one Read (phaseReached.explore). Aligns omo oath + Hard PreTool.
+ */
+export function ulwExplorePreDeny(
+  input: HookInput,
+  cfg: EnvConfig,
+): string | null {
+  const state = loadRalph(input, cfg);
+  if (!state?.active || state.mode !== "ulw") return null;
+  if (!state.ceremonyOpened) return null; // ceremony gate owns this
+  if (state.phaseReached.explore) return null;
+
+  const shell = isShellTool(input.toolName);
+  if (shell) {
+    const cmd = getShellCommand(input);
+    // allow verify/read shells; block mutates
+    if (!isMutatingShellCommand(cmd)) return null;
+  } else if (!isMutatingTool(input.toolName)) {
+    return null;
+  }
+
+  const goal = (state.task || "ultrawork").trim().slice(0, 200);
+  return [
+    CEREMONY_BAR,
+    "【未 explore 不写 / EXPLORE BEFORE WRITE — ULW】",
+    CEREMONY_BAR,
+    "ULTRAWORK 誓词：未 explore 不得写文件 / 不得变异 shell。",
+    `Goal: ${goal}`,
+    "",
+    "先完成至少一次 **Read / 搜索 / spawn explore**，再 implement。",
+    "State: `.omg/ulw-loop/state.json` · phase must show explore=true",
+    CEREMONY_BAR,
+  ].join("\n");
+}
+
+/**
  * omo-style ULW opening ceremony (soft inject + disk file + Stop gate).
  * Loud frame + ordered ritual — first assistant reply MUST open with ULTRAWORK MODE ENABLED!
  */
@@ -627,6 +694,15 @@ export function resetUlwActivity(input: HookInput, cfg: EnvConfig): void {
 export function noteUlwRead(input: HookInput, cfg: EnvConfig, filePath?: string): void {
   const a = loadUlwActivity(input, cfg);
   a.reads += 1;
+  // v1.1.63: unlock explore PreTool gate mid-turn (not only on Stop)
+  const loop = loadRalph(input, cfg);
+  if (loop?.active && loop.mode === "ulw") {
+    if (!loop.phaseReached.explore) {
+      loop.phaseReached.explore = true;
+      if (loop.phase === "explore") loop.phase = "implement";
+      saveRalph(input, cfg, loop);
+    }
+  }
   if (filePath) a.lastPaths = [...new Set([filePath, ...a.lastPaths])].slice(0, 12);
   a.updatedAt = new Date().toISOString();
   writeJsonAtomic(activityPath(input, cfg), a);
@@ -638,6 +714,15 @@ export function noteUlwWrite(input: HookInput, cfg: EnvConfig, filePath?: string
   if (filePath) a.lastPaths = [...new Set([filePath, ...a.lastPaths])].slice(0, 12);
   a.updatedAt = new Date().toISOString();
   writeJsonAtomic(activityPath(input, cfg), a);
+  // v1.1.63: mark implement mid-turn so verify shell can credit after writes
+  const loop = loadRalph(input, cfg);
+  if (loop?.active && loop.mode === "ulw" && !loop.phaseReached.implement) {
+    loop.phaseReached.implement = true;
+    if (loop.phase === "explore" || loop.phase === "implement") {
+      loop.phase = "verify";
+    }
+    saveRalph(input, cfg, loop);
+  }
 }
 
 /**
@@ -688,6 +773,8 @@ export function noteUlwShell(
 
   if (isVerifyShellCommand(command)) {
     const loop = loadRalph(input, cfg);
+    // Phase UI may advance to verify on tests; DONE gate still requires
+    // implement writes unless research-only (v1.1.63).
     if (loop?.active && loop.mode === "ulw") {
       markVerifyReached(loop);
       saveRalph(input, cfg, loop);
@@ -741,20 +828,29 @@ export function ulwDoneGate(
 
   const problems: string[] = [];
   const diag = loadDiag(input, cfg);
+  const act = loadUlwActivity(input, cfg);
+  const research = isUlwResearchOnlyTask(state.task);
   const verified =
     isVerifiedMessage(msg) ||
     Boolean(diag.verifiedAt && diag.verifiedAt > 0 && !diag.needsVerify && !diag.lastErrors);
 
-  if (!state.phaseReached.explore && !state.phaseReached.implement) {
-    problems.push("- No explore/implement evidence yet (Read/Write activity). Stay in explore/implement.");
+  // v1.1.63: explore is mandatory for all ULW (including research)
+  if (!state.phaseReached.explore) {
+    problems.push(
+      "- Explore phase incomplete — Read/search codebase (spawn explore if useful).",
+    );
   }
-  if (!state.phaseReached.implement && state.phase !== "verify") {
-    // allow if writes happened this turn via activity
-    const act = loadUlwActivity(input, cfg);
-    if (act.writes === 0) {
-      problems.push("- No implementation writes observed. Implement before DONE.");
-    }
+
+  // v1.1.63: implement required unless research-only task
+  // (was bypassable: markVerifyReached via shell alone set phase=verify without writes)
+  const hasImplement =
+    state.phaseReached.implement || act.writes > 0;
+  if (!hasImplement && !research) {
+    problems.push(
+      "- No implementation writes observed. Implement before DONE (research/audit tasks may omit writes if task text is research-only).",
+    );
   }
+
   if (!verified && !state.phaseReached.verify) {
     problems.push(
       "- ULW requires verify evidence: output <promise>VERIFIED</promise>, or say diagnostics clean / tests passed, after running checks.",
@@ -766,9 +862,6 @@ export function ulwDoneGate(
   const todos = incompleteTodos(input, cfg);
   if (todos.length > 0) {
     problems.push(`- ${todos.length} incomplete todo(s) remain — finish or cancel them.`);
-  }
-  if (!state.phaseReached.explore) {
-    problems.push("- Explore phase incomplete — Read/search codebase (spawn explore if useful).");
   }
   // Multi-goal only: single-goal loops still complete via VERIFIED+DONE alone
   const open = openGoals(state);
@@ -785,7 +878,7 @@ export function ulwDoneGate(
       reason: [
         "ULW DONE REJECTED — evidence gate failed.",
         `Task: ${state.task}`,
-        `Phase: ${state.phase} | reached: explore=${state.phaseReached.explore} implement=${state.phaseReached.implement} verify=${state.phaseReached.verify}`,
+        `Phase: ${state.phase} | reached: explore=${state.phaseReached.explore} implement=${state.phaseReached.implement} verify=${state.phaseReached.verify}${research ? " | research-only=true" : ""}`,
         "",
         ...problems,
         "",
@@ -833,7 +926,10 @@ export function writeProgressLog(
   writeTextAtomic(file, body);
 }
 
-export function ralphStopReason(state: RalphState, opts?: { stall?: boolean }): string {
+export function ralphStopReason(
+  state: RalphState,
+  opts?: { stall?: boolean; stallCount?: number },
+): string {
   if (state.mode === "ralph") {
     return [
       "RALPH LOOP — work until done.",
@@ -847,9 +943,9 @@ export function ralphStopReason(state: RalphState, opts?: { stall?: boolean }): 
 
   const phaseHelp: Record<LoopPhase, string> = {
     explore:
-      "PHASE explore: Search codebase (spawn explore). Read key files. List findings. Do NOT claim DONE.",
+      "PHASE explore: Search codebase (spawn explore). Read key files. List findings. Do NOT claim DONE. PreTool: mutates blocked until explore evidence.",
     implement:
-      "PHASE implement: Apply code changes (hephaestus ok). Keep diffs focused. Update todos.",
+      "PHASE implement: Apply code changes (hephaestus ok). Keep diffs focused. Update todos. Do NOT DONE before VERIFIED.",
     verify:
       "PHASE verify: Run tests/typecheck/lint. Fix failures. Then <promise>VERIFIED</promise> and only then <promise>DONE</promise>.",
   };
@@ -867,15 +963,42 @@ export function ralphStopReason(state: RalphState, opts?: { stall?: boolean }): 
         ]
       : [];
 
+  const stalls = opts?.stallCount ?? state.stallCount;
+  let stallBlock = "";
+  if (opts?.stall || stalls >= 1) {
+    if (stalls >= 5) {
+      stallBlock = [
+        "",
+        "🛑 STALL CRITICAL (×" + stalls + ") — 连续空转，策略必须换：",
+        "1) **task** spawn **oracle** 或 **explore** 重新定位瓶颈",
+        "2) 缩小范围：只修 1 个文件 / 1 个失败测试",
+        "3) 跑具体命令拿证据（npm test / tsc --noEmit），禁止再只回 status",
+        "4) 若目标不可达：写清 blocker，勿假 DONE",
+      ].join("\n");
+    } else if (stalls >= 3) {
+      stallBlock = [
+        "",
+        "⚠ STALL ESCALATED (×" + stalls + ") — 第三次+无进度：",
+        "- Change strategy NOW: spawn explore/oracle/hephaestus",
+        "- Or run real verify (tests/typecheck) and report output",
+        "- No pure ack / 继续 / looking into it",
+      ].join("\n");
+    } else {
+      stallBlock =
+        "\n⚠ STALL DETECTED: no Read/Write/Shell progress last round. Change strategy — spawn oracle/explore, run tests, narrow scope, or try a different approach.";
+    }
+  }
+
   return [
     "══════════════════════════════════════",
-    "ULTRAWORK / ULW LOOP v3 — maximum intensity",
+    "ULTRAWORK / ULW LOOP v3 — maximum intensity · omo-aligned",
     "══════════════════════════════════════",
     `Task: ${state.task}`,
     `Iteration: ${state.iteration + 1}/${state.maxIterations}`,
     `Phase: ${state.phase}`,
     `Progress: explore=${state.phaseReached.explore} implement=${state.phaseReached.implement} verify=${state.phaseReached.verify}`,
-    `Stall count: ${state.stallCount}`,
+    `Stall count: ${stalls}`,
+    isUlwResearchOnlyTask(state.task) ? "Mode: research-only (implement writes optional)" : "",
     "",
     ...goalBlock,
     phaseHelp[state.phase],
@@ -886,14 +1009,13 @@ export function ralphStopReason(state: RalphState, opts?: { stall?: boolean }): 
     "3) Log what changed in your reply (files + commands)",
     "",
     "DONE gate (hard):",
-    "- Must complete explore + implement evidence",
-    "- Must VERIFIED (or diagnostics clean / tests passed)",
+    "- Ceremony opener + explore Read evidence",
+    "- Implement writes (unless research-only task)",
+    "- VERIFIED (or diagnostics clean / tests passed)",
     "- All multi-goals marked GOAL_DONE",
     "- Incomplete todos block DONE",
     "- Then output: <promise>DONE</promise>",
-    opts?.stall
-      ? "\n⚠ STALL DETECTED: no Read/Write/Shell progress last round. Change strategy — spawn oracle/explore, run tests, narrow scope, or try a different approach."
-      : "",
+    stallBlock,
     "══════════════════════════════════════",
   ]
     .filter(Boolean)
@@ -1003,7 +1125,7 @@ export function processLoopStop(
 
   return {
     block: true,
-    reason: ralphStopReason(state, { stall }),
+    reason: ralphStopReason(state, { stall, stallCount: state.stallCount }),
     state,
   };
 }

@@ -197,10 +197,16 @@ export function handleUserPrompt(input: HookInput, cfg: EnvConfig): HookOutput {
         `<OMG_RALPH active="true" mode="${ralph.mode}" iter="${ralph.iteration}/${ralph.maxIterations}" phase="${ralph.phase}">`,
         `Task: ${ralph.task}`,
         ralph.mode === "ulw"
-          ? `ULW phases: explore=${ralph.phaseReached.explore} implement=${ralph.phaseReached.implement} verify=${ralph.phaseReached.verify} stall=${ralph.stallCount}`
+          ? `ULW phases: explore=${ralph.phaseReached.explore} implement=${ralph.phaseReached.implement} verify=${ralph.phaseReached.verify} stall=${ralph.stallCount} ceremony=${ralph.ceremonyOpened}`
           : "",
         ralph.mode === "ulw"
-          ? "Logs: .omg/ulw-loop/log/ — DONE needs VERIFIED + explore/implement evidence."
+          ? "DONE: ceremony + explore Read + implement Write (unless research-only) + VERIFIED. PreTool blocks write before explore."
+          : "",
+        ralph.mode === "ulw" && ralph.stallCount >= 3
+          ? `⚠ stall×${ralph.stallCount} — change strategy (spawn explore/oracle) before more fluff.`
+          : "",
+        ralph.mode === "ulw"
+          ? "Logs: .omg/ulw-loop/log/"
           : "",
         `</OMG_RALPH>`,
       ]

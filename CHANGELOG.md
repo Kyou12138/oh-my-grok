@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.63] — 2026-07-18
+
+### MAGI spiral — ULW loop omo-align: explore hard gate + implement DONE + stall escalate
+
+- **feat(hard/ulw)** `ulwExplorePreDeny` — 开场后仍 **未 explore 不写**（PreTool 硬拦 Write/变异 shell 直至 noteUlwRead）
+- **fix(ulwDoneGate)** 无 implement writes 不得 DONE（`npm test` 单独 mark verify 不再旁路 implement）；**research-only** 任务可免写
+- **feat** `isUlwResearchOnlyTask`（research/audit/调研…）；`noteUlwRead/Write` 中途落盘 phaseReached
+- **feat(stall)** stall×3 STALL ESCALATED · ×5 STALL CRITICAL；UserPrompt 注入 ceremony/stall 提示
+- **docs** skills/ulw-loop · Agents.md PreTool 顺序 · omo-gap
+- **test** explore PreTool / DONE implement / research-only / stall matrices
+
 ## [1.1.62] — 2026-07-17
 
 ### MAGI spiral — MCP write_query/git mutators + shell/path/idle/ceremony/verify

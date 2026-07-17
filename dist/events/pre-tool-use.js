@@ -5,7 +5,7 @@ import { diagPreDeny } from "../features/diagnostics.js";
 import { hashlinePreToolDeny } from "../features/hashline.js";
 import { isPlanModePlanOnlyWrite, planModeDeny, prometheusRoleDeny, } from "../features/prometheus.js";
 import { skillGateContext } from "../features/last-prompt.js";
-import { ulwCeremonyPreDeny } from "../features/ralph.js";
+import { ulwCeremonyPreDeny, ulwExplorePreDeny } from "../features/ralph.js";
 import { isMutatingTool, loadSkillGateState, refreshCatalog, skillGateDenyReason, } from "../features/skill-gate.js";
 import { spawnFollowThroughPreDeny } from "../features/spawn-followthrough.js";
 import { workspaceBoundaryDeny } from "../features/workspace-boundary.js";
@@ -20,6 +20,11 @@ export function handlePreToolUse(input, cfg) {
     const ceremonyDeny = ulwCeremonyPreDeny(input, cfg);
     if (ceremonyDeny) {
         return { output: { decision: "deny", reason: ceremonyDeny }, exitCode: 2 };
+    }
+    // 0.26) ULW explore-before-write — hard deny mutates until Read evidence (v1.1.63)
+    const exploreDeny = ulwExplorePreDeny(input, cfg);
+    if (exploreDeny) {
+        return { output: { decision: "deny", reason: exploreDeny }, exitCode: 2 };
     }
     const shell = isShellTool(input.toolName);
     // Shell is not isMutatingTool — still must hit plan/prometheus gates (v1.1.36)

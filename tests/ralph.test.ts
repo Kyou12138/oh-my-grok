@@ -35,12 +35,15 @@ import {
   openGoals,
   parseGoalsFromTask,
   processLoopStop,
+  ralphStopReason,
   resetUlwActivity,
   saveRalph,
   startRalph,
+  isUlwResearchOnlyTask,
   ulwCeremonyBanner,
   ulwCeremonyIncompleteReason,
   ulwCeremonyPreDeny,
+  ulwExplorePreDeny,
   ulwDoneGate,
   writeUlwCeremonyFile,
   type RalphState,
@@ -927,13 +930,13 @@ describe("processLoopStop 状态机四分支", () => {
 
 // ─── 8. ulwDoneGate problems 分项 ─────────────────────────────────────
 describe("ulwDoneGate evidence problems", () => {
-  it("缺 explore+implement → reason含 'No explore/implement evidence'", () => {
+  it("缺 explore+implement → reason含 Explore incomplete + No implementation writes (v1.1.63)", () => {
     const ctx = makeCtx(6);
     const input0 = stopInput(ctx, "");
     const s = startRalph(input0, ctx.cfg, "single goal task", "ulw");
     const gate = ulwDoneGate(input0, ctx.cfg, s, "<promise>DONE</promise>");
     expect(gate.ok).toBe(false);
-    expect(gate.reason).toMatch(/No explore\/implement evidence/);
+    expect(gate.reason).toMatch(/Explore phase incomplete|No implementation writes/i);
   });
 
   it("缺 verify → reason含 'verify evidence' 与 'tests passed'", () => {
@@ -1449,5 +1452,151 @@ describe("ULW ceremony PreTool hard gate (v1.1.58)", () => {
     const incomplete = ulwCeremonyIncompleteReason("fix login");
     expect(incomplete).toMatch(/PreTool|硬拦/);
     expect(incomplete).toMatch(/鸣锣/);
+  });
+});
+
+// ─── ULW loop omo-align (v1.1.63) — explore hard + implement gate + stall ─
+describe("ULW loop omo-align (v1.1.63)", () => {
+  function preInput(
+    ctx: Ctx,
+    over: Partial<HookInput> & { toolName: string },
+  ): HookInput {
+    return {
+      raw: {},
+      event: "pre-tool-use",
+      sessionId: ctx.sessionId,
+      cwd: ctx.ws,
+      workspaceRoot: ctx.ws,
+      toolInput: {},
+      ...over,
+    };
+  }
+
+  it("isUlwResearchOnlyTask: research/audit vs fix/ship", () => {
+    expect(isUlwResearchOnlyTask("research auth flow")).toBe(true);
+    expect(isUlwResearchOnlyTask("audit security surface")).toBe(true);
+    expect(isUlwResearchOnlyTask("调研登录模块")).toBe(true);
+    expect(isUlwResearchOnlyTask("what calls UserService")).toBe(true);
+    expect(isUlwResearchOnlyTask("fix login bug")).toBe(false);
+    expect(isUlwResearchOnlyTask("ship oauth feature")).toBe(false);
+  });
+
+  it("explore PreTool denies Write after ceremony but before Read", () => {
+    const ctx = makeCtx(70);
+    startRalph(stopInput(ctx, ""), ctx.cfg, "ship oauth", "ulw");
+    // open ceremony only
+    const opened = loadRalph(stopInput(ctx, ""), ctx.cfg)!;
+    opened.ceremonyOpened = true;
+    saveRalph(stopInput(ctx, ""), ctx.cfg, opened);
+    const deny = ulwExplorePreDeny(
+      preInput(ctx, {
+        toolName: "Write",
+        toolInput: { path: "a.ts", content: "x" },
+      }),
+      ctx.cfg,
+    );
+    expect(deny).toMatch(/未 explore 不写|EXPLORE BEFORE WRITE/i);
+  });
+
+  it("explore PreTool allows Write after noteUlwRead", () => {
+    const ctx = makeCtx(71);
+    const base = stopInput(ctx, "");
+    startRalph(base, ctx.cfg, "ship oauth", "ulw");
+    const opened = loadRalph(base, ctx.cfg)!;
+    opened.ceremonyOpened = true;
+    saveRalph(base, ctx.cfg, opened);
+    noteUlwRead(base, ctx.cfg, "a.ts");
+    expect(
+      ulwExplorePreDeny(
+        preInput(ctx, {
+          toolName: "Write",
+          toolInput: { path: "b.ts", content: "x" },
+        }),
+        ctx.cfg,
+      ),
+    ).toBeNull();
+    expect(loadRalph(base, ctx.cfg)?.phaseReached.explore).toBe(true);
+  });
+
+  it("DONE without implement writes rejected even if phase=verify via shell", () => {
+    const ctx = makeCtx(72);
+    const input0 = stopInput(ctx, "");
+    startRalph(input0, ctx.cfg, "ship oauth feature", "ulw");
+    noteUlwRead(input0, ctx.cfg, "a.ts");
+    // shell verify alone must NOT unlock implement skip
+    noteUlwShell(input0, ctx.cfg, "npm test");
+    markVerified(input0, ctx.cfg);
+    const s = loadRalph(input0, ctx.cfg)!;
+    s.ceremonyOpened = true;
+    s.phase = "verify";
+    s.phaseReached.verify = true;
+    saveRalph(input0, ctx.cfg, s);
+    const gate = ulwDoneGate(
+      input0,
+      ctx.cfg,
+      loadRalph(input0, ctx.cfg)!,
+      "<promise>VERIFIED</promise>\n<promise>DONE</promise>",
+    );
+    expect(gate.ok).toBe(false);
+    expect(gate.reason).toMatch(/No implementation writes|Implement before DONE/i);
+  });
+
+  it("research-only task may DONE without writes after explore+verify", () => {
+    const ctx = makeCtx(73);
+    const input0 = stopInput(ctx, "");
+    startRalph(input0, ctx.cfg, "research auth module surface", "ulw");
+    noteUlwRead(input0, ctx.cfg, "a.ts");
+    markVerified(input0, ctx.cfg);
+    const s = loadRalph(input0, ctx.cfg)!;
+    s.ceremonyOpened = true;
+    s.phaseReached.verify = true;
+    saveRalph(input0, ctx.cfg, s);
+    const gate = ulwDoneGate(
+      input0,
+      ctx.cfg,
+      loadRalph(input0, ctx.cfg)!,
+      "<promise>VERIFIED</promise>\n<promise>DONE</promise>",
+    );
+    expect(gate.ok).toBe(true);
+  });
+
+  it("stall escalation message at stallCount>=3", () => {
+    const s = {
+      schemaVersion: 3 as const,
+      active: true,
+      mode: "ulw" as const,
+      task: "ship x",
+      goals: [{ id: "g1", text: "ship x", done: false }],
+      iteration: 4,
+      maxIterations: 50,
+      createdAt: new Date().toISOString(),
+      phase: "explore" as const,
+      phaseReached: { explore: true, implement: false, verify: false },
+      stallCount: 3,
+      lastActivityAt: new Date().toISOString(),
+      lastActivityFingerprint: "r0:w0:s0",
+      ceremonyOpened: true,
+    };
+    const reason = ralphStopReason(s, { stall: true, stallCount: 3 });
+    expect(reason).toMatch(/STALL ESCALATED|第三次/i);
+    const crit = ralphStopReason(s, { stall: true, stallCount: 5 });
+    expect(crit).toMatch(/STALL CRITICAL|连续空转/i);
+  });
+
+  it("handlePreToolUse denies Write before explore after ceremony", () => {
+    const ctx = makeCtx(74);
+    startRalph(stopInput(ctx, ""), ctx.cfg, "ship oauth", "ulw");
+    const s = loadRalph(stopInput(ctx, ""), ctx.cfg)!;
+    s.ceremonyOpened = true;
+    saveRalph(stopInput(ctx, ""), ctx.cfg, s);
+    const r = handlePreToolUse(
+      preInput(ctx, {
+        toolName: "Write",
+        toolInput: { path: "a.ts", content: "x" },
+      }),
+      ctx.cfg,
+    );
+    expect(r.output.decision).toBe("deny");
+    expect(r.output.reason).toMatch(/未 explore 不写|EXPLORE BEFORE WRITE/i);
   });
 });
