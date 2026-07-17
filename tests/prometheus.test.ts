@@ -886,3 +886,91 @@ describe("host enter_plan_mode / exit_plan_mode sync", () => {
     expect(r2.exitCode).toBe(0);
   });
 });
+
+// ─── plan-mode / prometheus mutating shell (v1.1.36) ─────────────────
+describe("plan-mode + prometheus shell bypass closed (v1.1.36)", () => {
+  it("planModeDeny blocks mutating shell while plan-mode active", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    startPlanMode(input, c, "shell leak");
+    const deny = planModeDeny(
+      {
+        ...input,
+        toolName: "Bash",
+        toolInput: { command: "echo pwn > src/leak.ts" },
+      },
+      c,
+    );
+    expect(deny).toMatch(/plan-mode|Mutating shell/i);
+    expect(
+      planModeDeny(
+        {
+          ...input,
+          toolName: "Shell",
+          toolInput: { command: "git status && ls" },
+        },
+        c,
+      ),
+    ).toBeNull();
+  });
+
+  it("prometheusRoleDeny blocks mutating shell for prometheus role", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"), { agentGuard: true });
+    const deny = prometheusRoleDeny(
+      base(ws, {
+        toolName: "run_terminal_command",
+        toolInput: { command: "rm -rf dist" },
+      }),
+      c,
+      "prometheus",
+    );
+    expect(deny).toMatch(/PROMETHEUS_ROLE|Mutating shell|plan-only/i);
+    expect(
+      prometheusRoleDeny(
+        base(ws, {
+          toolName: "Bash",
+          toolInput: { command: "npm test 2>&1" },
+        }),
+        c,
+        "prometheus",
+      ),
+    ).toBeNull();
+  });
+
+  it("handlePreToolUse denies plan-mode shell write (was allow before v1.1.36)", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws, { agentName: "sisyphus" });
+    startPlanMode(input, c, "pretool shell");
+    const r = handlePreToolUse(
+      {
+        ...input,
+        event: "pre-tool-use",
+        toolName: "Bash",
+        toolInput: { command: "printf hi > leak.txt" },
+      },
+      c,
+    );
+    expect(r.exitCode).toBe(2);
+    expect(JSON.stringify(r.output)).toMatch(/plan-mode|Mutating shell/i);
+  });
+
+  it("handlePreToolUse allows non-mutating shell under plan-mode", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws, { agentName: "sisyphus" });
+    startPlanMode(input, c, "pretool shell ok");
+    const r = handlePreToolUse(
+      {
+        ...input,
+        event: "pre-tool-use",
+        toolName: "bash",
+        toolInput: { command: "ls -la" },
+      },
+      c,
+    );
+    expect(r.exitCode).toBe(0);
+  });
+});

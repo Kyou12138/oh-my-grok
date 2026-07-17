@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.36] — 2026-07-17
+
+### MAGI spiral — plan-mode / prometheus shell write bypass
+
+- **fix(pre-tool)** shell tools no longer short-circuit after agent-guard (`!isMutatingTool` was allow-all for Bash)
+- **feat(planModeDeny)** mutating shell blocked while plan-mode active; ls/git status/npm test still allowed
+- **feat(prometheusRoleDeny)** same for sticky prometheus role
+- **test** plan-mode + role shell matrix via handlePreToolUse
+
 ## [1.1.35] — 2026-07-17
 
 ### MAGI spiral — agent-guard mutating shell (hard PreTool)

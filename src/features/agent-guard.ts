@@ -54,7 +54,8 @@ export function isMutatingShellCommand(command?: string): boolean {
   return false;
 }
 
-function shellCommandFromInput(input: HookInput): string {
+/** Extract shell command string from tool input (command/cmd/script/…). */
+export function getShellCommand(input: HookInput): string {
   const ti = input.toolInput;
   if (!ti) return "";
   return String(
@@ -173,7 +174,7 @@ export function agentGuardDeny(input: HookInput, cfg: EnvConfig): string | null 
   // v1.1.35: read-only agents must not mutate via shell (echo > file, rm, git commit, …)
   // Needs PreTool matcher on Bash|Shell|run_terminal_command (hooks.json).
   if (isShellTool(input.toolName) && isReadOnlyAgent(role)) {
-    const cmd = shellCommandFromInput(input);
+    const cmd = getShellCommand(input);
     if (isMutatingShellCommand(cmd)) {
       return [
         `[AGENT_GUARD] Agent "${role}" is read-only — mutating shell blocked.`,

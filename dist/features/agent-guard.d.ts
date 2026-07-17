@@ -10,6 +10,8 @@ export declare function isShellTool(toolName?: string): boolean;
  * Allows ls/rg/git status/npm test; blocks redirects, rm, git commit, package install, …
  */
 export declare function isMutatingShellCommand(command?: string): boolean;
+/** Extract shell command string from tool input (command/cmd/script/…). */
+export declare function getShellCommand(input: HookInput): string;
 /** Agents that must not write/edit/delete. */
 export declare const READ_ONLY_AGENTS: Set<string>;
 /** Atlas may write but should not re-delegate infinitely — soft only. */

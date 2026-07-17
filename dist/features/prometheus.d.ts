@@ -49,7 +49,7 @@ export declare function isPlanModePlanOnlyWrite(input: HookInput, cfg: EnvConfig
 export declare function planModeDeny(input: HookInput, cfg: EnvConfig): string | null;
 /**
  * Sticky / host role **prometheus** may only mutate plan paths (even outside /plan session).
- * Spawn of metis/momus is allowed (handled separately — this only checks mutating tools).
+ * Spawn of metis/momus is allowed (handled separately — this only checks mutating tools + shell).
  */
 export declare function prometheusRoleDeny(input: HookInput, cfg: EnvConfig, role: string): string | null;
 export declare function planModeContext(pm: PlanModeState): string;

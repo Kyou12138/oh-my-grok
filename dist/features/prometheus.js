@@ -3,6 +3,7 @@ import path from "node:path";
 import { ensureDir, readJson, removeFile, writeJsonAtomic, writeTextAtomic } from "../state/fs.js";
 import { isTargetInside } from "../state/path-boundary.js";
 import { pathsFor } from "../state/paths.js";
+import { getShellCommand, isMutatingShellCommand, isShellTool, } from "./agent-guard.js";
 import { parsePlanTaskCheckboxes, seedTodosFromPlanIfEmpty, setBoulder, } from "./todo-boulder.js";
 import { pathsFromToolInput } from "./tool-paths.js";
 export function loadPlanMode(input, cfg) {
@@ -242,6 +243,18 @@ export function planModeDeny(input, cfg) {
     const pm = loadPlanMode(input, cfg);
     if (!pm.active)
         return null;
+    // v1.1.36: shell used to short-circuit before plan-mode (not isMutatingTool)
+    if (isShellTool(input.toolName)) {
+        const cmd = getShellCommand(input);
+        if (isMutatingShellCommand(cmd)) {
+            return [
+                "[Prometheus plan-mode] Mutating shell blocked while planning.",
+                `Command: ${cmd.slice(0, 200)}${cmd.length > 200 ? "…" : ""}`,
+                "Write only under `.omg/plans/` via file tools, or /start-work to execute.",
+            ].join("\n");
+        }
+        return null; // ls / git status / npm test ok during planning
+    }
     // v1.1.22: MultiEdit may hide business paths under edits[] — check all
     const paths = pathsFromToolInput(input.toolInput);
     if (!paths.length) {
@@ -258,7 +271,7 @@ export function planModeDeny(input, cfg) {
 }
 /**
  * Sticky / host role **prometheus** may only mutate plan paths (even outside /plan session).
- * Spawn of metis/momus is allowed (handled separately — this only checks mutating tools).
+ * Spawn of metis/momus is allowed (handled separately — this only checks mutating tools + shell).
  */
 export function prometheusRoleDeny(input, cfg, role) {
     if (!cfg.agentGuard && !cfg.planMode)
@@ -266,6 +279,18 @@ export function prometheusRoleDeny(input, cfg, role) {
     const r = (role || "").toLowerCase().trim();
     if (r !== "prometheus" && r !== "oh-my-grok:prometheus")
         return null;
+    // v1.1.36: plan-only role must not shell-write implementation paths
+    if (isShellTool(input.toolName)) {
+        const cmd = getShellCommand(input);
+        if (isMutatingShellCommand(cmd)) {
+            return [
+                "[PROMETHEUS_ROLE] Mutating shell blocked — Prometheus is plan-only.",
+                `Command: ${cmd.slice(0, 200)}${cmd.length > 200 ? "…" : ""}`,
+                "Write plans under `.omg/plans/`, or /agent sisyphus|hephaestus to implement.",
+            ].join("\n");
+        }
+        return null;
+    }
     // only when mutating (caller should pass mutating tools)
     const paths = pathsFromToolInput(input.toolInput);
     if (!paths.length) {

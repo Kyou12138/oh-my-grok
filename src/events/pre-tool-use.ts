@@ -1,5 +1,9 @@
 import type { EnvConfig, HookInput, HookOutput } from "../protocol/types.js";
-import { agentGuardDeny } from "../features/agent-guard.js";
+import {
+  agentGuardDeny,
+  isShellTool,
+  resolveAgentRole,
+} from "../features/agent-guard.js";
 import { categoryDisciplinePreDeny } from "../features/category-discipline.js";
 import { commentCheckerPreDeny } from "../features/comment-checker.js";
 import { diagPreDeny } from "../features/diagnostics.js";
@@ -9,7 +13,6 @@ import {
   planModeDeny,
   prometheusRoleDeny,
 } from "../features/prometheus.js";
-import { resolveAgentRole } from "../features/agent-guard.js";
 import { skillGateContext } from "../features/last-prompt.js";
 import {
   isMutatingTool,
@@ -33,11 +36,13 @@ export function handlePreToolUse(
     return { output: { decision: "deny", reason: agentDeny }, exitCode: 2 };
   }
 
-  if (!isMutatingTool(input.toolName)) {
+  const shell = isShellTool(input.toolName);
+  // Shell is not isMutatingTool — still must hit plan/prometheus gates (v1.1.36)
+  if (!isMutatingTool(input.toolName) && !shell) {
     return { output: { decision: "allow" }, exitCode: 0 };
   }
 
-  // 0.5) Prometheus sticky role — plan paths only (v1.1.26)
+  // 0.5) Prometheus sticky role — plan paths only (v1.1.26) + mutating shell (v1.1.36)
   const roleDeny = prometheusRoleDeny(
     input,
     cfg,
@@ -45,6 +50,16 @@ export function handlePreToolUse(
   );
   if (roleDeny) {
     return { output: { decision: "deny", reason: roleDeny }, exitCode: 2 };
+  }
+
+  // Shell lane: agent-guard + prometheus-role + plan-mode only
+  // (skip Hashline / Skill Gate / workspace paths — no file tool envelope)
+  if (shell) {
+    const planDenyShell = planModeDeny(input, cfg);
+    if (planDenyShell) {
+      return { output: { decision: "deny", reason: planDenyShell }, exitCode: 2 };
+    }
+    return { output: { decision: "allow" }, exitCode: 0 };
   }
 
   // 0.6) Workspace boundary — no ../ or foreign abs paths (v1.1.32, hard)

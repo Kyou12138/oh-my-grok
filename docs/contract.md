@@ -35,15 +35,16 @@ oh-my-grok still **writes** `additionalContext` / Stop `decision:block` for test
 ## PreToolUse order (enforced)
 
 1. Agent guard (read-only roles + spawn/task deny for read-only / no-redelegate + **mutating shell** deny for read-only)  
-2. Prometheus **role** path deny (sticky prometheus → only `.omg/plans/`)  
-3. **Workspace boundary** — mutating paths must stay under `workspaceRoot` (no `../` / foreign abs; hard)  
-4. Prometheus plan-mode path deny  
-5. Category discipline (specialist work + zero spawns, once per session)  
-6. Spawn follow-through (child finished + still pending, once per wave)  
-7. Diagnostics hard fail (`lastErrors` from diagCommand — until clean)  
-8. Hashline (fresh Read + old_string + LINE#ID)  
-9. Comment checker hard deny (when deny mode)  
-10. Skill Gate (skipped for plan-mode **plan-only** writes)  
+2. Prometheus **role** path deny (sticky prometheus → only `.omg/plans/`) + **mutating shell** deny for prometheus  
+3. **Shell lane** — if tool is shell: plan-mode mutating-shell check, then allow (skip Hashline/Skill Gate)  
+4. **Workspace boundary** — mutating paths must stay under `workspaceRoot` (no `../` / foreign abs; hard)  
+5. Prometheus plan-mode path deny  
+6. Category discipline (specialist work + zero spawns, once per session)  
+7. Spawn follow-through (child finished + still pending, once per wave)  
+8. Diagnostics hard fail (`lastErrors` from diagCommand — until clean)  
+9. Hashline (fresh Read + old_string + LINE#ID)  
+10. Comment checker hard deny (when deny mode)  
+11. Skill Gate (skipped for plan-mode **plan-only** writes)  
 
 Plan-only writes are checked against the configured `plansDir` after resolving the workspace base, nearest existing ancestor, and real filesystem paths. A lexical `.omg/plans/` substring alone never grants write access. Workspace boundary uses the same containment helpers for the project root.
 
