@@ -1,6 +1,6 @@
 # oh-my-grok capability map (vs Vanilla Grok / omo)
 
-**Date:** 2026-07-17 · **omg version:** **1.1.47**  
+**Date:** 2026-07-17 · **omg version:** **1.1.49**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 **Product peer:** omo **Codex Light** 同温层（纪律 + 状态），**不是** Ultimate 全量 OS。  
@@ -621,6 +621,22 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **VERIFY_SHELL** | cargo nextest / just\|task test / playwright\|cypress / tox\|hatch |
 | **shell** | poetry/cargo add/uv sync / docker compose up / helm\|kubectl\|terraform / npx create-* |
 
+## Closed this spiral (v1.1.48) — language test runners + package/deploy shell
+
+| Item | Behavior |
+|------|----------|
+| **VERIFY_SHELL** | flutter/phpunit/rspec/mix/sbt/bazel test |
+| **shell** | flutter pub get / dotnet add / composer require / gem\|bundle / pipenv / make install / vercel\|netlify\|firebase deploy |
+
+## Closed this spiral (v1.1.49) — ULW 开场仪式门禁
+
+| Item | Behavior |
+|------|----------|
+| **hasUlwCeremonyOpener** | 首条非空行 = `ULTRAWORK MODE ENABLED!` / `ULTRAWORK 模式已启动！`（允许 `**bold**`） |
+| **ceremonyOpened** | ULW state 字段；口号命中后持久化 |
+| **Stop gate** | 未开场 → soft block `CEREMONY INCOMPLETE`（含 DONE）；Ralph 模式免检 |
+| **banner / skill** | 鸣锣 + 誓词 OATH + 明示 Stop 会拦跳过 |
+
 ## Next spiral focus (提升)
 
 - **marketplace** + 传播资产（GIF）— 安装转化  
@@ -628,7 +644,7 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 - Hashline native edit tool（宿主能力）  
 - project-memory 仍 defer（omo #74）  
 
-**推荐**: pin **v1.1.47** · `grok plugin update`。
+**推荐**: pin **v1.1.49** · `grok plugin update`。
 
 ## Explicit non-goals
 

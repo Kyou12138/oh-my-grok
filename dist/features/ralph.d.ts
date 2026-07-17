@@ -28,6 +28,12 @@ export interface RalphState {
     lastActivityAt: string;
     /** last stop fingerprint of activity counters */
     lastActivityFingerprint: string;
+    /**
+     * ULW opening ceremony completed (first non-empty assistant line was
+     * ULTRAWORK MODE ENABLED! / ULTRAWORK 模式已启动！).
+     * v1.1.49 — soft Stop gate until true; ralph mode ignores.
+     */
+    ceremonyOpened: boolean;
 }
 export interface UlwActivity {
     schemaVersion: 1;
@@ -46,8 +52,17 @@ export declare function applyGoalDoneMarkers(state: RalphState, msg?: string): R
 export declare function serializeRalphMd(state: RalphState): string;
 export declare function loadRalph(input: HookInput, cfg: EnvConfig): RalphState | null;
 export declare function startRalph(input: HookInput, cfg: EnvConfig, task: string, mode: "ralph" | "ulw"): RalphState;
+/** EN / ZH ceremony openers — first non-empty assistant line must match exactly. */
+export declare const ULW_CEREMONY_OPENERS: readonly ["ULTRAWORK MODE ENABLED!", "ULTRAWORK 模式已启动！"];
 /**
- * omo-style ULW opening ceremony (soft inject + disk file).
+ * True when the first non-empty line of the assistant message is an ULW ceremony opener.
+ * Allows optional surrounding **bold** markers; rejects if opener is buried mid-message.
+ */
+export declare function hasUlwCeremonyOpener(msg?: string): boolean;
+/** Loud Stop yank when ULW started but opener was skipped. */
+export declare function ulwCeremonyIncompleteReason(task: string): string;
+/**
+ * omo-style ULW opening ceremony (soft inject + disk file + Stop gate).
  * Loud frame + ordered ritual — first assistant reply MUST open with ULTRAWORK MODE ENABLED!
  */
 export declare function ulwCeremonyBanner(task: string, kind?: "start" | "active" | "upgrade"): string;
@@ -69,6 +84,7 @@ export declare function noteUlwWrite(input: HookInput, cfg: EnvConfig, filePath?
  * Commands that count as verification evidence for ULW.
  * v1.1.40: bun/deno/yarn run test/make test
  * v1.1.47: cargo nextest / just|task test / playwright|cypress / tox|hatch
+ * v1.1.48: flutter/phpunit/rspec/mix/sbt/bazel test
  */
 export declare const VERIFY_SHELL_RE: RegExp;
 export declare function isVerifyShellCommand(command?: string): boolean;

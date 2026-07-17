@@ -112,7 +112,8 @@ describe("stop chain", () => {
     const c = cfg(process.cwd(), data);
     const input = baseInput(ws, {
       event: "stop",
-      lastAssistantMessage: "all good <promise>DONE</promise>",
+      lastAssistantMessage:
+        "ULTRAWORK MODE ENABLED!\nall good <promise>DONE</promise>",
     });
     startRalph(input, c, "do work", "ulw");
     const out = handleStop(input, c);

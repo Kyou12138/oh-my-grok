@@ -104,6 +104,8 @@ function emptyState(partial) {
         stallCount: partial.stallCount ?? 0,
         lastActivityAt: partial.lastActivityAt ?? new Date().toISOString(),
         lastActivityFingerprint: partial.lastActivityFingerprint ?? "",
+        // ralph has no ULW ceremony; ULW starts unopened until opener line seen
+        ceremonyOpened: partial.ceremonyOpened ?? (partial.mode === "ralph" ? true : false),
     };
 }
 function stateJsonPath(input, cfg) {
@@ -142,6 +144,7 @@ export function serializeRalphMd(state) {
         `max_iterations: ${state.maxIterations}`,
         `phase: ${state.phase}`,
         `stall_count: ${state.stallCount}`,
+        `ceremony_opened: ${state.ceremonyOpened ? "true" : "false"}`,
         `created_at: ${state.createdAt}`,
         "",
         "Goals:",
@@ -200,8 +203,53 @@ export function startRalph(input, cfg, task, mode) {
     return state;
 }
 const CEREMONY_BAR = "══════════════════════════════════════════════════════════";
+/** EN / ZH ceremony openers — first non-empty assistant line must match exactly. */
+export const ULW_CEREMONY_OPENERS = [
+    "ULTRAWORK MODE ENABLED!",
+    "ULTRAWORK 模式已启动！",
+];
 /**
- * omo-style ULW opening ceremony (soft inject + disk file).
+ * True when the first non-empty line of the assistant message is an ULW ceremony opener.
+ * Allows optional surrounding **bold** markers; rejects if opener is buried mid-message.
+ */
+export function hasUlwCeremonyOpener(msg) {
+    if (!msg)
+        return false;
+    const lines = msg.replace(/^\uFEFF/, "").split(/\r?\n/);
+    const first = (lines.find((l) => l.trim().length > 0) || "").trim();
+    if (!first)
+        return false;
+    // strip optional single-layer markdown bold
+    const bare = first.replace(/^\*\*(.+)\*\*$/, "$1").trim();
+    return ULW_CEREMONY_OPENERS.some((o) => bare === o || bare.toUpperCase() === o.toUpperCase());
+}
+/** Loud Stop yank when ULW started but opener was skipped. */
+export function ulwCeremonyIncompleteReason(task) {
+    const goal = (task || "ultrawork").trim().slice(0, 200);
+    return [
+        CEREMONY_BAR,
+        "【开场仪式未完成 / OPENING RITUAL INCOMPLETE — CEREMONY】",
+        CEREMONY_BAR,
+        "ULTRAWORK / ULW LOOP — 你跳过了开场仪式。未喊口号，不得开工，更不得 DONE。",
+        "",
+        "🔔 鸣锣三声 · Strike the gong · 再开场：",
+        "",
+        "1. **第一行**整行输出其一（无前缀/后缀/代码围栏）：",
+        "     ULTRAWORK MODE ENABLED!",
+        "     ULTRAWORK 模式已启动！",
+        "2. **第二行**复述目标：",
+        `     Goal: ${goal}`,
+        "3. **第三段起**立即 explore（Read / 搜索 / spawn explore）",
+        "",
+        "【誓词 OATH】未 explore 不写 · 未 verify 不 DONE · 未仪式不开工",
+        "Full text: `.omg/ulw-loop/CEREMONY.md`",
+        CEREMONY_BAR,
+        "  开始。推巨石。不得空转。 · Begin. Push the boulder. No idle turns.",
+        CEREMONY_BAR,
+    ].join("\n");
+}
+/**
+ * omo-style ULW opening ceremony (soft inject + disk file + Stop gate).
  * Loud frame + ordered ritual — first assistant reply MUST open with ULTRAWORK MODE ENABLED!
  */
 export function ulwCeremonyBanner(task, kind = "start") {
@@ -229,6 +277,7 @@ export function ulwCeremonyBanner(task, kind = "start") {
     return [
         "<ultrawork-mode>",
         CEREMONY_BAR,
+        "  🔔  鸣锣开场 · STRIKE THE GONG · ULW OPENING",
         headline,
         subtitle,
         CEREMONY_BAR,
@@ -241,11 +290,16 @@ export function ulwCeremonyBanner(task, kind = "start") {
         "2. **第二行**用一句话复述目标（见 Goal）。",
         "3. **第三段起**立即进入 **explore**（Read / 搜索 / spawn explore）— 不得只表态。",
         "",
+        "【誓词 OATH】",
+        "  未 explore 不写 · 未 verify 不 DONE · 未仪式不开工。",
+        "  I will not write before explore, not DONE before verify, not work before ceremony.",
+        "",
         "禁止：只回 ok / 继续 / 好的 · 跳过开场 · 空转闲聊 · 未 VERIFIED 就 DONE",
+        "Stop 会拦截跳过开场的回复（CEREMONY INCOMPLETE）直至第一行口号出现。",
         "",
         `🎯 Goal: ${goal}`,
         "Phases: explore → implement → verify",
-        "Done gate: VERIFIED + 读写/测试证据 + 全部 GOAL_DONE；未完成 todos 阻塞 DONE",
+        "Done gate: 开场仪式 + VERIFIED + 读写/测试证据 + 全部 GOAL_DONE；未完成 todos 阻塞 DONE",
         "Prefer host **task**（explore / hephaestus）。Logs: `.omg/ulw-loop/log/`",
         "Full reminder on disk: `.omg/ulw-loop/CEREMONY.md`",
         "",
@@ -396,8 +450,9 @@ export function noteUlwWrite(input, cfg, filePath) {
  * Commands that count as verification evidence for ULW.
  * v1.1.40: bun/deno/yarn run test/make test
  * v1.1.47: cargo nextest / just|task test / playwright|cypress / tox|hatch
+ * v1.1.48: flutter/phpunit/rspec/mix/sbt/bazel test
  */
-export const VERIFY_SHELL_RE = /\b(npm\s+(test|run\s+test|run\s+ci)|pnpm\s+(test|run\s+test)|yarn\s+(test|run\s+test)|bun\s+(test|run\s+test)|deno\s+test|vitest|jest|pytest|cargo\s+(test|nextest)|nextest\s+run|go\s+test|dotnet\s+test|mvn\s+test|gradlew?\s+test|make\s+test|just\s+test|task\s+test|playwright\s+test|cypress\s+run|tox|hatch\s+test|typecheck|tsc\s+--noEmit|eslint|lint|npm\s+run\s+doctor|npm\s+run\s+validate)\b/i;
+export const VERIFY_SHELL_RE = /\b(npm\s+(test|run\s+test|run\s+ci)|pnpm\s+(test|run\s+test)|yarn\s+(test|run\s+test)|bun\s+(test|run\s+test)|deno\s+test|vitest|jest|pytest|cargo\s+(test|nextest)|nextest\s+run|go\s+test|dotnet\s+test|mvn\s+test|gradlew?\s+test|make\s+test|just\s+test|task\s+test|playwright\s+test|cypress\s+run|tox|hatch\s+test|flutter\s+test|phpunit|rspec|mix\s+test|sbt\s+test|bazel\s+test|typecheck|tsc\s+--noEmit|eslint|lint|npm\s+run\s+doctor|npm\s+run\s+validate)\b/i;
 /** echo/printf of test names is not verification evidence. */
 const ECHO_LIKE_RE = /^(echo|printf|Write-Host|console\.log)\b/i;
 export function isVerifyShellCommand(command) {
@@ -604,12 +659,25 @@ export function processLoopStop(input, cfg, state) {
         if (isVerifiedMessage(msg) || (loadDiag(input, cfg).verifiedAt && !loadDiag(input, cfg).lastErrors)) {
             markVerifyReached(state);
         }
+        // v1.1.49: mark opening ceremony when first line is the ritual opener
+        if (hasUlwCeremonyOpener(msg)) {
+            state.ceremonyOpened = true;
+        }
     }
     // Apply GOAL_DONE markers every stop
     applyGoalDoneMarkers(state, msg);
     // Single-goal: DONE claim implies that one goal is complete
     if (isDoneMessage(msg) && state.goals.length === 1) {
         state.goals[0].done = true;
+    }
+    // v1.1.49: ULW ceremony gate — no DONE and no silent continue without opener
+    if (state.mode === "ulw" && !state.ceremonyOpened) {
+        const ceremonyReason = ulwCeremonyIncompleteReason(state.task);
+        state.iteration += 1;
+        writeProgressLog(input, cfg, state, "ceremony-incomplete", "opening ritual skipped");
+        resetUlwActivity(input, cfg);
+        persist(input, cfg, state);
+        return { block: true, reason: ceremonyReason, state };
     }
     // DONE claim
     if (isDoneMessage(msg)) {

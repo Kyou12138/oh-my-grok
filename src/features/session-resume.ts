@@ -32,7 +32,7 @@ export function sessionResumeSummary(
     );
     if (ralph.mode === "ulw") {
       lines.push(
-        "  **ULTRAWORK MODE ENABLED** — 开场仪式: first line `ULTRAWORK MODE ENABLED!` / `ULTRAWORK 模式已启动！` then goal + explore; see `.omg/ulw-loop/CEREMONY.md`",
+        "  **ULTRAWORK MODE ENABLED** — 开场仪式: first line `ULTRAWORK MODE ENABLED!` / `ULTRAWORK 模式已启动！` then goal + explore; skip opener → Stop CEREMONY INCOMPLETE; see `.omg/ulw-loop/CEREMONY.md`",
       );
     }
   }

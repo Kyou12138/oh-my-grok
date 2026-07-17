@@ -437,12 +437,34 @@ describe("ULW/Ralph wow loop regression", () => {
     const stop = handleStop(
       base(ws, {
         event: "stop",
-        lastAssistantMessage: "done <promise>DONE</promise>",
+        lastAssistantMessage:
+          "ULTRAWORK MODE ENABLED!\ndone <promise>DONE</promise>",
       }),
       c,
     );
     expect(stop).toMatchObject({ decision: "block" });
     expect(JSON.stringify(stop)).toMatch(/DONE REJECTED|evidence|VERIFIED/i);
+  });
+
+  it("rejects skip-ceremony fluff on ULW (v1.1.49)", () => {
+    const ws = tmpWorkspace();
+    const data = path.join(ws, "pdata");
+    const c = cfg(data, { hashline: false });
+    handleUserPrompt(
+      base(ws, { event: "user-prompt", prompt: "/ulw-loop ship it" }),
+      c,
+    );
+    const stop = handleStop(
+      base(ws, {
+        event: "stop",
+        lastAssistantMessage: "ok looking into it",
+      }),
+      c,
+    );
+    expect(stop).toMatchObject({ decision: "block" });
+    expect(JSON.stringify(stop)).toMatch(
+      /开场仪式未完成|CEREMONY INCOMPLETE|OPENING RITUAL/i,
+    );
   });
 });
 

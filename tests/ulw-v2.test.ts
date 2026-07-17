@@ -82,7 +82,10 @@ describe("ULW v2 done gate", () => {
     const input = baseInput(ws);
     startRalph(input, c, "ship feature", "ulw");
     const out = handleStop(
-      baseInput(ws, { lastAssistantMessage: "all done <promise>DONE</promise>" }),
+      baseInput(ws, {
+        lastAssistantMessage:
+          "ULTRAWORK MODE ENABLED!\nall done <promise>DONE</promise>",
+      }),
       c,
     );
     expect(out).toMatchObject({ decision: "block" });
@@ -99,8 +102,13 @@ describe("ULW v2 done gate", () => {
     startRalph(input, c, "ship feature", "ulw");
     noteUlwRead(input, c, "a.ts");
     noteUlwWrite(input, c, "a.ts");
-    // stop once to advance phase from activity
-    handleStop(baseInput(ws, { lastAssistantMessage: "working" }), c);
+    // stop once to advance phase from activity (+ ceremony opener)
+    handleStop(
+      baseInput(ws, {
+        lastAssistantMessage: "ULTRAWORK MODE ENABLED!\nGoal: ship feature\nworking",
+      }),
+      c,
+    );
     // activity reset after continue — re-note for gate (phaseReached already set)
     noteUlwRead(input, c, "a.ts");
     noteUlwWrite(input, c, "b.ts");

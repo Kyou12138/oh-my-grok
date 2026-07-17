@@ -23,6 +23,7 @@ import {
   cancelRalph,
   detectRalphCommand,
   goalsFromTask,
+  hasUlwCeremonyOpener,
   isDoneMessage,
   isVerifyShellCommand,
   loadRalph,
@@ -38,6 +39,7 @@ import {
   saveRalph,
   startRalph,
   ulwCeremonyBanner,
+  ulwCeremonyIncompleteReason,
   ulwDoneGate,
   writeUlwCeremonyFile,
   type RalphState,
@@ -375,6 +377,14 @@ describe("isVerifyShellCommand 词边界 + echo 段", () => {
       "cypress run",
       "tox",
       "hatch test",
+      // v1.1.48 mobile / ruby / jvm / bazel
+      "flutter test",
+      "phpunit",
+      "vendor/bin/phpunit",
+      "rspec",
+      "mix test",
+      "sbt test",
+      "bazel test //...",
     ];
     for (const cmd of positives) {
       expect(isVerifyShellCommand(cmd), cmd).toBe(true);
@@ -584,9 +594,12 @@ describe("processLoopStop 状态机四分支", () => {
     const ctx = makeCtx(0);
     const input0 = stopInput(ctx, "");
     startRalph(input0, ctx.cfg, "ship feature", "ulw");
-    // 无 explore/implement/verify 证据 → gate 拒
+    // 有开场口号但无 explore/implement/verify 证据 → gate 拒
     const out = processLoopStop(
-      stopInput(ctx, "all done <promise>DONE</promise>"),
+      stopInput(
+        ctx,
+        "ULTRAWORK MODE ENABLED!\nall done <promise>DONE</promise>",
+      ),
       ctx.cfg,
       loadRalph(input0, ctx.cfg)!,
     );
@@ -603,8 +616,12 @@ describe("processLoopStop 状态机四分支", () => {
     noteUlwRead(input0, ctx.cfg, "a.ts");
     noteUlwWrite(input0, ctx.cfg, "b.ts");
     markVerified(input0, ctx.cfg);
+    // v1.1.49: DONE 前须完成开场仪式（第一行口号）
     const out = processLoopStop(
-      stopInput(ctx, "<promise>VERIFIED</promise>\n<promise>DONE</promise>"),
+      stopInput(
+        ctx,
+        "ULTRAWORK MODE ENABLED!\nGoal: ship feature\n<promise>VERIFIED</promise>\n<promise>DONE</promise>",
+      ),
       ctx.cfg,
       loadRalph(input0, ctx.cfg)!,
     );
@@ -634,8 +651,9 @@ describe("processLoopStop 状态机四分支", () => {
   it("STALL:iteration>0 + noRwShell → reason含 STALL DETECTED 且 stallCount>=1", () => {
     const ctx = makeCtx(3);
     const input0 = stopInput(ctx, "");
-    // 预置 iteration>0(首停 iter=0 走分支 C 不 stall)
+    // 预置 iteration>0(首停 iter=0 走分支 C 不 stall) + 已完成开场仪式
     let s = startRalph(input0, ctx.cfg, "ship feature", "ulw");
+    s.ceremonyOpened = true;
     s = bumpRalph(input0, ctx.cfg, s);
     expect(s.iteration).toBe(1);
     // 无任何 read/write/shell 活动 → noRwShell + iter>0 → stall
@@ -653,6 +671,7 @@ describe("processLoopStop 状态机四分支", () => {
     const ctx = makeCtx(4);
     const input0 = stopInput(ctx, "");
     let s = startRalph(input0, ctx.cfg, "ship feature", "ulw");
+    s.ceremonyOpened = true;
     s = bumpRalph(input0, ctx.cfg, s);
     noteUlwRead(input0, ctx.cfg, "a.ts");
     noteUlwWrite(input0, ctx.cfg, "b.ts");
@@ -736,7 +755,10 @@ describe("multi-goal DONE 全链路", () => {
     noteUlwWrite(input0, ctx.cfg, "b.ts");
     markVerified(input0, ctx.cfg);
     const out = processLoopStop(
-      stopInput(ctx, "<promise>VERIFIED</promise>\n<promise>DONE</promise>"),
+      stopInput(
+        ctx,
+        "ULTRAWORK MODE ENABLED!\n<promise>VERIFIED</promise>\n<promise>DONE</promise>",
+      ),
       ctx.cfg,
       loadRalph(input0, ctx.cfg)!,
     );
@@ -751,9 +773,12 @@ describe("multi-goal DONE 全链路", () => {
     startRalph(input0, ctx.cfg, "refactor login; add tests", "ulw");
     noteUlwRead(input0, ctx.cfg, "a.ts");
     noteUlwWrite(input0, ctx.cfg, "b.ts");
-    // 第一次 stop:仅标记第一个 goal done
+    // 第一次 stop:仅标记第一个 goal done（含开场口号）
     const first = processLoopStop(
-      stopInput(ctx, "GOAL_DONE: login\nstill working"),
+      stopInput(
+        ctx,
+        "ULTRAWORK MODE ENABLED!\nGOAL_DONE: login\nstill working",
+      ),
       ctx.cfg,
       loadRalph(input0, ctx.cfg)!,
     );
@@ -774,7 +799,7 @@ describe("multi-goal DONE 全链路", () => {
     const out = processLoopStop(
       stopInput(
         ctx,
-        "GOAL_DONE: login\nGOAL_DONE: add tests\n<promise>VERIFIED</promise>\n<promise>DONE</promise>",
+        "ULTRAWORK MODE ENABLED!\nGOAL_DONE: login\nGOAL_DONE: add tests\n<promise>VERIFIED</promise>\n<promise>DONE</promise>",
       ),
       ctx.cfg,
       loadRalph(input0, ctx.cfg)!,
@@ -890,6 +915,13 @@ describe("ulwCeremonyBanner (v1.1.27+ ritual)", () => {
     expect(b).toMatch(/ship oauth end-to-end/);
   });
 
+  it("start banner has oath + gong for 仪式感 (v1.1.49)", () => {
+    const b = ulwCeremonyBanner("ritual task", "start");
+    expect(b).toMatch(/誓词|OATH/i);
+    expect(b).toMatch(/未 explore 不写|未 verify 不 DONE|未仪式不开工/i);
+    expect(b).toMatch(/🔔|锣|gong|strike/i);
+  });
+
   it("active banner keeps mode on without full re-bootstrap", () => {
     const b = ulwCeremonyBanner("keep going", "active");
     expect(b).toMatch(/STILL ON|active="true"|仍在运行/i);
@@ -945,5 +977,106 @@ describe("ulwCeremonyBanner (v1.1.27+ ritual)", () => {
     expect(ctxText).toMatch(/ultrawork-mode/);
     expect(ctxText).toMatch(/login|fix/i);
     expect(ctxText).toMatch(/开场仪式|OPENING RITUAL/i);
+  });
+});
+
+// ─── ULW ceremony gate (v1.1.49) — skip opener → Stop yank ───────────
+describe("ULW ceremony opener gate (v1.1.49)", () => {
+  it("hasUlwCeremonyOpener: first non-empty line exact EN/ZH", () => {
+    expect(hasUlwCeremonyOpener("ULTRAWORK MODE ENABLED!\nGoal: x")).toBe(true);
+    expect(hasUlwCeremonyOpener("ULTRAWORK 模式已启动！\n目标: x")).toBe(true);
+    expect(hasUlwCeremonyOpener("\n\nULTRAWORK MODE ENABLED!\nok")).toBe(true);
+    expect(hasUlwCeremonyOpener("**ULTRAWORK MODE ENABLED!**\nGoal")).toBe(true);
+    expect(hasUlwCeremonyOpener("ok going\nULTRAWORK MODE ENABLED!")).toBe(false);
+    expect(hasUlwCeremonyOpener("Looking into it.")).toBe(false);
+    expect(hasUlwCeremonyOpener("")).toBe(false);
+    expect(hasUlwCeremonyOpener(undefined)).toBe(false);
+  });
+
+  it("first ULW stop without opener → CEREMONY INCOMPLETE + loop stays active", () => {
+    const ctx = makeCtx(30);
+    const input0 = stopInput(ctx, "");
+    startRalph(input0, ctx.cfg, "ship oauth", "ulw");
+    const out = processLoopStop(
+      stopInput(ctx, "ok, looking into it."),
+      ctx.cfg,
+      loadRalph(input0, ctx.cfg)!,
+    );
+    expect(out.block).toBe(true);
+    expect(out.reason).toMatch(/开场仪式未完成|CEREMONY INCOMPLETE|OPENING RITUAL/i);
+    expect(out.reason).toMatch(/ULTRAWORK MODE ENABLED!/);
+    expect(loadRalph(input0, ctx.cfg)?.ceremonyOpened).toBe(false);
+    expect(loadRalph(input0, ctx.cfg)?.active).toBe(true);
+  });
+
+  it("first ULW stop with EN opener marks ceremonyOpened and continues loop", () => {
+    const ctx = makeCtx(31);
+    const input0 = stopInput(ctx, "");
+    startRalph(input0, ctx.cfg, "ship oauth", "ulw");
+    noteUlwRead(input0, ctx.cfg, "a.ts");
+    const out = processLoopStop(
+      stopInput(
+        ctx,
+        "ULTRAWORK MODE ENABLED!\nGoal: ship oauth\nReading auth module…",
+      ),
+      ctx.cfg,
+      loadRalph(input0, ctx.cfg)!,
+    );
+    expect(out.block).toBe(true);
+    expect(out.reason).not.toMatch(/开场仪式未完成|CEREMONY INCOMPLETE/i);
+    expect(loadRalph(input0, ctx.cfg)?.ceremonyOpened).toBe(true);
+  });
+
+  it("ZH opener also marks ceremonyOpened", () => {
+    const ctx = makeCtx(32);
+    const input0 = stopInput(ctx, "");
+    startRalph(input0, ctx.cfg, "修登录", "ulw");
+    noteUlwRead(input0, ctx.cfg, "a.ts");
+    const out = processLoopStop(
+      stopInput(ctx, "ULTRAWORK 模式已启动！\n目标: 修登录\n开始 explore"),
+      ctx.cfg,
+      loadRalph(input0, ctx.cfg)!,
+    );
+    expect(out.block).toBe(true);
+    expect(loadRalph(input0, ctx.cfg)?.ceremonyOpened).toBe(true);
+    expect(out.reason).not.toMatch(/CEREMONY INCOMPLETE|开场仪式未完成/i);
+  });
+
+  it("DONE without ceremony opener is rejected even with full evidence", () => {
+    const ctx = makeCtx(33);
+    const input0 = stopInput(ctx, "");
+    startRalph(input0, ctx.cfg, "ship feature", "ulw");
+    noteUlwRead(input0, ctx.cfg, "a.ts");
+    noteUlwWrite(input0, ctx.cfg, "b.ts");
+    markVerified(input0, ctx.cfg);
+    const out = processLoopStop(
+      stopInput(ctx, "<promise>VERIFIED</promise>\n<promise>DONE</promise>"),
+      ctx.cfg,
+      loadRalph(input0, ctx.cfg)!,
+    );
+    expect(out.block).toBe(true);
+    expect(out.reason).toMatch(/开场仪式未完成|CEREMONY INCOMPLETE|OPENING RITUAL/i);
+    expect(loadRalph(input0, ctx.cfg)?.active).toBe(true);
+  });
+
+  it("ulwCeremonyIncompleteReason is loud frame", () => {
+    const r = ulwCeremonyIncompleteReason("fix login");
+    expect(r).toMatch(/═{8,}/);
+    expect(r).toMatch(/开场仪式未完成|CEREMONY INCOMPLETE/i);
+    expect(r).toMatch(/ULTRAWORK MODE ENABLED!/);
+    expect(r).toMatch(/fix login/);
+  });
+
+  it("ralph mode does not require ULW ceremony opener", () => {
+    const ctx = makeCtx(34);
+    const input0 = stopInput(ctx, "");
+    startRalph(input0, ctx.cfg, "keep coding", "ralph");
+    const out = processLoopStop(
+      stopInput(ctx, "working on it"),
+      ctx.cfg,
+      loadRalph(input0, ctx.cfg)!,
+    );
+    expect(out.block).toBe(true);
+    expect(out.reason).not.toMatch(/CEREMONY INCOMPLETE|开场仪式未完成/i);
   });
 });

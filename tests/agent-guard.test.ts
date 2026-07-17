@@ -307,6 +307,23 @@ describe("agentGuardDeny", () => {
     expect(isMutatingShellCommand("npx create-next-app app")).toBe(true);
   });
 
+  it("blocks flutter pub get / composer require / deploy CLIs (v1.1.48)", () => {
+    expect(isMutatingShellCommand("flutter pub get")).toBe(true);
+    expect(isMutatingShellCommand("dotnet add package Newtonsoft.Json")).toBe(
+      true,
+    );
+    expect(isMutatingShellCommand("composer require monolog/monolog")).toBe(
+      true,
+    );
+    expect(isMutatingShellCommand("gem install bundler")).toBe(true);
+    expect(isMutatingShellCommand("bundle add rails")).toBe(true);
+    expect(isMutatingShellCommand("pipenv install")).toBe(true);
+    expect(isMutatingShellCommand("make install")).toBe(true);
+    expect(isMutatingShellCommand("vercel deploy")).toBe(true);
+    expect(isMutatingShellCommand("netlify deploy --prod")).toBe(true);
+    expect(isMutatingShellCommand("firebase deploy")).toBe(true);
+  });
+
   it("denies oracle git clean via PreTool (v1.1.44)", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));

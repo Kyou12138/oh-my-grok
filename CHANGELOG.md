@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.49] — 2026-07-17
+
+### ULW 开场仪式门禁（仪式感可感知）
+
+- **feat(ulw)** `hasUlwCeremonyOpener` — 首条非空行必须是 `ULTRAWORK MODE ENABLED!` / `ULTRAWORK 模式已启动！`
+- **feat(ulw)** `ceremonyOpened` 状态 + Stop：跳过开场 → `CEREMONY INCOMPLETE` / 开场仪式未完成（loop 保持；DONE 也被拦）
+- **feat(ulw)** `ulwCeremonyBanner` 加强：鸣锣 · 誓词 OATH · 明示 Stop 会拦跳过开场
+- **docs** `skills/ulw-loop` + SessionStart resume 同步
+- **test** ceremony gate 矩阵 + 既有 DONE 路径补 opener
+
+## [1.1.48] — 2026-07-17
+
+### MAGI spiral — more language test runners + package/deploy shells
+
+- **fix(VERIFY_SHELL_RE)** credit `flutter test` / `phpunit` / `rspec` / `mix test` / `sbt test` / `bazel test`
+- **fix(isMutatingShellCommand)** `flutter pub get` / `dotnet add` / `composer require` / `gem install` / `bundle add` / `pipenv install` / `make install` / `vercel|netlify|firebase deploy`
+- **test** verify + shell matrices
+
 ## [1.1.47] — 2026-07-17
 
 ### MAGI spiral — ULW verify runners + infra/package shell writes

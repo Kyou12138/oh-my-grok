@@ -125,7 +125,7 @@ describe("multi-goal ULW", () => {
     const stop = handleStop(
       base(ws, {
         lastAssistantMessage:
-          "all good <promise>VERIFIED</promise> <promise>DONE</promise>",
+          "ULTRAWORK MODE ENABLED!\nall good <promise>VERIFIED</promise> <promise>DONE</promise>",
       }),
       c,
     );
@@ -142,7 +142,13 @@ describe("multi-goal ULW", () => {
     startRalph(input, c, "goal A; goal B", "ulw");
     noteUlwRead(input, c, "a.ts");
     noteUlwWrite(input, c, "a.ts");
-    handleStop(base(ws, { lastAssistantMessage: "implemented goal A" }), c);
+    handleStop(
+      base(ws, {
+        lastAssistantMessage:
+          "ULTRAWORK MODE ENABLED!\nGoal: goal A + B\nimplemented goal A",
+      }),
+      c,
+    );
     noteUlwRead(input, c, "a.ts");
     noteUlwWrite(input, c, "b.ts");
     markVerified(input, c);
