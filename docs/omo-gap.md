@@ -1,6 +1,6 @@
 # oh-my-grok capability map (vs Vanilla Grok / omo)
 
-**Date:** 2026-07-17 · **omg version:** **1.1.56**  
+**Date:** 2026-07-17 · **omg version:** **1.1.57**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 **Product peer:** omo **Codex Light** 同温层（纪律 + 状态），**不是** Ultimate 全量 OS。  
@@ -706,6 +706,15 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **VERIFY** | newman / k6 / cargo tarpaulin / coverage run |
 | **comment slop** | this is a function / check if / validate / 这是一个 |
 
+## Closed this spiral (v1.1.57) — docker compose verbs + k8s deploy + spawn fields
+
+| Item | Behavior |
+|------|----------|
+| **docker compose** | build/push/pull/run/exec/restart/stop/start (+ docker-compose + buildx) |
+| **k8s deploy tools** | skaffold/tilt/garden/argocd/flux/kind/minikube/k3d · helmfile sync · cdktf |
+| **package envs** | pdm/pixi/rye · hatch env · conda env create · cargo/go install |
+| **spawn** | extractSpawnRole `name`/`role` · dispatch_agent/run_agent/delegate hooks |
+
 ## Next spiral focus (提升)
 
 - **marketplace** + 传播资产（GIF）— 安装转化  
@@ -713,7 +722,7 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 - Hashline native edit tool（宿主能力）  
 - project-memory 仍 defer（omo #74）  
 
-**推荐**: pin **v1.1.56** · `grok plugin update`。
+**推荐**: pin **v1.1.57** · `grok plugin update`。
 
 ## Explicit non-goals
 

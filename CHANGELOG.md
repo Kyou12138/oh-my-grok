@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.57] — 2026-07-17
+
+### MAGI spiral — docker compose verbs + k8s deploy tools + spawn role fields
+
+- **fix(isMutatingShellCommand)** `docker compose build|push|pull|run|exec|restart|stop|start` + `docker-compose` same + `docker buildx build|bake`
+- **fix(isMutatingShellCommand)** skaffold/tilt/garden/argocd/flux/kind/minikube/k3d · helmfile sync · cdktf deploy · terragrunt run-all
+- **fix(isMutatingShellCommand)** pdm/pixi/rye install|sync · hatch env create · conda env create · cargo install · go install · corepack
+- **feat(spawn)** `extractSpawnRole` reads `name`/`role`; `isSpawnTool` + hooks: `dispatch_agent` / `run_agent` / `delegate`
+- **test** compose/k8s/package + spawn matrices
+
 ## [1.1.56] — 2026-07-17
 
 ### MAGI spiral — provisional VERIFIED + deploy/publish shells + edit aliases

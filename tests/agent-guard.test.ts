@@ -308,6 +308,49 @@ describe("agentGuardDeny", () => {
     expect(isMutatingShellCommand("npx create-next-app app")).toBe(true);
   });
 
+  it("blocks docker compose build/push/run + k8s deploy tools (v1.1.57)", () => {
+    expect(isMutatingShellCommand("docker compose build")).toBe(true);
+    expect(isMutatingShellCommand("docker compose push")).toBe(true);
+    expect(isMutatingShellCommand("docker compose pull")).toBe(true);
+    expect(isMutatingShellCommand("docker compose run web")).toBe(true);
+    expect(isMutatingShellCommand("docker compose exec web sh")).toBe(true);
+    expect(isMutatingShellCommand("docker compose restart")).toBe(true);
+    expect(isMutatingShellCommand("docker compose stop")).toBe(true);
+    expect(isMutatingShellCommand("docker compose start")).toBe(true);
+    expect(isMutatingShellCommand("docker-compose build")).toBe(true);
+    expect(isMutatingShellCommand("docker buildx build -t x .")).toBe(true);
+    expect(isMutatingShellCommand("docker buildx bake")).toBe(true);
+    expect(isMutatingShellCommand("skaffold run")).toBe(true);
+    expect(isMutatingShellCommand("skaffold deploy")).toBe(true);
+    expect(isMutatingShellCommand("tilt up")).toBe(true);
+    expect(isMutatingShellCommand("garden deploy")).toBe(true);
+    expect(isMutatingShellCommand("argocd app sync myapp")).toBe(true);
+    expect(isMutatingShellCommand("flux bootstrap github")).toBe(true);
+    expect(isMutatingShellCommand("helmfile sync")).toBe(true);
+    expect(isMutatingShellCommand("cdktf deploy")).toBe(true);
+    expect(isMutatingShellCommand("terragrunt run-all apply")).toBe(true);
+    expect(isMutatingShellCommand("kind create cluster")).toBe(true);
+    expect(isMutatingShellCommand("kind delete cluster")).toBe(true);
+    expect(isMutatingShellCommand("minikube start")).toBe(true);
+    expect(isMutatingShellCommand("k3d cluster create")).toBe(true);
+    expect(isMutatingShellCommand("pdm install")).toBe(true);
+    expect(isMutatingShellCommand("pixi install")).toBe(true);
+    expect(isMutatingShellCommand("rye sync")).toBe(true);
+    expect(isMutatingShellCommand("hatch env create")).toBe(true);
+    expect(isMutatingShellCommand("conda env create -f env.yml")).toBe(true);
+    expect(isMutatingShellCommand("mamba install x")).toBe(true);
+    expect(isMutatingShellCommand("cargo install --path .")).toBe(true);
+    expect(isMutatingShellCommand("go install ./cmd/x")).toBe(true);
+    expect(isMutatingShellCommand("corepack enable")).toBe(true);
+    // allow pure reads / dry runs
+    expect(isMutatingShellCommand("docker compose ps")).toBe(false);
+    expect(isMutatingShellCommand("docker compose config")).toBe(false);
+    expect(isMutatingShellCommand("kubectl kustomize .")).toBe(false);
+    expect(isMutatingShellCommand("helm list")).toBe(false);
+    expect(isMutatingShellCommand("skaffold status")).toBe(false);
+    expect(isMutatingShellCommand("conda env list")).toBe(false);
+  });
+
   it("blocks flutter pub get / composer require / deploy CLIs (v1.1.48)", () => {
     expect(isMutatingShellCommand("flutter pub get")).toBe(true);
     expect(isMutatingShellCommand("dotnet add package Newtonsoft.Json")).toBe(
@@ -892,6 +935,10 @@ describe("session-role helpers", () => {
     expect(extractSpawnRole({ subagentType: "explore" })).toBe("explore");
     expect(extractSpawnRole({ agent: "metis" })).toBe("metis");
     expect(extractSpawnRole({ type: "oh-my-grok-momus" })).toBe("momus");
+    // v1.1.57: name / role keys
+    expect(extractSpawnRole({ name: "explore" })).toBe("explore");
+    expect(extractSpawnRole({ role: "oracle" })).toBe("oracle");
+    expect(extractSpawnRole({ name: "explore the codebase deeply" })).toBe("");
     expect(extractSpawnRole({})).toBe("");
     expect(extractSpawnRole(undefined)).toBe("");
   });
@@ -902,6 +949,11 @@ describe("session-role helpers", () => {
     expect(isSpawnTool("spawn-subagent")).toBe(true);
     expect(isSpawnTool("Task")).toBe(true);
     expect(isSpawnTool("call_omo_agent")).toBe(true);
+    // v1.1.57
+    expect(isSpawnTool("dispatch_agent")).toBe(true);
+    expect(isSpawnTool("DispatchAgent")).toBe(true);
+    expect(isSpawnTool("run_agent")).toBe(true);
+    expect(isSpawnTool("delegate")).toBe(true);
     expect(isSpawnTool("Write")).toBe(false);
     expect(isSpawnTool(undefined)).toBe(false);
   });

@@ -55,6 +55,7 @@ export function clearSessionAgentRole(input: HookInput, cfg: EnvConfig): void {
 /** Extract role from spawn/task tool input. */
 export function extractSpawnRole(toolInput?: Record<string, unknown>): string {
   if (!toolInput) return "";
+  // v1.1.57: also name / role (some hosts use these instead of subagent_type)
   const raw = String(
     toolInput.subagent_type ??
       toolInput.subagentType ??
@@ -62,24 +63,33 @@ export function extractSpawnRole(toolInput?: Record<string, unknown>): string {
       toolInput.agent_type ??
       toolInput.agentType ??
       toolInput.type ??
+      toolInput.role ??
+      toolInput.name ??
       "",
   ).trim();
   if (!raw) return "";
   let role = raw.toLowerCase();
   if (role.includes(":")) role = role.split(":").pop() || role;
   if (role.startsWith("oh-my-grok-")) role = role.replace(/^oh-my-grok-/, "");
+  // drop non-role names that are too long / descriptive sentences
+  if (role.includes(" ") || role.length > 40) return "";
   return role;
 }
 
 export function isSpawnTool(toolName?: string): boolean {
   if (!toolName) return false;
   // Letters-only (v1.1.7): SpawnSubagent / spawn-subagent same as spawn_subagent
+  // v1.1.57: dispatch_agent / run_agent / delegate
   const n = toolName.toLowerCase().replace(/[^a-z]/g, "");
   return (
     n.includes("spawn") ||
     n === "task" ||
     n.includes("callomo") ||
-    n === "subagent"
+    n === "subagent" ||
+    n === "dispatchagent" ||
+    n === "runagent" ||
+    n === "delegate" ||
+    n === "delegateagent"
   );
 }
 

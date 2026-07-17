@@ -71,18 +71,23 @@ export function isMutatingShellCommand(command) {
         /\bbun\s+create\b/i.test(c) ||
         /\b(pip3?|cargo|go|bun|deno|composer|bundle|poetry|pipenv|gem)\s+(install|update|uninstall|remove)\b/i.test(c) ||
         /\b(pip3?|cargo|go)\s+get\b/i.test(c) ||
-        /\bcargo\s+(add|new|init|remove)\b/i.test(c) ||
-        /\bgo\s+mod\s+(init|tidy)\b/i.test(c) ||
+        /\bcargo\s+(add|new|init|remove|install)\b/i.test(c) ||
+        /\bgo\s+(mod\s+(init|tidy)|install)\b/i.test(c) ||
         /\bdeno\s+init\b/i.test(c) ||
         /\bcomposer\s+(require|create-project|remove)\b/i.test(c) ||
         /\bbundle\s+(add|remove)\b/i.test(c) ||
         /\bdotnet\s+(add|new|restore|tool\s+install|remove|ef)\b/i.test(c) ||
         /\b(flutter\s+pub\s+(get|add|remove)|dart\s+pub\s+(get|add|remove))\b/i.test(c) ||
-        /\b(conda|choco|winget|apt(?:-get)?|brew|scoop|yum|dnf|snap|flatpak|pipx)\s+(install|uninstall|upgrade|remove)\b/i.test(c) ||
+        /\b(conda|choco|winget|apt(?:-get)?|brew|scoop|yum|dnf|snap|flatpak|pipx|mamba)\s+(install|uninstall|upgrade|remove)\b/i.test(c) ||
+        // conda/mamba env create|update only — not `conda env list`
+        /\b(?:conda|mamba)\s+env\s+(create|update|remove|prune)\b/i.test(c) ||
         /\bpacman\s+-S\b/i.test(c) ||
         /\buv\s+(pip\s+install|sync|add|remove|tool\s+install)\b/i.test(c) ||
-        /\b(poetry|pdm|rye|pixi)\s+(add|remove)\b/i.test(c) ||
+        // v1.1.57: pdm/pixi/rye/hatch env managers
+        /\b(poetry|pdm|rye|pixi)\s+(add|remove|install|sync)\b/i.test(c) ||
         /\bpoetry\s+update\b/i.test(c) ||
+        /\bhatch\s+env\s+create\b/i.test(c) ||
+        /\bcorepack\s+(enable|prepare)\b/i.test(c) ||
         /\bmix\s+(deps\.get|ecto\.(migrate|setup|create|drop))\b/i.test(c) ||
         /\bpod\s+install\b/i.test(c) ||
         /\bmake\s+(install|uninstall|clean)\b/i.test(c) ||
@@ -118,12 +123,17 @@ export function isMutatingShellCommand(command) {
         /\b(?:curl|wget)\b[^|&;\n]{0,120}\|\s*(?:ba)?sh\b/i.test(c) ||
         /\b(?:irm|iwr|Invoke-WebRequest)\b[^|&;\n]{0,100}\|\s*(?:iex|Invoke-Expression)\b/i.test(c) ||
         /\biex\s*\(/i.test(c) ||
-        /\bdocker-compose\s+(up|down)\b/i.test(c) ||
-        /\bdocker\s+compose\s+(up|down)\b/i.test(c) ||
+        // v1.1.47: docker compose up; v1.1.57: build/push/pull/run/exec/restart/stop/start + buildx
+        /\bdocker-compose\s+(up|down|build|push|pull|run|exec|restart|stop|start)\b/i.test(c) ||
+        /\bdocker\s+compose\s+(up|down|build|push|pull|run|exec|restart|stop|start)\b/i.test(c) ||
         /\bdocker\s+(build|push|pull|rmi|system\s+prune|save|load|start|stop|kill)\b/i.test(c) ||
+        /\bdocker\s+buildx\s+(build|bake)\b/i.test(c) ||
         /\bpodman\s+(build|push|pull|start|stop)\b/i.test(c) ||
-        /\b(helm\s+(install|upgrade|uninstall|delete|rollback)|kubectl\s+(apply|create|replace|delete|patch|scale|rollout|set)|terraform\s+(apply|destroy|init|import)|pulumi\s+(up|destroy|config|stack)|tofu\s+(apply|destroy|init)|terragrunt\s+apply|helmfile\s+apply)\b/i.test(c) ||
+        /\b(helm\s+(install|upgrade|uninstall|delete|rollback)|kubectl\s+(apply|create|replace|delete|patch|scale|rollout|set)|terraform\s+(apply|destroy|init|import)|pulumi\s+(up|destroy|config|stack)|tofu\s+(apply|destroy|init)|terragrunt\s+(apply|run-all)|helmfile\s+(apply|sync)|cdktf\s+deploy)\b/i.test(c) ||
         /\bkustomize\s+edit\b/i.test(c) ||
+        // v1.1.57: skaffold/tilt/garden/argocd/flux/kind/minikube/k3d cluster mutators
+        /\b(skaffold\s+(run|deploy|dev|delete)|tilt\s+up|garden\s+deploy|argocd\s+app\s+(sync|create)|flux\s+bootstrap|istioctl\s+install|linkerd\s+install)\b/i.test(c) ||
+        /\b(kind\s+(create|delete)\s+cluster|k3d\s+cluster\s+(create|delete)|minikube\s+(start|stop|delete)|eksctl\s+(create|delete)|kubeadm\s+(init|join))\b/i.test(c) ||
         /\b(cdk|serverless|sam|sls)\s+(deploy|destroy|bootstrap|build)\b/i.test(c) ||
         /\b(ansible-playbook|ansible-galaxy|packer\s+build|vagrant\s+(up|destroy|provision))\b/i.test(c) ||
         /\bgcloud\s+(run\s+deploy|app\s+deploy|functions\s+deploy|storage\s+cp)\b/i.test(c) ||
