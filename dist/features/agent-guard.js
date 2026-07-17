@@ -31,25 +31,39 @@ export function isMutatingShellCommand(command) {
         /\b(sed|perl|ruby)\b[^|&;\n]*\s-i\b/i.test(c) ||
         /\b(Set-Content|Add-Content|Out-File|New-Item|Remove-Item|Move-Item|Copy-Item|Rename-Item)\b/i.test(c) ||
         // v1.1.44: clean/restore rewrite tree; rm/mv already hit bare \brm\b but keep explicit
-        /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv)\b/i.test(c) ||
+        // v1.1.50: pull/submodule/worktree also rewrite workspace or .git links
+        /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv|pull|submodule|worktree)\b/i.test(c) ||
         // v1.1.45: npm ci / yarn add; v1.1.46: npm update / yarn upgrade
-        /\b(npm|pnpm|yarn)\s+(i|install|ci|uninstall|remove|publish|add|update|upgrade|up)\b/i.test(c) ||
-        /\b(pip3?|cargo|go|bun|deno|composer|bundle|poetry|pipenv|gem)\s+install\b/i.test(c) ||
+        // v1.1.50: npm|yarn|pnpm|bun create scaffolds
+        /\b(npm|pnpm|yarn)\s+(i|install|ci|uninstall|remove|publish|add|update|upgrade|up|create)\b/i.test(c) ||
+        /\bbun\s+create\b/i.test(c) ||
+        /\b(pip3?|cargo|go|bun|deno|composer|bundle|poetry|pipenv|gem)\s+(install|update)\b/i.test(c) ||
         /\b(pip3?|cargo|go)\s+get\b/i.test(c) ||
-        /\bcargo\s+add\b/i.test(c) ||
-        /\bcomposer\s+require\b/i.test(c) ||
+        /\bcargo\s+(add|new|init)\b/i.test(c) ||
+        /\bgo\s+mod\s+(init|tidy)\b/i.test(c) ||
+        /\bdeno\s+init\b/i.test(c) ||
+        /\bcomposer\s+(require|create-project)\b/i.test(c) ||
         /\bbundle\s+add\b/i.test(c) ||
-        /\bdotnet\s+add\b/i.test(c) ||
-        /\bflutter\s+pub\s+get\b/i.test(c) ||
+        /\bdotnet\s+(add|new|restore|tool\s+install)\b/i.test(c) ||
+        /\b(flutter\s+pub\s+get|dart\s+pub\s+(get|add))\b/i.test(c) ||
         /\b(conda|choco|winget|apt(?:-get)?|brew)\s+install\b/i.test(c) ||
         /\buv\s+(pip\s+install|sync|add)\b/i.test(c) ||
-        /\bmake\s+install\b/i.test(c)) {
+        /\b(poetry|pdm|rye|pixi)\s+add\b/i.test(c) ||
+        /\bpoetry\s+update\b/i.test(c) ||
+        /\bmix\s+(deps\.get|ecto\.migrate)\b/i.test(c) ||
+        /\bpod\s+install\b/i.test(c) ||
+        /\bmake\s+install\b/i.test(c) ||
+        // PowerShell: Clear-Content; cmd ren/rename (not "render" — use exact tokens)
+        /\bClear-Content\b/i.test(c) ||
+        /\bren\s+\S+/i.test(c) ||
+        /\brename\s+\S+/i.test(c)) {
         return true;
     }
     // Archives / sync / raw disk write (v1.1.44) — list-only tar -t stays allowed
     // v1.1.46: git clone / curl|bash pipes / degit
     // v1.1.47: docker compose up / helm|kubectl|terraform apply / npx create-*
     // v1.1.48: vercel|netlify|firebase deploy
+    // v1.1.50: prisma/migrate/deploy CLIs / docker-compose / k8s create|delete / scp
     if (/\bunzip\b/i.test(c) ||
         /\brsync\b/i.test(c) ||
         /\b(xcopy|robocopy)\b/i.test(c) ||
@@ -59,11 +73,25 @@ export function isMutatingShellCommand(command) {
         /\bpatch\b[^|&;\n]*\s-p\d/i.test(c) ||
         /\bgit\s+clone\b/i.test(c) ||
         /\bdegit\b/i.test(c) ||
+        /\bgh\s+repo\s+clone\b/i.test(c) ||
         /\b(?:curl|wget)\b[^|&;\n]{0,120}\|\s*(?:ba)?sh\b/i.test(c) ||
-        /\bdocker\s+compose\s+up\b/i.test(c) ||
-        /\b(helm\s+install|kubectl\s+apply|terraform\s+apply|pulumi\s+up)\b/i.test(c) ||
+        /\bdocker-compose\s+(up|down)\b/i.test(c) ||
+        /\bdocker\s+compose\s+(up|down)\b/i.test(c) ||
+        /\bdocker\s+(build|push|pull)\b/i.test(c) ||
+        /\b(helm\s+(install|upgrade)|kubectl\s+(apply|create|replace|delete)|terraform\s+(apply|destroy)|pulumi\s+up)\b/i.test(c) ||
         /\bnpx\s+create-/i.test(c) ||
-        /\b(vercel|netlify|firebase)\s+deploy\b/i.test(c)) {
+        /\b(vercel|netlify|firebase|fly)\s+deploy\b/i.test(c) ||
+        /\brailway\s+up\b/i.test(c) ||
+        /\bsupabase\s+db\s+push\b/i.test(c) ||
+        /\b(?:npx\s+)?prisma\s+(migrate|db\s+push)\b/i.test(c) ||
+        /\bdrizzle-kit\s+push\b/i.test(c) ||
+        /\balembic\s+upgrade\b/i.test(c) ||
+        /\brails\s+db:migrate\b/i.test(c) ||
+        /\bphp\s+artisan\s+migrate\b/i.test(c) ||
+        /\b(?:python\s+)?manage\.py\s+migrate\b/i.test(c) ||
+        /\baws\s+s3\s+(cp|sync|mv|rm)\b/i.test(c) ||
+        /\b(scp|sftp)\b/i.test(c) ||
+        /\b(pre-commit|husky)\s+install\b/i.test(c)) {
         return true;
     }
     // Download-to-file (curl -o / wget -O / Invoke-WebRequest -OutFile)

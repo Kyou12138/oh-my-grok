@@ -129,6 +129,36 @@ describe("isIdleAssistantMessage", () => {
     }
   });
 
+  it("status fluff Looking into it / 我来看看 → idle (v1.1.50)", () => {
+    for (const m of [
+      "Looking into it.",
+      "Looking into it",
+      "I'll take a look.",
+      "Taking a look.",
+      "Let me check.",
+      "Checking now.",
+      "One moment.",
+      "One sec.",
+      "Hang on.",
+      "Stand by.",
+      "Acknowledged.",
+      "Sounds good.",
+      "On it now.",
+      "Give me a moment.",
+      "Just a second.",
+      "Bear with me.",
+      "我来看看。",
+      "我看一下。",
+      "正在处理。",
+      "处理中。",
+      "没问题。",
+      "了解了。",
+      "着手处理。",
+    ]) {
+      expect(isIdleAssistantMessage(m), m).toBe(true);
+    }
+  });
+
   it("emoji / ellipsis noise → idle", () => {
     expect(isIdleAssistantMessage("👍")).toBe(true);
     expect(isIdleAssistantMessage("✅")).toBe(true);

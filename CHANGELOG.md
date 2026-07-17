@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.50] — 2026-07-17
+
+### MAGI spiral — verify runners + migrate/scaffold shells + idle fluff
+
+- **fix(VERIFY_SHELL_RE)** credit `node --test` / `mocha` / `ava` / `pest` / `rails test` / `php artisan test` / `turbo|nx test` / `gotestsum` / `ginkgo` / `zig test` / `crystal spec` / `ctest` / `meson test` / `mvn verify` / `cargo clippy` / `go vet` / `ruff|mypy|pyright|biome` / `tsc -b|--build` / `npm run typecheck|lint|check`
+- **fix(isMutatingShellCommand)** prisma/drizzle/alembic/rails/artisan/manage.py migrate; dart/poetry/pdm create scaffolds; docker-compose; k8s create|delete; fly/railway/supabase; git pull/submodule; Clear-Content/ren
+- **fix(idle-turn)** Looking into it / One moment / 我来看看 / 处理中 / 没问题。 等短句 idle
+- **test** verify + shell + idle matrices
+
 ## [1.1.49] — 2026-07-17
 
 ### ULW 开场仪式门禁（仪式感可感知）

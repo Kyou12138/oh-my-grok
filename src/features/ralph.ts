@@ -556,9 +556,10 @@ export function noteUlwWrite(input: HookInput, cfg: EnvConfig, filePath?: string
  * v1.1.40: bun/deno/yarn run test/make test
  * v1.1.47: cargo nextest / just|task test / playwright|cypress / tox|hatch
  * v1.1.48: flutter/phpunit/rspec/mix/sbt/bazel test
+ * v1.1.50: node --test / mocha/ava/pest / rails / mono / static analysis
  */
 export const VERIFY_SHELL_RE =
-  /\b(npm\s+(test|run\s+test|run\s+ci)|pnpm\s+(test|run\s+test)|yarn\s+(test|run\s+test)|bun\s+(test|run\s+test)|deno\s+test|vitest|jest|pytest|cargo\s+(test|nextest)|nextest\s+run|go\s+test|dotnet\s+test|mvn\s+test|gradlew?\s+test|make\s+test|just\s+test|task\s+test|playwright\s+test|cypress\s+run|tox|hatch\s+test|flutter\s+test|phpunit|rspec|mix\s+test|sbt\s+test|bazel\s+test|typecheck|tsc\s+--noEmit|eslint|lint|npm\s+run\s+doctor|npm\s+run\s+validate)\b/i;
+  /\b(npm\s+(test|run\s+(test|ci|typecheck|lint|check|doctor|validate)(:\w+)?)|pnpm\s+(test|run\s+test|typecheck|lint)|yarn\s+(test|run\s+test|typecheck)|bun\s+(test|run\s+test)|deno\s+test|node\s+--test|vitest|jest|mocha|ava|pytest|python\s+-m\s+(pytest|unittest)|(?:python\s+)?manage\.py\s+test|cargo\s+(test|nextest|clippy)|nextest\s+run|go\s+(test|vet)|gotestsum|ginkgo|dotnet\s+test|mvn\s+(test|verify)|gradlew?\s+test|make\s+test|just\s+test|task\s+test|turbo\s+run\s+test|nx\s+test|playwright\s+test|cypress\s+run|tox|hatch\s+test|flutter\s+test|phpunit|pest|php\s+artisan\s+test|rspec|rails\s+test|bin\/rails\s+test|rake\s+test|mix\s+test|sbt\s+test|bazel\s+test|zig\s+test|crystal\s+spec|ctest|meson\s+test|typecheck|tsc\s+(--noEmit|-b|--build)|vue-tsc|ruff\s+check|mypy|pyright|biome\s+(check|ci)|eslint|lint)\b/i;
 
 /** echo/printf of test names is not verification evidence. */
 const ECHO_LIKE_RE = /^(echo|printf|Write-Host|console\.log)\b/i;

@@ -324,6 +324,67 @@ describe("agentGuardDeny", () => {
     expect(isMutatingShellCommand("firebase deploy")).toBe(true);
   });
 
+  it("blocks prisma/migrate/scaffold/package-add shells (v1.1.50)", () => {
+    // DB / ORM mutations
+    expect(isMutatingShellCommand("npx prisma migrate dev")).toBe(true);
+    expect(isMutatingShellCommand("prisma db push")).toBe(true);
+    expect(isMutatingShellCommand("drizzle-kit push")).toBe(true);
+    expect(isMutatingShellCommand("alembic upgrade head")).toBe(true);
+    expect(isMutatingShellCommand("rails db:migrate")).toBe(true);
+    expect(isMutatingShellCommand("php artisan migrate")).toBe(true);
+    expect(isMutatingShellCommand("python manage.py migrate")).toBe(true);
+    expect(isMutatingShellCommand("mix ecto.migrate")).toBe(true);
+    // package / scaffold
+    expect(isMutatingShellCommand("dart pub get")).toBe(true);
+    expect(isMutatingShellCommand("dart pub add http")).toBe(true);
+    expect(isMutatingShellCommand("poetry add requests")).toBe(true);
+    expect(isMutatingShellCommand("pdm add httpx")).toBe(true);
+    expect(isMutatingShellCommand("rye add httpx")).toBe(true);
+    expect(isMutatingShellCommand("mix deps.get")).toBe(true);
+    expect(isMutatingShellCommand("composer update")).toBe(true);
+    expect(isMutatingShellCommand("bundle update")).toBe(true);
+    expect(isMutatingShellCommand("npm create vite@latest")).toBe(true);
+    expect(isMutatingShellCommand("yarn create next-app")).toBe(true);
+    expect(isMutatingShellCommand("pnpm create vite")).toBe(true);
+    expect(isMutatingShellCommand("bun create next-app")).toBe(true);
+    expect(isMutatingShellCommand("cargo new foo")).toBe(true);
+    expect(isMutatingShellCommand("cargo init")).toBe(true);
+    expect(isMutatingShellCommand("go mod init example")).toBe(true);
+    expect(isMutatingShellCommand("go mod tidy")).toBe(true);
+    expect(isMutatingShellCommand("deno init")).toBe(true);
+    expect(isMutatingShellCommand("dotnet new web")).toBe(true);
+    expect(isMutatingShellCommand("dotnet restore")).toBe(true);
+    expect(isMutatingShellCommand("pod install")).toBe(true);
+    // infra / deploy / compose aliases
+    expect(isMutatingShellCommand("docker-compose up -d")).toBe(true);
+    expect(isMutatingShellCommand("docker compose down")).toBe(true);
+    expect(isMutatingShellCommand("docker build -t x .")).toBe(true);
+    expect(isMutatingShellCommand("docker push x")).toBe(true);
+    expect(isMutatingShellCommand("kubectl create -f k.yaml")).toBe(true);
+    expect(isMutatingShellCommand("kubectl delete pod x")).toBe(true);
+    expect(isMutatingShellCommand("helm upgrade x chart")).toBe(true);
+    expect(isMutatingShellCommand("terraform destroy")).toBe(true);
+    expect(isMutatingShellCommand("fly deploy")).toBe(true);
+    expect(isMutatingShellCommand("railway up")).toBe(true);
+    expect(isMutatingShellCommand("supabase db push")).toBe(true);
+    expect(isMutatingShellCommand("aws s3 sync . s3://b")).toBe(true);
+    expect(isMutatingShellCommand("scp file host:")).toBe(true);
+    // git / hooks
+    expect(isMutatingShellCommand("git pull")).toBe(true);
+    expect(isMutatingShellCommand("git submodule update --init")).toBe(true);
+    expect(isMutatingShellCommand("gh repo clone x/y")).toBe(true);
+    expect(isMutatingShellCommand("pre-commit install")).toBe(true);
+    expect(isMutatingShellCommand("husky install")).toBe(true);
+    // PowerShell rename / clear
+    expect(isMutatingShellCommand("Clear-Content f.txt")).toBe(true);
+    expect(isMutatingShellCommand("ren a.txt b.txt")).toBe(true);
+    // still allow pure reads
+    expect(isMutatingShellCommand("git status")).toBe(false);
+    expect(isMutatingShellCommand("git log -1")).toBe(false);
+    expect(isMutatingShellCommand("docker ps")).toBe(false);
+    expect(isMutatingShellCommand("kubectl get pods")).toBe(false);
+  });
+
   it("denies oracle git clean via PreTool (v1.1.44)", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));
