@@ -29,6 +29,7 @@ const WATCHED_KEYS = [
   "OMG_COMMENT_CHECKER",
   "OMG_COMMENT_CHECKER_DENY",
   "OMG_MAX_RALPH_ITER",
+  "OMG_MAX_ULW_STALL",
   "OMG_TODO_COOLDOWN_MS",
   "OMG_TODO_ABORT_WINDOW_MS",
   "OMG_DIAG_CMD",
@@ -147,6 +148,25 @@ describe("loadConfig — envNum boundaries", () => {
     pinEnv();
     delete process.env.OMG_MAX_RALPH_ITER;
     expect(loadConfig().maxRalphIter).toBe(50);
+  });
+
+  it("OMG_MAX_ULW_STALL defaults 8; 0 disables; file overlay wins (v1.1.64)", () => {
+    pinEnv();
+    delete process.env.OMG_MAX_ULW_STALL;
+    expect(loadConfig().maxUlwStall).toBe(8);
+    process.env.OMG_MAX_ULW_STALL = "0";
+    expect(loadConfig().maxUlwStall).toBe(0);
+    process.env.OMG_MAX_ULW_STALL = "12";
+    expect(loadConfig().maxUlwStall).toBe(12);
+    const ws = tmpWorkspace();
+    const omg = path.join(ws, ".omg");
+    fs.mkdirSync(omg, { recursive: true });
+    fs.writeFileSync(
+      path.join(omg, "config.json"),
+      JSON.stringify({ maxUlwStall: 5 }),
+      "utf8",
+    );
+    expect(loadConfig(ws).maxUlwStall).toBe(5);
   });
 
   it("OMG_TODO_COOLDOWN_MS='9999' is honored as 9999", () => {

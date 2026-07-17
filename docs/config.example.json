@@ -10,6 +10,7 @@
   "commentCheckerDeny": false,
   "agentGuard": true,
   "maxRalphIter": 50,
+  "maxUlwStall": 8,
   "todoCooldownMs": 5000,
   "todoAbortWindowMs": 3000,
   "todoMaxContinues": 20,

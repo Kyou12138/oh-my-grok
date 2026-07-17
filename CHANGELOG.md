@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.64] — 2026-07-18
+
+### MAGI spiral — ULW max-stall circuit + researchOnly state (omo-align)
+
+- **feat(ulw)** `maxUlwStall`（默认 8，config/env `OMG_MAX_ULW_STALL`；`0`=关闭）— 连续空转达阈值 → **STALL CIRCUIT OPEN** 自动 cancel loop（对齐 todo stagnation circuit）
+- **feat(ulw)** `researchOnly` 启动时写入 state；DONE 门用持久化标志
+- **docs** skills/ulw-loop · config.example · omo-gap
+- **test** circuit open / disable / researchOnly 落盘 / config overlay
+
 ## [1.1.63] — 2026-07-18
 
 ### MAGI spiral — ULW loop omo-align: explore hard gate + implement DONE + stall escalate

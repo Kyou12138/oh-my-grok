@@ -95,15 +95,18 @@ Recommended finish:
 | `.omg/ulw-loop/state.json` | Machine state (phase, stalls) |
 | `.omg/ulw-loop/log/iter-NNN-*.md` | Per-iteration audit log |
 
-## Stall (omo-aligned escalation)
+## Stall (omo-aligned escalation + circuit)
 
 | stallCount | Stop signal |
 |------------|-------------|
 | 1–2 | STALL DETECTED — change strategy |
 | ≥3 | STALL ESCALATED — must spawn explore/oracle or run real verify |
 | ≥5 | STALL CRITICAL — narrow scope / report blocker; no fluff |
+| ≥ **maxUlwStall** (default **8**) | **STALL CIRCUIT OPEN** — loop **auto-cancelled** (todo-stagnation style) |
 
-Shell (e.g. `npm test`) counts as progress when implement already reached.
+Config: `.omg/config.json` `"maxUlwStall": 8` or env `OMG_MAX_ULW_STALL` (`0` = never auto-cancel).
+
+Shell (e.g. `npm test`) counts as progress. Research/audit tasks set `researchOnly` at start (implement writes optional).
 
 ## Cancel
 

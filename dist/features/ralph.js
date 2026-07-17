@@ -108,6 +108,8 @@ function emptyState(partial) {
         lastActivityFingerprint: partial.lastActivityFingerprint ?? "",
         // ralph has no ULW ceremony; ULW starts unopened until opener line seen
         ceremonyOpened: partial.ceremonyOpened ?? (partial.mode === "ralph" ? true : false),
+        researchOnly: partial.researchOnly ??
+            (partial.mode === "ulw" ? isUlwResearchOnlyTask(task) : false),
     };
 }
 function stateJsonPath(input, cfg) {
@@ -147,6 +149,7 @@ export function serializeRalphMd(state) {
         `phase: ${state.phase}`,
         `stall_count: ${state.stallCount}`,
         `ceremony_opened: ${state.ceremonyOpened ? "true" : "false"}`,
+        `research_only: ${state.researchOnly ? "true" : "false"}`,
         `created_at: ${state.createdAt}`,
         "",
         "Goals:",
@@ -195,6 +198,7 @@ export function startRalph(input, cfg, task, mode) {
         task,
         maxIterations: mode === "ulw" ? Math.max(cfg.maxRalphIter, 50) : cfg.maxRalphIter,
         phase: "explore",
+        researchOnly: mode === "ulw" ? isUlwResearchOnlyTask(task) : false,
     });
     persist(input, cfg, state);
     resetUlwActivity(input, cfg);
@@ -687,7 +691,7 @@ export function ulwDoneGate(input, cfg, state, msg) {
     const problems = [];
     const diag = loadDiag(input, cfg);
     const act = loadUlwActivity(input, cfg);
-    const research = isUlwResearchOnlyTask(state.task);
+    const research = state.researchOnly ?? isUlwResearchOnlyTask(state.task);
     const verified = isVerifiedMessage(msg) ||
         Boolean(diag.verifiedAt && diag.verifiedAt > 0 && !diag.needsVerify && !diag.lastErrors);
     // v1.1.63: explore is mandatory for all ULW (including research)
@@ -921,6 +925,21 @@ export function processLoopStop(input, cfg, state) {
         }
         state.lastActivityFingerprint = fp;
     }
+    // v1.1.64: omo-style max-stall circuit — auto-cancel after N consecutive idle rounds
+    // default 8 when cfg omits field (tests often construct partial EnvConfig)
+    const maxStall = typeof cfg.maxUlwStall === "number" && cfg.maxUlwStall >= 0
+        ? cfg.maxUlwStall
+        : 8;
+    if (state.mode === "ulw" &&
+        stall &&
+        maxStall > 0 &&
+        state.stallCount >= maxStall) {
+        state.iteration += 1;
+        writeProgressLog(input, cfg, state, "stall-circuit", `stall circuit open at ${state.stallCount}/${maxStall}`);
+        const reason = ulwStallCircuitReason(state, maxStall);
+        cancelRalph(input, cfg);
+        return { block: true, reason, state };
+    }
     // Continue
     state.iteration += 1;
     writeProgressLog(input, cfg, state, "continue", stall ? "stall continuation" : `continue phase=${state.phase}`);
@@ -931,5 +950,25 @@ export function processLoopStop(input, cfg, state) {
         reason: ralphStopReason(state, { stall, stallCount: state.stallCount }),
         state,
     };
+}
+/** Loud one-shot when ULW cancels after too many no-progress stops. */
+export function ulwStallCircuitReason(state, maxStall) {
+    return [
+        CEREMONY_BAR,
+        "【ULW STALL CIRCUIT OPEN / 空转熔断 — LOOP CANCELLED】",
+        CEREMONY_BAR,
+        `连续 ${state.stallCount} 轮无 Read/Write/Shell 进度（阈值 maxUlwStall=${maxStall}）。`,
+        "Loop 已自动取消（对齐 omo todo stagnation circuit：停止空转 yank）。",
+        "",
+        `Task was: ${state.task}`,
+        `Phase was: ${state.phase} · explore=${state.phaseReached.explore} implement=${state.phaseReached.implement} verify=${state.phaseReached.verify}`,
+        `Iteration: ${state.iteration}/${state.maxIterations}`,
+        "",
+        "Next:",
+        "1) 写清 blocker / 换策略（spawn explore|oracle，缩小范围）",
+        "2) 需要继续时重新 /ulw-loop \"…\"",
+        "3) 调高阈值：`.omg/config.json` → `maxUlwStall` 或 env `OMG_MAX_ULW_STALL`（0=关闭熔断）",
+        CEREMONY_BAR,
+    ].join("\n");
 }
 //# sourceMappingURL=ralph.js.map

@@ -9,6 +9,8 @@ export interface OmgFileConfig {
     diagEnforce?: boolean;
     hardOrchestration?: boolean;
     maxRalphIter?: number;
+    /** ULW stall circuit threshold; 0 = disable auto-cancel */
+    maxUlwStall?: number;
     todoCooldownMs?: number;
     /** omo #6133-style continuation timing */
     todoAbortWindowMs?: number;

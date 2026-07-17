@@ -35,6 +35,11 @@ export interface RalphState {
      * ralph mode ignores (always opened).
      */
     ceremonyOpened: boolean;
+    /**
+     * v1.1.64: task classified research-only at start (implement writes optional).
+     * Persisted so DONE gate does not re-parse mid-loop after task rewrites.
+     */
+    researchOnly?: boolean;
 }
 export interface UlwActivity {
     schemaVersion: 1;
@@ -138,3 +143,5 @@ export declare function processLoopStop(input: HookInput, cfg: EnvConfig, state:
     reason: string;
     state: RalphState;
 };
+/** Loud one-shot when ULW cancels after too many no-progress stops. */
+export declare function ulwStallCircuitReason(state: RalphState, maxStall: number): string;

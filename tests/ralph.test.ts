@@ -96,6 +96,7 @@ function makeCtx(idx: number, over: Partial<EnvConfig> = {}): Ctx {
     diagEnforce: true,
     hardOrchestration: true,
     maxRalphIter: 10,
+    maxUlwStall: 8,
     todoCooldownMs: 0,
     todoAbortWindowMs: 0,
     diagCommand: "",
@@ -1598,5 +1599,71 @@ describe("ULW loop omo-align (v1.1.63)", () => {
     );
     expect(r.output.decision).toBe("deny");
     expect(r.output.reason).toMatch(/未 explore 不写|EXPLORE BEFORE WRITE/i);
+  });
+
+  it("startRalph persists researchOnly for research tasks", () => {
+    const ctx = makeCtx(75);
+    startRalph(stopInput(ctx, ""), ctx.cfg, "调研登录模块", "ulw");
+    expect(loadRalph(stopInput(ctx, ""), ctx.cfg)?.researchOnly).toBe(true);
+    startRalph(stopInput(ctx, ""), ctx.cfg, "ship oauth", "ulw");
+    expect(loadRalph(stopInput(ctx, ""), ctx.cfg)?.researchOnly).toBe(false);
+  });
+
+  it("max-stall circuit auto-cancels after maxUlwStall idle rounds (v1.1.64)", () => {
+    const ctx = makeCtx(76, { maxUlwStall: 3 });
+    const input0 = stopInput(ctx, "");
+    startRalph(input0, ctx.cfg, "ship oauth", "ulw");
+    // ceremony + advance past first stop
+    let s = loadRalph(input0, ctx.cfg)!;
+    s.ceremonyOpened = true;
+    s.iteration = 1;
+    s.lastActivityFingerprint = "r0:w0:s0";
+    saveRalph(input0, ctx.cfg, s);
+
+    // three consecutive empty-activity stops → circuit
+    let out = processLoopStop(
+      stopInput(ctx, "ULTRAWORK MODE ENABLED!\nstill looking"),
+      ctx.cfg,
+      loadRalph(input0, ctx.cfg)!,
+    );
+    expect(out.block).toBe(true);
+    expect(loadRalph(input0, ctx.cfg)?.active).toBe(true);
+    expect(out.reason).not.toMatch(/STALL CIRCUIT OPEN/i);
+
+    out = processLoopStop(
+      stopInput(ctx, "ULTRAWORK MODE ENABLED!\nstill looking"),
+      ctx.cfg,
+      loadRalph(input0, ctx.cfg)!,
+    );
+    expect(loadRalph(input0, ctx.cfg)?.active).toBe(true);
+
+    out = processLoopStop(
+      stopInput(ctx, "ULTRAWORK MODE ENABLED!\nstill looking"),
+      ctx.cfg,
+      loadRalph(input0, ctx.cfg)!,
+    );
+    expect(out.block).toBe(true);
+    expect(out.reason).toMatch(/STALL CIRCUIT OPEN|空转熔断/i);
+    expect(loadRalph(input0, ctx.cfg)).toBeNull();
+  });
+
+  it("maxUlwStall=0 disables stall circuit", () => {
+    const ctx = makeCtx(77, { maxUlwStall: 0 });
+    const input0 = stopInput(ctx, "");
+    startRalph(input0, ctx.cfg, "ship oauth", "ulw");
+    let s = loadRalph(input0, ctx.cfg)!;
+    s.ceremonyOpened = true;
+    s.iteration = 1;
+    s.stallCount = 50;
+    s.lastActivityFingerprint = "r0:w0:s0";
+    saveRalph(input0, ctx.cfg, s);
+    const out = processLoopStop(
+      stopInput(ctx, "ULTRAWORK MODE ENABLED!\nidling"),
+      ctx.cfg,
+      loadRalph(input0, ctx.cfg)!,
+    );
+    expect(out.block).toBe(true);
+    expect(out.reason).not.toMatch(/STALL CIRCUIT OPEN/i);
+    expect(loadRalph(input0, ctx.cfg)?.active).toBe(true);
   });
 });

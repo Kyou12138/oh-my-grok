@@ -43,6 +43,11 @@ export interface EnvConfig {
     diagEnforce: boolean;
     hardOrchestration: boolean;
     maxRalphIter: number;
+    /**
+     * ULW consecutive no-progress stalls before auto-cancel (omo-style circuit).
+     * Default 8. Set 0 to disable circuit (stall messages only).
+     */
+    maxUlwStall: number;
     todoCooldownMs: number;
     todoAbortWindowMs: number;
     /** Max todo Stop yanks per session before circuit open (omo-style). Default 20. */

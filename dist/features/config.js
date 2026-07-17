@@ -43,6 +43,19 @@ export function loadConfig(workspaceRoot) {
         diagEnforce: file.diagEnforce ?? envBool("OMG_DIAG_ENFORCE", true),
         hardOrchestration: file.hardOrchestration ?? envBool("OMG_HARD_ORCH", true),
         maxRalphIter: file.maxRalphIter ?? envNum("OMG_MAX_RALPH_ITER", 50),
+        // 0 allowed via explicit file/env 0 — use nullish only; envNum rejects 0 so special-case
+        maxUlwStall: (() => {
+            if (typeof file.maxUlwStall === "number" && file.maxUlwStall >= 0) {
+                return file.maxUlwStall;
+            }
+            const raw = process.env.OMG_MAX_ULW_STALL;
+            if (raw !== undefined && raw !== "") {
+                const n = Number(raw);
+                if (Number.isFinite(n) && n >= 0)
+                    return n;
+            }
+            return 8;
+        })(),
         todoCooldownMs: file.todoCooldownMs ?? envNum("OMG_TODO_COOLDOWN_MS", 5000),
         // omo issue #6133: continuation timings configurable (file or env)
         todoAbortWindowMs: file.todoAbortWindowMs ?? envNum("OMG_TODO_ABORT_WINDOW_MS", 3000),
