@@ -29,6 +29,8 @@ export declare function clearSpawnFollowThrough(input: HookInput, cfg: EnvConfig
  */
 export declare function spawnFollowThroughPreDeny(input: HookInput, cfg: EnvConfig): string | null;
 export declare function isSpawnFollowThroughPending(input: HookInput, cfg: EnvConfig): boolean;
+/** v1.1.65: full snapshot for SessionResume (pending / childFinished / role). */
+export declare function getSpawnFollowThroughState(input: HookInput, cfg: EnvConfig): SpawnFollowThroughState;
 /** Tools that fetch subagent/shell task output → result recovered. */
 export declare function isResultRecoveryTool(toolName?: string): boolean;
 /**

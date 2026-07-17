@@ -1,6 +1,6 @@
 # oh-my-grok capability map (vs Vanilla Grok / omo)
 
-**Date:** 2026-07-18 · **omg version:** **1.1.64**  
+**Date:** 2026-07-18 · **omg version:** **1.1.65**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 **Product peer:** omo **Codex Light** 同温层（纪律 + 状态），**不是** Ultimate 全量 OS。  
@@ -777,6 +777,15 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **researchOnly** | start 时入 state；DONE 门读持久化标志 |
 | **config** | `OMG_MAX_ULW_STALL` / `.omg/config.json` maxUlwStall |
 
+## Closed this spiral (v1.1.65) — SessionResume depth + circuit/spawn visibility
+
+| Item | Behavior |
+|------|----------|
+| **SessionResume ULW** | ceremony / researchOnly / phaseReached / stall circuit 提示 |
+| **Todo circuit visible** | CIRCUIT OPEN (stagnation/max) 写入 resume — 非静默停 yank |
+| **Spawn pending visible** | follow-through pending + childFinished + role |
+| **spawn recover phrases** | get_command_or_subagent_output / recovered / 已整合 |
+
 ## Next spiral focus (提升)
 
 - **marketplace** + 传播资产（GIF）— 安装转化  
@@ -784,7 +793,7 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 - Hashline native edit tool（宿主能力）  
 - project-memory 仍 defer（omo #74）  
 
-**推荐**: pin **v1.1.64** · `grok plugin update`。
+**推荐**: pin **v1.1.65** · `grok plugin update`。
 
 ## Explicit non-goals
 

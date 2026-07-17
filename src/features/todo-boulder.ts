@@ -372,6 +372,50 @@ export function isTodoEnforcerCircuitOpen(reason?: string): boolean {
   );
 }
 
+/** v1.1.65: snapshot for SessionResume / diagnostics (omo circuit visibility). */
+export function todoEnforcerCircuitStatus(
+  input: HookInput,
+  cfg: EnvConfig,
+): {
+  open: boolean;
+  reason?: "stagnation" | "max";
+  stagnationCount: number;
+  consecutiveContinues: number;
+} {
+  const p = pathsFor(input.workspaceRoot, input.sessionId, cfg);
+  const st = readJson<TodoEnforcerState>(p.todoEnforcer, {
+    schemaVersion: 2,
+    lastContinueAt: 0,
+    consecutiveContinues: 0,
+    stagnationCount: 0,
+  });
+  const maxContinues = cfg.todoMaxContinues > 0 ? cfg.todoMaxContinues : 20;
+  const maxStag = cfg.todoMaxStagnation > 0 ? cfg.todoMaxStagnation : 3;
+  const stag = st.stagnationCount || 0;
+  const cont = st.consecutiveContinues || 0;
+  if (stag >= maxStag) {
+    return {
+      open: true,
+      reason: "stagnation",
+      stagnationCount: stag,
+      consecutiveContinues: cont,
+    };
+  }
+  if (cont >= maxContinues) {
+    return {
+      open: true,
+      reason: "max",
+      stagnationCount: stag,
+      consecutiveContinues: cont,
+    };
+  }
+  return {
+    open: false,
+    stagnationCount: stag,
+    consecutiveContinues: cont,
+  };
+}
+
 export function markTodoContinued(
   input: HookInput,
   cfg: EnvConfig,

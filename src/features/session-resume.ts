@@ -1,14 +1,17 @@
 /**
  * Lightweight SessionStart resume summary — active ULW/Ralph, boulder, handoff pointer.
  * Not full project-memory; reads existing .omg state only.
+ * v1.1.65: deeper ULW phase/ceremony/stall + todo circuit + spawn follow-through.
  */
 import type { EnvConfig, HookInput } from "../protocol/types.js";
 import { findLatestHandoff } from "./handoff.js";
 import { loadRalph } from "./ralph.js";
+import { getSpawnFollowThroughState } from "./spawn-followthrough.js";
 import {
   hasOpenPlanCheckboxes,
   incompleteTodos,
   loadBoulder,
+  todoEnforcerCircuitStatus,
 } from "./todo-boulder.js";
 
 export function sessionResumeSummary(
@@ -31,9 +34,35 @@ export function sessionResumeSummary(
       `  iter ${ralph.iteration}/${ralph.maxIterations} phase=${ralph.phase}${goalBit}`,
     );
     if (ralph.mode === "ulw") {
+      const pr = ralph.phaseReached || {
+        explore: false,
+        implement: false,
+        verify: false,
+      };
       lines.push(
-        "  🔔 **ULTRAWORK MODE ENABLED** — 开场仪式必做: 第一行 `ULTRAWORK MODE ENABLED!` / `ULTRAWORK 模式已启动！` → Goal → explore; 未开场 PreTool 硬拦写操作 + Stop CEREMONY INCOMPLETE; 见 `.omg/ulw-loop/CEREMONY.md`",
+        `  reached: explore=${pr.explore} implement=${pr.implement} verify=${pr.verify} · ceremony=${ralph.ceremonyOpened} · researchOnly=${!!ralph.researchOnly} · stall=${ralph.stallCount}`,
       );
+      if (!ralph.ceremonyOpened) {
+        lines.push(
+          "  ⚠ **ceremony incomplete** — first line `ULTRAWORK MODE ENABLED!` / `ULTRAWORK 模式已启动！`; PreTool blocks writes until opener + explore Read",
+        );
+      } else {
+        lines.push(
+          "  🔔 ULW hard: ceremony + explore-before-write PreTool · DONE needs implement writes (unless researchOnly) + VERIFIED",
+        );
+      }
+      if (ralph.stallCount >= 3) {
+        const maxS =
+          typeof cfg.maxUlwStall === "number" && cfg.maxUlwStall >= 0
+            ? cfg.maxUlwStall
+            : 8;
+        lines.push(
+          maxS > 0
+            ? `  ⚠ stall×${ralph.stallCount} — at maxUlwStall=${maxS} loop auto-cancels (STALL CIRCUIT)`
+            : `  ⚠ stall×${ralph.stallCount} — maxUlwStall=0 (circuit off); change strategy`,
+        );
+      }
+      lines.push("  state: `.omg/ulw-loop/` · ceremony: `.omg/ulw-loop/CEREMONY.md`");
     }
   }
 
@@ -59,6 +88,26 @@ export function sessionResumeSummary(
       .join("; ");
     lines.push(
       `- **Todos** incomplete: ${todos.length} — ${preview}${todos.length > 4 ? "…" : ""}`,
+    );
+  }
+
+  // v1.1.65: surface todo enforcer circuit (omo stagnation / max continues)
+  const todoCircuit = todoEnforcerCircuitStatus(input, cfg);
+  if (todoCircuit.open) {
+    lines.push(
+      `- **Todo enforcer CIRCUIT OPEN** (${todoCircuit.reason}) — stagnation=${todoCircuit.stagnationCount} continues=${todoCircuit.consecutiveContinues}`,
+      "  Incomplete todos will **not** re-yank Stop; finish or clear todos manually (no silent freeze — this is the honest signal).",
+    );
+  }
+
+  // v1.1.65: spawn follow-through pending across sessions
+  const spawn = getSpawnFollowThroughState(input, cfg);
+  if (spawn.pending) {
+    const roleBit = spawn.lastRole ? ` role=${spawn.lastRole}` : "";
+    const fin = spawn.childFinished ? " childFinished=true" : " child still running or End missed";
+    lines.push(
+      `- **Spawn follow-through** pending${roleBit}${fin} · yanks=${spawn.yankCount}`,
+      "  Recover with **get_task_output** / integrate findings before more mutating work (PreTool may deny once).",
     );
   }
 

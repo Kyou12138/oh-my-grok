@@ -159,6 +159,15 @@ describe("spawnFollowThroughStopReason", () => {
         "Used get_task_output; subagent returned path map.",
       ),
     ).toBe(true);
+    // v1.1.65
+    expect(
+      isSpawnResultRecoveredMessage(
+        "Called get_command_or_subagent_output and recovered the results.",
+      ),
+    ).toBe(true);
+    expect(
+      isSpawnResultRecoveredMessage("已整合子代理发现，继续改 auth.ts"),
+    ).toBe(true);
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));
     markSpawnFollowThrough(base(ws), c, "explore");

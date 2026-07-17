@@ -81,6 +81,13 @@ export declare function todoEnforcerAllows(input: HookInput, cfg: EnvConfig, now
 };
 /** Circuit open = do not re-yank (stagnation or max continues). */
 export declare function isTodoEnforcerCircuitOpen(reason?: string): boolean;
+/** v1.1.65: snapshot for SessionResume / diagnostics (omo circuit visibility). */
+export declare function todoEnforcerCircuitStatus(input: HookInput, cfg: EnvConfig): {
+    open: boolean;
+    reason?: "stagnation" | "max";
+    stagnationCount: number;
+    consecutiveContinues: number;
+};
 export declare function markTodoContinued(input: HookInput, cfg: EnvConfig, now?: number, openTodos?: TodoItem[]): void;
 export declare function resetTodoEnforcer(input: HookInput, cfg: EnvConfig): void;
 export declare function boulderStopReason(b: BoulderState): string;

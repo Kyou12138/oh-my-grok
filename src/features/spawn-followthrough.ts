@@ -152,6 +152,14 @@ export function isSpawnFollowThroughPending(
   return load(input, cfg).pending;
 }
 
+/** v1.1.65: full snapshot for SessionResume (pending / childFinished / role). */
+export function getSpawnFollowThroughState(
+  input: HookInput,
+  cfg: EnvConfig,
+): SpawnFollowThroughState {
+  return load(input, cfg);
+}
+
 /** Tools that fetch subagent/shell task output → result recovered. */
 export function isResultRecoveryTool(toolName?: string): boolean {
   if (!toolName) return false;
@@ -213,10 +221,13 @@ export function isSpawnResultRecoveredMessage(msg?: string): boolean {
   if (!msg || !msg.trim()) return false;
   const t = msg.trim();
   return (
-    /\b(get_task_output|subagent (result|output|replied|returned)|integrated (findings|results)|from (the )?subagent)\b/i.test(
+    // v1.1.65: host tool ids + recover/integrate verbs (EN/ZH)
+    /\b(get_task_output|get_command_or_subagent_output|wait_tasks|task_output|subagent (result|output|replied|returned)|integrated (findings|results)|from (the )?subagent|recovered (the )?(results?|output)|after (the )?subagent)\b/i.test(
       t,
     ) ||
-    /子代理.*(结果|输出|回报)|回收.*结果|整合.*发现/i.test(t)
+    /子代理.*(结果|输出|回报)|回收.*结果|整合.*发现|已整合|跟进.*子代理|读取.*子代理/i.test(
+      t,
+    )
   );
 }
 

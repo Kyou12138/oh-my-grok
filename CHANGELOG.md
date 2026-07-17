@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.65] — 2026-07-18
+
+### MAGI spiral — SessionResume omo-depth + spawn recover phrases + circuit visibility
+
+- **feat(session-resume)** ULW 深摘要：ceremony / researchOnly / phaseReached / stall×N + maxUlwStall circuit 提示
+- **feat(session-resume)** Todo enforcer **CIRCUIT OPEN**（stagnation/max）可见 — 诚实「不再 re-yank」信号
+- **feat(session-resume)** Spawn follow-through pending / childFinished / role 跨会话可见
+- **feat** `todoEnforcerCircuitStatus` · `getSpawnFollowThroughState` 导出
+- **fix(spawn)** `isSpawnResultRecoveredMessage` 识别 get_command_or_subagent_output / recovered results / 已整合
+- **test** resume matrices + spawn recovery ZH/EN
+
 ## [1.1.64] — 2026-07-18
 
 ### MAGI spiral — ULW max-stall circuit + researchOnly state (omo-align)
