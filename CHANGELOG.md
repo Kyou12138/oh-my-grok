@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.42] — 2026-07-17
+
+### MAGI spiral — unwrap nested toolInput (arguments/parameters)
+
+- **feat(unwrapToolInput)** flatten MCP/host bags `{ arguments|parameters|input: { path, … } }` at parse time
+- **why hard:** nested args left paths empty → workspace / Hashline / plan / shell gates all missed
+- **test** unwrap matrix + parseHookInput nested path + PreTool WORKSPACE_BOUNDARY on nested escape
+
 ## [1.1.41] — 2026-07-17
 
 ### MAGI spiral — Hashline read-prefix strip (ASCII arrow + indent)

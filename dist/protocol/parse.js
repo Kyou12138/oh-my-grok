@@ -35,11 +35,96 @@ export function readEnvConfig(workspaceRoot) {
     return loadConfig(workspaceRoot);
 }
 /**
+ * Keys that mean this object is already a usable tool-arg envelope
+ * (file edit / shell / spawn / todos) — do not dig further.
+ */
+const TOOL_ARG_KEYS = [
+    "path",
+    "file_path",
+    "filePath",
+    "target_file",
+    "targetFile",
+    "filename",
+    "file",
+    "notebook_path",
+    "notebookPath",
+    "notebook",
+    "contents",
+    "content",
+    "old_string",
+    "oldString",
+    "new_string",
+    "newString",
+    "edits",
+    "files",
+    "operations",
+    "changes",
+    "command",
+    "cmd",
+    "script",
+    "patch",
+    "diff",
+    "todos",
+    "items",
+    "todo",
+    // spawn / task
+    "subagent_type",
+    "subagentType",
+    "agent",
+    "agent_type",
+    "agentType",
+    "prompt",
+    "description",
+    // skill loaders
+    "skill",
+    "skill_name",
+    "skillName",
+];
+function looksLikeToolArgs(o) {
+    return TOOL_ARG_KEYS.some((k) => o[k] !== undefined && o[k] !== null);
+}
+/**
+ * Flatten nested MCP/host envelopes one+ levels:
+ * `{ arguments: { path, contents } }` / `{ parameters: … }` / `{ input: … }`.
+ * Without this, pathsFromToolInput sees [] → workspace/Hashline/plan gates miss.
+ * v1.1.42
+ */
+export function unwrapToolInput(toolInput) {
+    if (!toolInput || typeof toolInput !== "object" || Array.isArray(toolInput)) {
+        return toolInput ?? undefined;
+    }
+    if (looksLikeToolArgs(toolInput))
+        return toolInput;
+    for (const key of [
+        "arguments",
+        "parameters",
+        "input",
+        "args",
+        "tool_input",
+        "toolInput",
+        "payload",
+        "body",
+    ]) {
+        const inner = toolInput[key];
+        if (!inner || typeof inner !== "object" || Array.isArray(inner))
+            continue;
+        const unwrapped = unwrapToolInput(inner);
+        if (unwrapped && looksLikeToolArgs(unwrapped))
+            return unwrapped;
+    }
+    return toolInput;
+}
+/**
  * Parse Grok Build hook envelope (camelCase flatten) + legacy aliases.
  * @see xai-grok-hooks HookEventEnvelope
  */
 export function parseHookInput(event, raw) {
-    const toolInputRaw = raw.toolInput ?? raw.tool_input ?? raw.input;
+    // Prefer toolInput/tool_input; keep raw.input last (legacy; also used as nested bag).
+    const toolInputRaw = raw.toolInput ??
+        raw.tool_input ??
+        raw.toolArgs ??
+        raw.tool_args ??
+        raw.input;
     let toolInput;
     if (toolInputRaw && typeof toolInputRaw === "object" && !Array.isArray(toolInputRaw)) {
         toolInput = toolInputRaw;
@@ -51,6 +136,10 @@ export function parseHookInput(event, raw) {
         catch {
             toolInput = { raw: toolInputRaw };
         }
+    }
+    // v1.1.42: nested arguments/parameters → flat tool args for all PreTool gates
+    if (toolInput) {
+        toolInput = unwrapToolInput(toolInput) ?? toolInput;
     }
     const cwd = firstString(raw.cwd, raw.Cwd, process.cwd());
     const workspaceRoot = firstString(raw.workspaceRoot, raw.workspace_root, process.env.GROK_WORKSPACE_ROOT, cwd);

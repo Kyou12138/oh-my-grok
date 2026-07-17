@@ -4,6 +4,13 @@ export declare function coerceToolOutput(raw: Record<string, unknown>): string;
 /** Prefer workspace-aware config after we know workspaceRoot. */
 export declare function readEnvConfig(workspaceRoot?: string): EnvConfig;
 /**
+ * Flatten nested MCP/host envelopes one+ levels:
+ * `{ arguments: { path, contents } }` / `{ parameters: … }` / `{ input: … }`.
+ * Without this, pathsFromToolInput sees [] → workspace/Hashline/plan gates miss.
+ * v1.1.42
+ */
+export declare function unwrapToolInput(toolInput?: Record<string, unknown> | null): Record<string, unknown> | undefined;
+/**
  * Parse Grok Build hook envelope (camelCase flatten) + legacy aliases.
  * @see xai-grok-hooks HookEventEnvelope
  */
