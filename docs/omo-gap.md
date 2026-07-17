@@ -1,6 +1,6 @@
 # oh-my-grok capability map (vs Vanilla Grok / omo)
 
-**Date:** 2026-07-17 · **omg version:** **1.1.29**  
+**Date:** 2026-07-17 · **omg version:** **1.1.30**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 **Product peer:** omo **Codex Light** 同温层（纪律 + 状态），**不是** Ultimate 全量 OS。  
@@ -482,6 +482,14 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **isPlanMarkdownPath** | plan↔todo sync 同边界；拒 workspace 外 `.../.omg/plans/` |
 | **directory-inject** | 外部 symlink 规则文件不注入 |
 
+## Closed this spiral (v1.1.30) — ULW 开场仪式感
+
+| Item | Behavior |
+|------|----------|
+| **ulwCeremonyBanner** | 框线 + 【开场仪式 OPENING RITUAL】三步 + 禁止项 + 推巨石收束 |
+| **active/upgrade** | 续跑/Ralph 晋升同样有仪式框 |
+| **CEREMONY.md / skill** | 磁盘 + ulw-loop skill 同步仪式步骤 |
+
 ## Next spiral focus (提升)
 
 - **marketplace** + 传播资产（GIF）— 安装转化  
@@ -489,7 +497,7 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 - Hashline native edit tool（宿主能力）  
 - project-memory 仍 defer（omo #74）  
 
-**推荐**: pin **v1.1.29** · `grok plugin update`。
+**推荐**: pin **v1.1.30** · `grok plugin update`。
 
 ## Explicit non-goals
 

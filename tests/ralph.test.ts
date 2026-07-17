@@ -825,20 +825,44 @@ describe("noteUlwShell 联动 + activity 累积", () => {
 });
 
 // ─── ULW opening ceremony (omo-style) ────────────────────────────────
-describe("ulwCeremonyBanner (v1.1.27)", () => {
+describe("ulwCeremonyBanner (v1.1.27+ ritual)", () => {
   it("start banner requires ULTRAWORK MODE ENABLED opener", () => {
     const b = ulwCeremonyBanner("fix auth", "start");
     expect(b).toMatch(/ultrawork-mode/);
     expect(b).toMatch(/ULTRAWORK MODE ENABLED!/);
     expect(b).toMatch(/模式已启动/);
     expect(b).toMatch(/fix auth/);
-    expect(b).toMatch(/FIRST|first/i);
+    expect(b).toMatch(/FIRST|first|第一行/i);
+  });
+
+  it("start banner has ceremonial frame + ritual steps (v1.1.30)", () => {
+    const b = ulwCeremonyBanner("ship oauth end-to-end", "start");
+    // visual frame
+    expect(b).toMatch(/═{8,}/);
+    expect(b).toMatch(/开场仪式|OPENING RITUAL/i);
+    // ordered ritual steps
+    expect(b).toMatch(/1[.)、]/);
+    expect(b).toMatch(/2[.)、]/);
+    expect(b).toMatch(/3[.)、]/);
+    // intensity / pledge
+    expect(b).toMatch(/explore\s*→\s*implement\s*→\s*verify/i);
+    expect(b).toMatch(/禁止|Do not|不得/i);
+    expect(b).toMatch(/推巨石|boulder|maximum intensity|全力/i);
+    expect(b).toMatch(/ship oauth end-to-end/);
   });
 
   it("active banner keeps mode on without full re-bootstrap", () => {
     const b = ulwCeremonyBanner("keep going", "active");
-    expect(b).toMatch(/STILL ON|active="true"/i);
+    expect(b).toMatch(/STILL ON|active="true"|仍在运行/i);
     expect(b).toMatch(/keep going/);
+    expect(b).toMatch(/═{8,}/);
+  });
+
+  it("upgrade banner notes Ralph → ULW promotion", () => {
+    const b = ulwCeremonyBanner("finish remaining work", "upgrade");
+    expect(b).toMatch(/ULTRAWORK MODE ENABLED!/);
+    expect(b).toMatch(/Ralph|upgrade|升级/i);
+    expect(b).toMatch(/开场仪式|OPENING RITUAL/i);
   });
 
   it("startRalph writes CEREMONY.md under .omg/ulw-loop", () => {
@@ -847,7 +871,10 @@ describe("ulwCeremonyBanner (v1.1.27)", () => {
     startRalph(input0, ctx.cfg, "ship oauth", "ulw");
     const ceremony = path.join(ctx.ws, ".omg", "ulw-loop", "CEREMONY.md");
     expect(fs.existsSync(ceremony)).toBe(true);
-    expect(fs.readFileSync(ceremony, "utf8")).toMatch(/ULTRAWORK MODE ENABLED/);
+    const body = fs.readFileSync(ceremony, "utf8");
+    expect(body).toMatch(/ULTRAWORK MODE ENABLED/);
+    expect(body).toMatch(/═{8,}/);
+    expect(body).toMatch(/开场仪式|OPENING RITUAL/i);
   });
 
   it("cancelRalph removes CEREMONY.md (v1.1.28)", () => {
@@ -878,5 +905,6 @@ describe("ulwCeremonyBanner (v1.1.27)", () => {
     expect(ctxText).toMatch(/ULTRAWORK MODE ENABLED!/);
     expect(ctxText).toMatch(/ultrawork-mode/);
     expect(ctxText).toMatch(/login|fix/i);
+    expect(ctxText).toMatch(/开场仪式|OPENING RITUAL/i);
   });
 });

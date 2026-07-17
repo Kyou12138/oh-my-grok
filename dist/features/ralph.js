@@ -199,39 +199,59 @@ export function startRalph(input, cfg, task, mode) {
     }
     return state;
 }
+const CEREMONY_BAR = "══════════════════════════════════════════════════════════";
 /**
  * omo-style ULW opening ceremony (soft inject + disk file).
- * Requires first assistant reply to open with ULTRAWORK MODE ENABLED!
+ * Loud frame + ordered ritual — first assistant reply MUST open with ULTRAWORK MODE ENABLED!
  */
 export function ulwCeremonyBanner(task, kind = "start") {
     const goal = (task || "ultrawork until fully done").trim().slice(0, 400);
     if (kind === "active") {
         return [
             '<ultrawork-mode active="true">',
-            "**ULTRAWORK MODE STILL ON.**",
+            CEREMONY_BAR,
+            "  **ULTRAWORK MODE STILL ON.** · 模式仍在运行",
+            CEREMONY_BAR,
             `Goal: ${goal}`,
-            "Continue explore → implement → verify. Do not idle or claim DONE without VERIFIED.",
+            "Continue explore → implement → verify. 不得空转；未 VERIFIED 不得 DONE。",
+            "若本轮是重新接手：第一行仍须 `ULTRAWORK MODE ENABLED!` 或 `ULTRAWORK 模式已启动！`",
             "State: `.omg/ulw-loop/` · ceremony: `.omg/ulw-loop/CEREMONY.md`",
+            CEREMONY_BAR,
             "</ultrawork-mode>",
         ].join("\n");
     }
-    const title = kind === "upgrade"
-        ? "**ULTRAWORK MODE ENABLED!** (upgraded from Ralph)"
-        : "**ULTRAWORK MODE ENABLED!**";
+    const headline = kind === "upgrade"
+        ? "  **ULTRAWORK MODE ENABLED!**  ·  (Ralph → ULW 升级 / upgraded from Ralph)"
+        : "  **ULTRAWORK MODE ENABLED!**";
+    const subtitle = kind === "upgrade"
+        ? "  ⚔  oh-my-grok · ULW v3 · maximum intensity · 由 Ralph 晋升"
+        : "  ⚔  oh-my-grok · ULW v3 · maximum intensity · 全力直到完成";
     return [
         "<ultrawork-mode>",
-        title,
+        CEREMONY_BAR,
+        headline,
+        subtitle,
+        CEREMONY_BAR,
         "",
-        "Your **FIRST** assistant message in this turn MUST open with exactly one of:",
-        "  `ULTRAWORK MODE ENABLED!`",
-        "  `ULTRAWORK 模式已启动！`",
-        "Then one short line restating the goal, then begin **explore** (Read/search or task explore).",
-        "Do not reply with only ok/继续. Do not skip the opener.",
+        "【开场仪式 OPENING RITUAL — 必做，不可跳过】",
         "",
-        `Goal: ${goal}`,
-        "Phases: explore → implement → verify. DONE only after VERIFIED + evidence.",
-        "Prefer host **task** (explore / hephaestus) when useful. Logs: `.omg/ulw-loop/log/`",
+        "1. **第一行**必须整行输出下列之一（不得加前缀/后缀/代码围栏）：",
+        "     `ULTRAWORK MODE ENABLED!`",
+        "     `ULTRAWORK 模式已启动！`",
+        "2. **第二行**用一句话复述目标（见 Goal）。",
+        "3. **第三段起**立即进入 **explore**（Read / 搜索 / spawn explore）— 不得只表态。",
+        "",
+        "禁止：只回 ok / 继续 / 好的 · 跳过开场 · 空转闲聊 · 未 VERIFIED 就 DONE",
+        "",
+        `🎯 Goal: ${goal}`,
+        "Phases: explore → implement → verify",
+        "Done gate: VERIFIED + 读写/测试证据 + 全部 GOAL_DONE；未完成 todos 阻塞 DONE",
+        "Prefer host **task**（explore / hephaestus）。Logs: `.omg/ulw-loop/log/`",
         "Full reminder on disk: `.omg/ulw-loop/CEREMONY.md`",
+        "",
+        CEREMONY_BAR,
+        "  开始。推巨石。不得空转。 · Begin. Push the boulder. No idle turns.",
+        CEREMONY_BAR,
         "</ultrawork-mode>",
     ].join("\n");
 }
@@ -240,7 +260,7 @@ export function writeUlwCeremonyFile(input, cfg, task, kind = "start") {
     ensureDir(p.ulwDir);
     const file = path.join(p.ulwDir, "CEREMONY.md");
     const body = [
-        "# ULW ceremony",
+        "# ULW 开场仪式 / Opening ceremony",
         "",
         ulwCeremonyBanner(task, kind).replace(/<\/?ultrawork-mode[^>]*>/g, "").trim(),
         "",

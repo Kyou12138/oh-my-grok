@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.30] — 2026-07-17
+
+### ULW 开场仪式感 (ceremony ritual)
+
+- **feat(ulw)** `ulwCeremonyBanner` 完整开场仪式：框线 `═══`、【开场仪式 OPENING RITUAL】三步（第一行口号 → 复述目标 → 立即 explore）、禁止项、推巨石收束
+- **feat** active / upgrade 变体同样带框线与仪式语；`CEREMONY.md` 标题中英
+- **docs** `skills/ulw-loop` 开场仪式步骤；SessionStart resume 指向仪式
+- **test** ritual frame / 1-2-3 steps / upgrade / inject 断言
+- **soft** — 仍为 inject + 磁盘提醒，不硬拦 end_turn
+
 ## [1.1.29] — 2026-07-17
 
 ### MAGI spiral — path boundary + plan markdown path

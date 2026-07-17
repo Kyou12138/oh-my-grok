@@ -16,19 +16,37 @@ fix flaky tests ulw
 
 Also: `/ultrawork`, `/ulw`, bare or **mid-sentence** `ulw` / `ultrawork`.
 
-## Opening ceremony (required)
+## Opening ceremony / 开场仪式 (required)
 
-When ULW **starts** (or you re-enter an active ULW session), your **first** assistant message MUST open with:
+When ULW **starts** (or you re-enter an active ULW session), treat the first reply as a **ritual**, not a casual ack.
+
+Hook inject + disk: `.omg/ulw-loop/CEREMONY.md` (survives if inject is dropped).
+
+### Required first message shape
 
 ```text
 ULTRAWORK MODE ENABLED!
+
+Goal: <restate the task in one line>
+
+Then begin **explore** immediately (Read / search / spawn explore).
 ```
 
-or Chinese: `ULTRAWORK 模式已启动！`
+Chinese opener alternative (整行其一即可):
 
-Then one line restating the goal, then begin **explore**.  
-Do not open with only `ok` / `继续`. Disk reminder: `.omg/ulw-loop/CEREMONY.md`.
+```text
+ULTRAWORK 模式已启动！
+```
 
+### Ritual steps
+
+1. **Line 1** — exactly `ULTRAWORK MODE ENABLED!` or `ULTRAWORK 模式已启动！` (no prefix/suffix/fence)
+2. **Line 2** — one-line goal restatement
+3. **From paragraph 3** — enter **explore** with concrete tools; no pure status chatter
+
+禁止：`ok` / `继续` / `好的` · 跳过开场 · 未 VERIFIED 就 DONE
+
+Motto: **开始。推巨石。不得空转。**
 ## Phases (state machine)
 
 | Phase | You must |

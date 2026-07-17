@@ -48,7 +48,7 @@ export declare function loadRalph(input: HookInput, cfg: EnvConfig): RalphState 
 export declare function startRalph(input: HookInput, cfg: EnvConfig, task: string, mode: "ralph" | "ulw"): RalphState;
 /**
  * omo-style ULW opening ceremony (soft inject + disk file).
- * Requires first assistant reply to open with ULTRAWORK MODE ENABLED!
+ * Loud frame + ordered ritual — first assistant reply MUST open with ULTRAWORK MODE ENABLED!
  */
 export declare function ulwCeremonyBanner(task: string, kind?: "start" | "active" | "upgrade"): string;
 export declare function writeUlwCeremonyFile(input: HookInput, cfg: EnvConfig, task: string, kind?: "start" | "active" | "upgrade"): string;

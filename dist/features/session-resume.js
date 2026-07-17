@@ -13,7 +13,7 @@ export function sessionResumeSummary(input, cfg) {
                 : "";
         lines.push(`- **${ralph.mode.toUpperCase()}** active: ${ralph.task.slice(0, 120)}${ralph.task.length > 120 ? "…" : ""}`, `  iter ${ralph.iteration}/${ralph.maxIterations} phase=${ralph.phase}${goalBit}`);
         if (ralph.mode === "ulw") {
-            lines.push("  **ULTRAWORK MODE ENABLED** — open replies with `ULTRAWORK MODE ENABLED!` if restarting work; see `.omg/ulw-loop/CEREMONY.md`");
+            lines.push("  **ULTRAWORK MODE ENABLED** — 开场仪式: first line `ULTRAWORK MODE ENABLED!` / `ULTRAWORK 模式已启动！` then goal + explore; see `.omg/ulw-loop/CEREMONY.md`");
         }
     }
     const boulder = loadBoulder(input, cfg);
