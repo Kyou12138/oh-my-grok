@@ -8,20 +8,45 @@
 export function pathsFromApplyPatchText(text: string): string[] {
   if (!text?.trim()) return [];
   const out: string[] = [];
+  // Optional space before colon: "*** Update File : path" (some model outputs)
   const re =
-    /^\*\*\*\s+(?:Update|Add|Delete)\s+File:\s*(.+?)\s*$/gim;
+    /^\*\*\*\s+(?:Update|Add|Delete)\s+File\s*:\s*(.+?)\s*$/gim;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text)) !== null) {
     const p = m[1].trim().replace(/^["']|["']$/g, "");
     if (p) out.push(p);
   }
   // *** Move to: path / *** Rename to:
-  const moveRe = /^\*\*\*\s+(?:Move|Rename)\s+to:\s*(.+?)\s*$/gim;
+  const moveRe = /^\*\*\*\s+(?:Move|Rename)\s+to\s*:\s*(.+?)\s*$/gim;
   while ((m = moveRe.exec(text)) !== null) {
     const p = m[1].trim().replace(/^["']|["']$/g, "");
     if (p) out.push(p);
   }
-  return out;
+  // Unified diff fallback (diff --git a/x b/y and ---/+++ headers)
+  if (!out.length) {
+    const gitRe = /^diff --git a\/(.+?) b\/(.+?)\s*$/gim;
+    while ((m = gitRe.exec(text)) !== null) {
+      const a = m[1].trim();
+      const b = m[2].trim();
+      if (a && a !== "/dev/null") out.push(a);
+      if (b && b !== "/dev/null" && b !== a) out.push(b);
+    }
+    const plusMinus = /^(?:\+\+\+|---) [ab]\/(.+?)\s*$/gim;
+    while ((m = plusMinus.exec(text)) !== null) {
+      const p = m[1].trim();
+      if (p && p !== "/dev/null") out.push(p);
+    }
+  }
+  // de-dupe preserve order
+  const seen = new Set<string>();
+  const uniq: string[] = [];
+  for (const p of out) {
+    const key = p.replace(/\\/g, "/").toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    uniq.push(p);
+  }
+  return uniq;
 }
 
 export interface ToolContentSnippet {

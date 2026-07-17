@@ -134,12 +134,37 @@ export function hashlinePreToolDeny(input, cfg) {
     // (v1.1.6: old lower-only + search_replace underscore check missed CamelCase)
     const toolNorm = normalizeToolName(input.toolName || "");
     const paths = pathsFromToolInput(input.toolInput);
-    // MultiEdit with no resolvable paths would skip all gates — fail closed
+    // Pathless mutating tools would skip Hashline entirely — fail closed (v1.1.31).
+    // MultiEdit was covered in v1.1.22; Write/StrReplace/ApplyPatch/Delete empty path
+    // previously returned null (bypass).
     if (!paths.length) {
         if (toolNorm.includes("multiedit")) {
             return [
                 "[Hashline] MultiEdit has no file path(s).",
                 "How to fix: set edits[].path (or file_path) for every edit entry.",
+            ].join("\n");
+        }
+        if (toolNorm.includes("applypatch")) {
+            return [
+                "[Hashline] ApplyPatch has no parseable file path(s).",
+                "How to fix: include `*** Update|Add|Delete File: <path>` (or diff --git) in the patch body,",
+                "or set top-level path / file_path. Empty/malformed patch is denied.",
+            ].join("\n");
+        }
+        // Any other mutating write/edit/delete tool without a path is also deny
+        if (toolNorm.includes("write") ||
+            toolNorm.includes("strreplace") ||
+            toolNorm.includes("searchreplace") ||
+            toolNorm === "edit" ||
+            toolNorm === "editfile" ||
+            toolNorm === "create" ||
+            toolNorm === "createfile" ||
+            toolNorm.includes("delete") ||
+            toolNorm.includes("notebook")) {
+            return [
+                "[Hashline] Mutating tool has no file path.",
+                `Tool: ${input.toolName || toolNorm}`,
+                "How to fix: set path / file_path / target_file (or notebook_path) before edit.",
             ].join("\n");
         }
         return null;

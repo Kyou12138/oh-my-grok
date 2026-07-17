@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.31] — 2026-07-17
+
+### MAGI spiral — Hashline pathless fail-closed + apply_patch parse
+
+- **fix(hashline)** pathless mutating tools (Write / StrReplace / Create / Delete / ApplyPatch empty body) now **deny** — previously only MultiEdit failed closed; others returned null and skipped Hashline
+- **feat(tool-paths)** apply_patch: optional space before `File :`; unified `diff --git a/… b/…` + `---/+++` path fallback
+- **test** pathless matrix + spaced File colon + git-diff paths
+
 ## [1.1.30] — 2026-07-17
 
 ### ULW 开场仪式感 (ceremony ritual)

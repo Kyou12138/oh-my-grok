@@ -112,6 +112,25 @@ describe("pathsFromToolInput", () => {
     expect(pathsFromToolInput({ diff: patch })).toEqual(["src/a.ts", "src/b.ts"]);
   });
 
+  it("parses apply_patch with space before colon + unified diff --git (v1.1.31)", () => {
+    const spaced = "*** Update File : src/spaced.ts\n@@\n-a\n+b\n";
+    expect(pathsFromApplyPatchText(spaced)).toEqual(["src/spaced.ts"]);
+    const git = [
+      "diff --git a/src/old.ts b/src/new.ts",
+      "--- a/src/old.ts",
+      "+++ b/src/new.ts",
+      "@@ -1 +1 @@",
+      "-a",
+      "+b",
+    ].join("\n");
+    expect(pathsFromApplyPatchText(git)).toEqual(
+      expect.arrayContaining(["src/old.ts", "src/new.ts"]),
+    );
+    expect(pathsFromToolInput({ patch: git })).toEqual(
+      expect.arrayContaining(["src/old.ts", "src/new.ts"]),
+    );
+  });
+
   it("contentSnippetsFromToolInput covers MultiEdit new_string", () => {
     const sn = contentSnippetsFromToolInput({
       edits: [
@@ -305,6 +324,56 @@ describe("hashline MultiEdit paths (v1.1.22)", () => {
       c,
     );
     expect(deny).toMatch(/no file path/i);
+  });
+});
+
+describe("hashline pathless mutating fail-closed (v1.1.31)", () => {
+  it("denies ApplyPatch when body has no parseable paths", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const deny = hashlinePreToolDeny(
+      base(ws, {
+        toolName: "ApplyPatch",
+        toolInput: { patch: "*** Begin Patch\n@@ garbage only\n*** End Patch\n" },
+      }),
+      c,
+    );
+    expect(deny).toMatch(/no file path|Hashline/i);
+  });
+
+  it("denies StrReplace/Write without path (bypass was allow)", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    for (const toolName of ["StrReplace", "Write", "search_replace", "CreateFile"]) {
+      const deny = hashlinePreToolDeny(
+        base(ws, {
+          toolName,
+          toolInput: { old_string: "a", new_string: "b", contents: "x" },
+        }),
+        c,
+      );
+      expect(deny, toolName).toMatch(/no file path|Hashline/i);
+    }
+  });
+
+  it("denies Delete without path", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const deny = hashlinePreToolDeny(
+      base(ws, { toolName: "DeleteFile", toolInput: {} }),
+      c,
+    );
+    expect(deny).toMatch(/no file path|Hashline/i);
+  });
+
+  it("still allows hashline off pathless (config kill-switch)", () => {
+    const ws = tmpWorkspace();
+    const c = { ...cfg(path.join(ws, "pdata")), hashline: false };
+    const deny = hashlinePreToolDeny(
+      base(ws, { toolName: "Write", toolInput: { contents: "x" } }),
+      c,
+    );
+    expect(deny).toBeNull();
   });
 });
 
