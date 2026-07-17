@@ -378,14 +378,16 @@ export function isDoneMessage(msg?: string): boolean {
     /\b(?:not|never|without|no|cannot|can'?t|unable|impossible|refuse|refusing|missing|far\s+from|rarely|seldom|hardly|barely|scarcely|don'?t|doesn'?t|isn'?t|aren'?t|wasn'?t|weren'?t|won'?t|wouldn'?t|shouldn'?t|couldn'?t|mustn'?t|haven'?t|hasn'?t|hadn'?t|ain'?t|didn'?t)\b[^.!\n]*(?:<promise>DONE<\/promise>|<promise>done<\/promise>|RALPH_DONE|ULW_DONE)/i;
   if (NEGATED_DONE.test(msg)) return false;
   // v1.1.15: partial-done hedges (align isVerifiedMessage v1.1.14)
+  // v1.1.45: later/after/once/pending/todo/skip — deferred claims must not cancel loop
   const HEDGED_AFTER =
-    /(?:<promise>DONE<\/promise>|<promise>done<\/promise>|RALPH_DONE|ULW_DONE)[^.!\n]{0,80}\b(except|but|however|not\s+all|remaining|still|partial|incomplete|failing|failed)\b/i;
+    /(?:<promise>DONE<\/promise>|<promise>done<\/promise>|RALPH_DONE|ULW_DONE)[^.!\n]{0,80}\b(except|but|however|not\s+all|remaining|still|partial|incomplete|failing|failed|later|after|once|when|until|then|pending|todo|skip|wait|yet|soon)\b/i;
   const HEDGED_BEFORE =
-    /\b(almost|nearly|mostly|partially|roughly)\b[^.!\n]{0,40}(?:<promise>DONE<\/promise>|<promise>done<\/promise>|RALPH_DONE|ULW_DONE)/i;
+    /\b(almost|nearly|mostly|partially|roughly|will|going\s+to|gonna|plan(?:ning)?\s+to|intend(?:ing)?\s+to|should|must|need\s+to|about\s+to|pending|todo|skip(?:ping)?|wait(?:ing)?|before|later|soon)\b[^.!\n]{0,80}(?:<promise>DONE<\/promise>|<promise>done<\/promise>|RALPH_DONE|ULW_DONE)/i;
   if (HEDGED_AFTER.test(msg) || HEDGED_BEFORE.test(msg)) return false;
   // Chinese negation near marker (v1.1.28: 无法/不能/没法/难以)
+  // v1.1.45: 稍后/之后 deferred
   if (
-    /(?:未|没有|没|并非|不|无法|不能|没法|难以)[^。\n]{0,24}(?:ULW_DONE|RALPH_DONE|DONE)|(?:ULW_DONE|RALPH_DONE)[^。\n]{0,24}(?:未完成|还没|仍有)/.test(
+    /(?:未|没有|没|并非|不|无法|不能|没法|难以|稍后|待会|之后|以后|还要|尚未)[^。\n]{0,24}(?:ULW_DONE|RALPH_DONE|DONE)|(?:ULW_DONE|RALPH_DONE)[^。\n]{0,24}(?:未完成|还没|仍有|之后|以后)/.test(
       msg,
     )
   ) {

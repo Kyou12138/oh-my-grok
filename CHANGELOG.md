@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.45] — 2026-07-17
+
+### MAGI spiral — deferred DONE false-positive + shell package writes
+
+- **fix(isDoneMessage)** reject future/deferred claims (`will/pending/todo/skip … DONE`, `DONE later`, 稍后/之后) so Ralph/ULW loops are not cancelled early
+- **fix(isMutatingShellCommand)** `npm ci` / `yarn|pnpm add` / `xcopy` / `robocopy` / `patch -p`
+- **test** deferred DONE matrix; shell package/copy matrix
+
 ## [1.1.44] — 2026-07-17
 
 ### MAGI spiral — more mutating shell bypasses

@@ -202,6 +202,23 @@ describe("isDoneMessage 真值表(v0.15 否定集修复)", () => {
     expect(isDoneMessage("不能 RALPH_DONE")).toBe(false);
     expect(isDoneMessage("没法 ULW_DONE")).toBe(false);
   });
+
+  it("负例: future/deferred DONE 不得关 loop (v1.1.45)", () => {
+    expect(isDoneMessage("I will put <promise>DONE</promise> later")).toBe(
+      false,
+    );
+    expect(isDoneMessage("going to mark ULW_DONE after tests")).toBe(false);
+    expect(isDoneMessage("pending <promise>DONE</promise>")).toBe(false);
+    expect(isDoneMessage("skip ULW_DONE for now")).toBe(false);
+    expect(isDoneMessage("TODO: add <promise>DONE</promise>")).toBe(false);
+    expect(isDoneMessage("will RALPH_DONE once CI is green")).toBe(false);
+    expect(isDoneMessage("<promise>DONE</promise> later tonight")).toBe(false);
+    expect(isDoneMessage("稍后 ULW_DONE")).toBe(false);
+    expect(isDoneMessage("ULW_DONE 之后再改")).toBe(false);
+    // still accept real completion claims
+    expect(isDoneMessage("All green. <promise>DONE</promise>")).toBe(true);
+    expect(isDoneMessage("工作完成 RALPH_DONE")).toBe(true);
+  });
 });
 
 // ─── 2. parseGoalsFromTask ──────────────────────────────────────────

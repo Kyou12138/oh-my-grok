@@ -276,6 +276,15 @@ describe("agentGuardDeny", () => {
     expect(isMutatingShellCommand("git log --oneline -5")).toBe(false);
   });
 
+  it("blocks npm ci / yarn add / xcopy / robocopy / patch (v1.1.45)", () => {
+    expect(isMutatingShellCommand("npm ci")).toBe(true);
+    expect(isMutatingShellCommand("yarn add lodash")).toBe(true);
+    expect(isMutatingShellCommand("pnpm add react")).toBe(true);
+    expect(isMutatingShellCommand("xcopy /E src dest")).toBe(true);
+    expect(isMutatingShellCommand("robocopy src dest /E")).toBe(true);
+    expect(isMutatingShellCommand("patch -p1 < fix.patch")).toBe(true);
+  });
+
   it("denies oracle git clean via PreTool (v1.1.44)", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));
