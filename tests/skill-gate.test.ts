@@ -539,6 +539,30 @@ describe("isMutatingTool", () => {
     // "Write." → "write" 命中
     expect(isMutatingTool("Write.")).toBe(true);
   });
+
+  it("host aliases WriteToFile / ReplaceInFile / SaveFile (v1.1.53)", () => {
+    for (const name of [
+      "WriteToFile",
+      "write_to_file",
+      "ReplaceInFile",
+      "replace_in_file",
+      "ReplaceStringInFile",
+      "StrReplaceEditor",
+      "OverwriteFile",
+      "SaveFile",
+      "UpdateFile",
+      "PatchFile",
+      "FileEdit",
+      "CreateOrUpdateFile",
+      "InsertFile",
+      "AppendFile",
+      "RemoveFile",
+      "DeletePath",
+      "RmFile",
+    ]) {
+      expect(isMutatingTool(name), name).toBe(true);
+    }
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════

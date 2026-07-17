@@ -512,6 +512,13 @@ describe("isVerifyShellCommand 词边界 + echo 段", () => {
       "nx run-many -t lint",
       "turbo lint",
       "make lint",
+      // v1.1.53
+      "rustfmt --check",
+      "gofmt -l .",
+      "go fmt -l .",
+      "composer validate",
+      "pint --test",
+      "php-cs-fixer fix --dry-run",
     ]) {
       expect(isVerifyShellCommand(cmd), cmd).toBe(true);
     }

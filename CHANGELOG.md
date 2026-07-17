@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.53] — 2026-07-17
+
+### MAGI spiral — mutating tool aliases + path/unwrap + format shells
+
+- **feat(hard)** expand `MUTATING_TOOL_IDS` + hooks Pre/Post matchers: `WriteToFile` / `ReplaceInFile` / `SaveFile` / `UpdateFile` / `FileEdit` / `InsertFile` / `RemoveFile` …
+- **fix(tool-paths)** `filepath` / `target` / `target_path`; content `text` / `body` / `new_text` / `replacement`; apply_patch `*** Updated File:`
+- **fix(unwrapToolInput)** `data` / `params` / `request` / `toolArgs` / `function.arguments` / `call.parameters`
+- **fix(hashline)** treat new write/replace aliases as full-write / replace; empty `text` wipe gate
+- **fix(isMutatingShellCommand)** `black` / `cargo fmt` / `gofmt` / `eslint --fix` / `biome --apply` / `dotnet format` / `php-cs-fixer fix` (check-only still allowed)
+- **fix(VERIFY_SHELL_RE)** `rustfmt --check` / `gofmt -l` / `composer validate` / `pint --test`
+- **fix(idle-turn)** I'll fix it / Looks good / Gotcha / 这就改 / 先改
+- **test** aliases + paths + unwrap + format shell + idle
+
 ## [1.1.52] — 2026-07-17
 
 ### MAGI spiral — format --write / wrangler-tofu / lint-check verify / idle

@@ -142,6 +142,35 @@ describe("pathsFromToolInput", () => {
     expect(sn[0].filePath).toBe("a.ts");
     expect(sn[0].content).toMatch(/This function/);
   });
+
+  it("path/content aliases filepath/target/text/body/replacement (v1.1.53)", () => {
+    expect(pathsFromToolInput({ filepath: "a.ts" })).toEqual(["a.ts"]);
+    expect(pathsFromToolInput({ target: "b.ts" })).toEqual(["b.ts"]);
+    expect(pathsFromToolInput({ target_path: "c.ts" })).toEqual(["c.ts"]);
+    const sn = contentSnippetsFromToolInput({
+      path: "a.ts",
+      text: "hello text",
+    });
+    expect(sn).toEqual([{ filePath: "a.ts", content: "hello text" }]);
+    expect(
+      contentSnippetsFromToolInput({ path: "a.ts", body: "hello body" })[0]
+        ?.content,
+    ).toBe("hello body");
+    expect(
+      contentSnippetsFromToolInput({ path: "a.ts", replacement: "rep" })[0]
+        ?.content,
+    ).toBe("rep");
+    expect(
+      contentSnippetsFromToolInput({ path: "a.ts", new_text: "nt" })[0]
+        ?.content,
+    ).toBe("nt");
+  });
+
+  it("parses *** Updated File: past tense (v1.1.53)", () => {
+    expect(pathsFromApplyPatchText("*** Updated File: src/x.ts\n@@\n")).toEqual([
+      "src/x.ts",
+    ]);
+  });
 });
 
 describe("hashline apply_patch paths (v1.1.23)", () => {

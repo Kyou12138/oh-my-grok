@@ -172,6 +172,28 @@ describe("unwrapToolInput nested envelopes (v1.1.42)", () => {
     ).toEqual({ command: ["npm", "test"] });
   });
 
+  it("unwraps data/params/request/function.arguments (v1.1.53)", () => {
+    expect(
+      unwrapToolInput({ data: { path: "d.ts", contents: "x" } }),
+    ).toEqual({ path: "d.ts", contents: "x" });
+    expect(
+      unwrapToolInput({ params: { path: "p.ts", text: "t" } }),
+    ).toEqual({ path: "p.ts", text: "t" });
+    expect(
+      unwrapToolInput({ request: { path: "r.ts", body: "b" } }),
+    ).toEqual({ path: "r.ts", body: "b" });
+    expect(
+      unwrapToolInput({
+        function: { arguments: { path: "f.ts", contents: "z" } },
+      }),
+    ).toEqual({ path: "f.ts", contents: "z" });
+    expect(
+      unwrapToolInput({
+        call: { parameters: { path: "c.ts", content: "z" } },
+      }),
+    ).toEqual({ path: "c.ts", content: "z" });
+  });
+
   it("unwraps double nesting", () => {
     expect(
       unwrapToolInput({

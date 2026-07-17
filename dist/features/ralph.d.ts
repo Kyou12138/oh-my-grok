@@ -88,6 +88,7 @@ export declare function noteUlwWrite(input: HookInput, cfg: EnvConfig, filePath?
  * v1.1.50: node --test / mocha/ava/pest / rails / mono / static analysis
  * v1.1.51: dart/swift/nx run-many / turbo test / fmt-check / audit / bats
  * v1.1.52: terraform validate/fmt-check / shellcheck / rubocop / format:check / govulncheck
+ * v1.1.53: rustfmt --check / gofmt -l / composer validate / pint --test
  */
 export declare const VERIFY_SHELL_RE: RegExp;
 export declare function isVerifyShellCommand(command?: string): boolean;

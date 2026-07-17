@@ -20,7 +20,7 @@ export interface SkillGateState {
  * Canonical mutating tool ids after normalizeToolName ([a-z] only).
  * Keep in sync with hooks.json PreTool/PostTool write matchers — see tests/hooks-matcher.test.ts.
  */
-export declare const MUTATING_TOOL_IDS: readonly ["write", "writefile", "strreplace", "searchreplace", "editnotebook", "notebookedit", "delete", "deletefile", "edit", "editfile", "create", "createfile", "applypatch", "multiedit"];
+export declare const MUTATING_TOOL_IDS: readonly ["write", "writefile", "writetofile", "strreplace", "searchreplace", "strreplaceeditor", "replaceinfile", "replacestringinfile", "editnotebook", "notebookedit", "delete", "deletefile", "deletepath", "removefile", "rmfile", "edit", "editfile", "fileedit", "create", "createfile", "createorupdatefile", "overwritefile", "savefile", "updatefile", "patchfile", "insert", "insertfile", "append", "appendfile", "applypatch", "multiedit"];
 /** Normalize tool name for mutating / matcher checks. */
 export declare function normalizeToolName(name: string): string;
 export declare function isMutatingTool(name?: string): boolean;

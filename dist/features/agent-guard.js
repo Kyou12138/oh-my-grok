@@ -123,8 +123,20 @@ export function isMutatingShellCommand(command) {
         /\b(pre-commit|husky|lefthook|yorkie)\s+install\b/i.test(c) ||
         /\bfind\b[^|&;\n]*\s-delete\b/i.test(c) ||
         // formatters that rewrite sources (check-only paths stay allowed)
+        // v1.1.52: prettier/eslint/biome --write
+        // v1.1.53: black/isort/gofmt/cargo fmt/eslint --fix/dotnet format/…
         /\b(prettier|eslint)\b[^|&;\n]*--write\b/i.test(c) ||
-        /\bbiome\b[^|&;\n]*--write\b/i.test(c) ||
+        /\bbiome\b[^|&;\n]*(--write|--apply)\b/i.test(c) ||
+        /\beslint\b[^|&;\n]*--fix\b/i.test(c) ||
+        /\b(stylelint|ruff\s+check)\b[^|&;\n]*--fix\b/i.test(c) ||
+        (/\b(black|isort|autopep8|yapf|ruff\s+format|dart\s+format|swiftformat|scalafmt|rustfmt|gofmt|go\s+fmt|cargo\s+fmt|terraform\s+fmt|tofu\s+fmt|mix\s+format|crystal\s+tool\s+format|dotnet\s+format|php-cs-fixer\s+fix|phpcbf|pint|rector\s+process)\b/i.test(c) &&
+            !/--check|--dry-run|--verify|--lint|--test|--list|-l\b|--output=none|--set-exit-if-changed/i.test(c)) ||
+        // only mutating when -i / --format / -w rewrite flags present for some tools
+        /\b(clang-format|gsed|gawk)\b[^|&;\n]*\s(-i|--inplace|-F|--format)\b/i.test(c) ||
+        /\bktlint\b[^|&;\n]*(-F|--format)\b/i.test(c) ||
+        (/\bpython3?\s+-m\s+(black|isort)\b/i.test(c) &&
+            !/--check|--diff|--verify/i.test(c)) ||
+        (/\bpython3?\s+-m\s+ruff\s+format\b/i.test(c) && !/--check/i.test(c)) ||
         /\binstall\s+-[a-zA-Z]*D\b/i.test(c) ||
         /\bfsutil\s+file\s+createnew\b/i.test(c) ||
         /\bcertutil\b[^|&;\n]*\s(-decode|-urlcache)\b/i.test(c)) {

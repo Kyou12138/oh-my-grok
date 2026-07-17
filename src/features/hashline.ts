@@ -212,15 +212,24 @@ export function hashlinePreToolDeny(
       ].join("\n");
     }
     // Any other mutating write/edit/delete tool without a path is also deny
+    // v1.1.53: replaceinfile / updatefile / savefile / insert / append aliases
     if (
       toolNorm.includes("write") ||
       toolNorm.includes("strreplace") ||
       toolNorm.includes("searchreplace") ||
+      toolNorm.includes("replace") ||
+      toolNorm.includes("patch") ||
+      toolNorm.includes("fileedit") ||
+      toolNorm.includes("updatefile") ||
+      toolNorm.includes("overwrite") ||
+      toolNorm.includes("savefile") ||
+      toolNorm.includes("insert") ||
+      toolNorm.includes("append") ||
       toolNorm === "edit" ||
       toolNorm === "editfile" ||
-      toolNorm === "create" ||
-      toolNorm === "createfile" ||
+      toolNorm.includes("create") ||
       toolNorm.includes("delete") ||
+      toolNorm.includes("remove") ||
       toolNorm.includes("notebook")
     ) {
       return [
@@ -328,6 +337,11 @@ function hashlineDenyOneFile(
     !isNotebookTool &&
     (toolNorm.includes("strreplace") ||
       toolNorm.includes("searchreplace") ||
+      toolNorm.includes("replace") ||
+      toolNorm.includes("fileedit") ||
+      toolNorm.includes("patchfile") ||
+      toolNorm.includes("insert") ||
+      toolNorm.includes("append") ||
       toolNorm === "edit" ||
       toolNorm === "editfile" ||
       toolNorm.includes("multiedit"));
@@ -348,22 +362,30 @@ function hashlineDenyOneFile(
 
   // Write/Create with explicit empty contents on an existing file = accidental wipe
   // createfile (CreateFile) must match create — was missing in v1.1.15 wipe gate
+  // v1.1.53: write_to_file / overwrite / save / update aliases
   const isFullWrite =
     toolNorm === "write" ||
     toolNorm === "writefile" ||
+    toolNorm === "writetofile" ||
     toolNorm === "create" ||
-    toolNorm === "createfile";
+    toolNorm === "createfile" ||
+    toolNorm === "createorupdatefile" ||
+    toolNorm === "overwritefile" ||
+    toolNorm === "savefile" ||
+    toolNorm === "updatefile";
   if (isFullWrite && current) {
     const hasKey =
       input.toolInput &&
       ("contents" in input.toolInput ||
         "content" in input.toolInput ||
-        "body" in input.toolInput);
+        "body" in input.toolInput ||
+        "text" in input.toolInput);
     if (hasKey) {
       const body = String(
         input.toolInput?.contents ??
           input.toolInput?.content ??
           input.toolInput?.body ??
+          input.toolInput?.text ??
           "",
       );
       if (body.length === 0) {

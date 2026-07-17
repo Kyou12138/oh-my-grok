@@ -218,6 +218,31 @@ describe("isIdleAssistantMessage", () => {
     }
   });
 
+  it("status fluff I'll fix it / Looks good / 这就改 (v1.1.53)", () => {
+    for (const m of [
+      "I'll fix it.",
+      "I'll fix that.",
+      "I'll handle it.",
+      "I'll check.",
+      "Checking.",
+      "Looks good.",
+      "Looks fine.",
+      "Seems fine.",
+      "No problem.",
+      "Gotcha.",
+      "Works for me.",
+      "我明白了。",
+      "好嘞。",
+      "这就改。",
+      "这就修。",
+      "先改。",
+      "先修。",
+      "先看。",
+    ]) {
+      expect(isIdleAssistantMessage(m), m).toBe(true);
+    }
+  });
+
   it("emoji / ellipsis noise → idle", () => {
     expect(isIdleAssistantMessage("👍")).toBe(true);
     expect(isIdleAssistantMessage("✅")).toBe(true);

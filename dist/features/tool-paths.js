@@ -9,7 +9,8 @@ export function pathsFromApplyPatchText(text) {
         return [];
     const out = [];
     // Optional space before colon: "*** Update File : path" (some model outputs)
-    const re = /^\*\*\*\s+(?:Update|Add|Delete)\s+File\s*:\s*(.+?)\s*$/gim;
+    // v1.1.53: "Updated File:" past tense
+    const re = /^\*\*\*\s+(?:Update|Updated|Add|Delete)\s+File\s*:\s*(.+?)\s*$/gim;
     let m;
     while ((m = re.exec(text)) !== null) {
         const p = m[1].trim().replace(/^["']|["']$/g, "");
@@ -69,14 +70,27 @@ export function contentSnippetsFromToolInput(toolInput) {
     const topPath = String(toolInput.file_path ??
         toolInput.path ??
         toolInput.filePath ??
+        toolInput.filepath ??
         toolInput.target_file ??
         toolInput.targetFile ??
+        toolInput.target_path ??
+        toolInput.targetPath ??
+        toolInput.target ??
+        toolInput.filename ??
+        toolInput.file ??
         "");
+    // v1.1.53: text/body/new_text/replacement aliases used by some hosts
     const topContent = toolInput.contents ??
         toolInput.content ??
+        toolInput.body ??
+        toolInput.text ??
         toolInput.new_string ??
         toolInput.newString ??
         toolInput.new_str ??
+        toolInput.new_text ??
+        toolInput.newText ??
+        toolInput.replacement ??
+        toolInput.source ??
         toolInput.replace;
     if (typeof topContent === "string" && topContent) {
         pushSnippet(topPath, topContent);
@@ -89,12 +103,27 @@ export function contentSnippetsFromToolInput(toolInput) {
             if (!item || typeof item !== "object")
                 continue;
             const o = item;
-            const fp = String(o.file_path ?? o.path ?? o.filePath ?? o.target_file ?? o.targetFile ?? "");
+            const fp = String(o.file_path ??
+                o.path ??
+                o.filePath ??
+                o.filepath ??
+                o.target_file ??
+                o.targetFile ??
+                o.target ??
+                o.filename ??
+                o.file ??
+                "");
             const c = o.contents ??
                 o.content ??
+                o.body ??
+                o.text ??
                 o.new_string ??
                 o.newString ??
                 o.new_str ??
+                o.new_text ??
+                o.newText ??
+                o.replacement ??
+                o.source ??
                 o.replace;
             pushSnippet(fp, c);
         }
@@ -117,8 +146,12 @@ export function pathsFromToolInput(toolInput) {
     push(toolInput.file_path);
     push(toolInput.path);
     push(toolInput.filePath);
+    push(toolInput.filepath); // v1.1.53 lowercase join
     push(toolInput.target_file);
     push(toolInput.targetFile);
+    push(toolInput.target_path);
+    push(toolInput.targetPath);
+    push(toolInput.target); // some hosts use bare target
     push(toolInput.filename);
     push(toolInput.file);
     // NotebookEdit / Jupyter
@@ -136,8 +169,12 @@ export function pathsFromToolInput(toolInput) {
             push(o.file_path);
             push(o.path);
             push(o.filePath);
+            push(o.filepath);
             push(o.target_file);
             push(o.targetFile);
+            push(o.target_path);
+            push(o.targetPath);
+            push(o.target);
             push(o.filename);
             push(o.file);
         }

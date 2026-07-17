@@ -475,6 +475,36 @@ describe("agentGuardDeny", () => {
     expect(isMutatingShellCommand("terraform plan")).toBe(false);
   });
 
+  it("blocks black/cargo fmt/gofmt/eslint --fix (v1.1.53)", () => {
+    expect(isMutatingShellCommand("black .")).toBe(true);
+    expect(isMutatingShellCommand("isort .")).toBe(true);
+    expect(isMutatingShellCommand("ruff format .")).toBe(true);
+    expect(isMutatingShellCommand("cargo fmt")).toBe(true);
+    expect(isMutatingShellCommand("gofmt -w .")).toBe(true);
+    expect(isMutatingShellCommand("go fmt ./...")).toBe(true);
+    expect(isMutatingShellCommand("rustfmt src/main.rs")).toBe(true);
+    expect(isMutatingShellCommand("dart format .")).toBe(true);
+    expect(isMutatingShellCommand("eslint . --fix")).toBe(true);
+    expect(isMutatingShellCommand("npx eslint --fix .")).toBe(true);
+    expect(isMutatingShellCommand("biome check --apply .")).toBe(true);
+    expect(isMutatingShellCommand("terraform fmt")).toBe(true);
+    expect(isMutatingShellCommand("dotnet format")).toBe(true);
+    expect(isMutatingShellCommand("mix format")).toBe(true);
+    expect(isMutatingShellCommand("php-cs-fixer fix")).toBe(true);
+    expect(isMutatingShellCommand("python -m black .")).toBe(true);
+    expect(isMutatingShellCommand("clang-format -i a.c")).toBe(true);
+    // check-only still allowed
+    expect(isMutatingShellCommand("black --check .")).toBe(false);
+    expect(isMutatingShellCommand("cargo fmt --check")).toBe(false);
+    expect(isMutatingShellCommand("gofmt -l .")).toBe(false);
+    expect(isMutatingShellCommand("ruff format --check")).toBe(false);
+    expect(isMutatingShellCommand("dotnet format --verify-no-changes")).toBe(
+      false,
+    );
+    expect(isMutatingShellCommand("pint --test")).toBe(false);
+    expect(isMutatingShellCommand("python -m ruff check .")).toBe(false);
+  });
+
   it("denies oracle git clean via PreTool (v1.1.44)", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));

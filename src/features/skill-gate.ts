@@ -30,16 +30,33 @@ export interface SkillGateState {
 export const MUTATING_TOOL_IDS = [
   "write",
   "writefile",
+  "writetofile", // WriteToFile / write_to_file
   "strreplace",
   "searchreplace",
+  "strreplaceeditor",
+  "replaceinfile", // ReplaceInFile / replace_in_file
+  "replacestringinfile",
   "editnotebook",
   "notebookedit", // Grok / Claude NotebookEdit CamelCase → notebookedit
   "delete",
   "deletefile",
+  "deletepath",
+  "removefile",
+  "rmfile",
   "edit",
   "editfile",
+  "fileedit",
   "create",
   "createfile",
+  "createorupdatefile",
+  "overwritefile",
+  "savefile",
+  "updatefile",
+  "patchfile",
+  "insert",
+  "insertfile",
+  "append",
+  "appendfile",
   "applypatch",
   "multiedit",
 ] as const;

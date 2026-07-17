@@ -1,6 +1,6 @@
 # oh-my-grok capability map (vs Vanilla Grok / omo)
 
-**Date:** 2026-07-17 · **omg version:** **1.1.52**  
+**Date:** 2026-07-17 · **omg version:** **1.1.53**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 **Product peer:** omo **Codex Light** 同温层（纪律 + 状态），**不是** Ultimate 全量 OS。  
@@ -663,6 +663,17 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **VERIFY negatives** | bare `dotnet format` 不计 verify |
 | **idle-turn** | LGTM / Ship it / Sure thing / 知道了 / 试一下 / 修一下 / 别急 |
 
+## Closed this spiral (v1.1.53) — mutating aliases + path/unwrap + format shells
+
+| Item | Behavior |
+|------|----------|
+| **hard MUTATING + hooks** | WriteToFile / ReplaceInFile / SaveFile / UpdateFile / FileEdit / Insert / RemoveFile … in PreTool+PostTool matchers |
+| **tool-paths** | filepath/target/text/body/new_text/replacement; `*** Updated File:` |
+| **unwrapToolInput** | data/params/request/function.arguments/call.parameters |
+| **format shells** | black/cargo fmt/gofmt/eslint --fix/biome --apply (check-only still open) |
+| **VERIFY** | rustfmt --check / gofmt -l / composer validate / pint --test |
+| **idle** | I'll fix it / Looks good / 这就改 / 先改 |
+
 ## Next spiral focus (提升)
 
 - **marketplace** + 传播资产（GIF）— 安装转化  
@@ -670,7 +681,7 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 - Hashline native edit tool（宿主能力）  
 - project-memory 仍 defer（omo #74）  
 
-**推荐**: pin **v1.1.52** · `grok plugin update`。
+**推荐**: pin **v1.1.53** · `grok plugin update`。
 
 ## Explicit non-goals
 
