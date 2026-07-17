@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.60] — 2026-07-17
+
+### MAGI spiral — bundlers/secrets/windows svc + MCP write + path/idle/verify
+
+- **fix(isMutatingShellCommand)** bunx/npx create · npm rebuild · git gc/hash-object · awk inplace · mkfs/mount · schtasks/sc/net user · PS services · kubectl annotate/drain · oc · esbuild/vite/webpack · tsc emit · npm run release|deploy · secrets managers · maturin/hatch · lua/Rscript write
+- **fix(isMutatingTool)** MCP ids embedding write/edit/delete (`mcp__filesystem__write_file`)
+- **fix(VERIFY_SHELL_RE)** coverage · basedpyright · ty check · pants/buck2/please/earthly/dagger · mise run test · cmake --target test
+- **fix(tool-paths)** fileUri · cellPath · nested `edit.path`
+- **fix(idle)** roger that / on it / looking good / 弄好了 / 收到，继续
+- **fix(hasUlwCeremonyOpener)** `!!!` / `→` / `1.` prefixes
+- **fix(extractSpawnRole)** `agentName` / `specialist`
+- **test** matrices across shell/path/idle/verify/ceremony/spawn/MCP
+
 ## [1.1.59] — 2026-07-17
 
 ### MAGI spiral — shell/path/verify/idle/ceremony false-neg closures

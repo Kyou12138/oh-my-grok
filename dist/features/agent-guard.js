@@ -46,6 +46,10 @@ export function isMutatingShellCommand(command) {
         /\b(mv|move|cp|copy|mkdir|md|touch|chmod|chown|ln|link|mklink|setfacl|xattr)\b/i.test(c) ||
         // sed -i / perl -pi / ruby -i.bak (v1.1.52: -pi combined flag)
         /\b(sed|perl|ruby)\b[^|&;\n]*\s-[a-z]*i[a-z.]*/i.test(c) ||
+        // v1.1.60: awk/gawk inplace · ex/ed batch rewrite
+        /\b(g?awk)\b[^|&;\n]*-i\s+inplace\b/i.test(c) ||
+        /\b(ex|vim|nvim)\b[^|&;\n]*\+wq\b/i.test(c) ||
+        /\bed\s+\S+/i.test(c) ||
         // v1.1.54: yq/sd/dasel/fastmod/ast-grep -U / jscodeshift in-place rewrites
         /\byq\b[^|&;\n]*\s-i\b/i.test(c) ||
         /\b(sd|fastmod|comby)\b/i.test(c) ||
@@ -68,8 +72,8 @@ export function isMutatingShellCommand(command) {
         // v1.1.52: git lfs pull; v1.1.54: filter-repo / init
         // v1.1.58: config (not --get/--list), stash (not list/show), branch -M, update-index
         // v1.1.59: notes / sparse-checkout / update-ref / symbolic-ref / replace / lfs track|install
-        /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv|pull|submodule|worktree|switch|init|tag|update-index|notes|sparse-checkout|update-ref|symbolic-ref|replace)\b/i.test(c) ||
-        /\bgit\s+(filter-repo|filter-branch|lfs\s+(pull|track|install|migrate))\b/i.test(c) ||
+        /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv|pull|submodule|worktree|switch|init|tag|update-index|notes|sparse-checkout|update-ref|symbolic-ref|replace|gc|repack|maintenance|mktree|commit-tree)\b/i.test(c) ||
+        /\bgit\s+(filter-repo|filter-branch|lfs\s+(pull|track|install|migrate)|reflog\s+expire|interpret-trailers|hash-object|update-server-info)\b/i.test(c) ||
         (/\bgit\s+stash\b/i.test(c) && !/\bgit\s+stash\s+(list|show)\b/i.test(c)) ||
         (/\bgit\s+config\b/i.test(c) &&
             !/\bgit\s+config\s+(--get|--list|-l|--get-regexp)\b/i.test(c)) ||
@@ -82,8 +86,15 @@ export function isMutatingShellCommand(command) {
         // v1.1.58: link/pack/prune/dedupe + lifecycle scripts that often mutate
         // v1.1.59: bun add|i · yarn|pnpm dlx scaffolds · npm run db:/generate/codegen
         /\b(npm|pnpm|yarn)\s+(i|install|ci|uninstall|remove|publish|add|update|upgrade|up|create|version|link|unlink|pack|prune|dedupe|shrinkwrap)\b/i.test(c) ||
-        /\b(npm|pnpm|yarn)\s+run\s+(prepare|postinstall|prepublishOnly|db:migrate|db:push|db:seed|generate|codegen|migrate|seed)\b/i.test(c) ||
+        /\b(npm|pnpm|yarn)\s+run\s+(prepare|postinstall|prepublishOnly|db:migrate|db:push|db:seed|generate|codegen|migrate|seed|release|deploy|publish|clean|reset)\b/i.test(c) ||
+        /\b(npm|pnpm|yarn)\s+run\s+publish:[^\s]+/i.test(c) ||
+        /\b(npm|pnpm|yarn)\s+rebuild\b/i.test(c) ||
+        /\bpnpm\s+approve-builds\b/i.test(c) ||
         /\b(yarn|pnpm)\s+dlx\s+/i.test(c) ||
+        /\bbunx\s+/i.test(c) ||
+        /\bnpm\s+create\b/i.test(c) ||
+        /\b(?:pnpm|yarn)\s+create\b/i.test(c) ||
+        /\bnpx\b[^|&;\n]*\bcreate-/i.test(c) ||
         /\b(?:npx\s+)?(?:npm-check-updates|ncu)\b[^|&;\n]*\s-u\b/i.test(c) ||
         /\bbun\s+(create|link|add|remove|i|install|update|pm\s+pack)\b/i.test(c) ||
         /\b(pip3?|cargo|go|bun|deno|composer|bundle|poetry|pipenv|gem)\s+(install|update|uninstall|remove)\b/i.test(c) ||
@@ -151,7 +162,8 @@ export function isMutatingShellCommand(command) {
         /\bdocker\s+(build|push|pull|rmi|system\s+prune|save|load|start|stop|kill)\b/i.test(c) ||
         /\bdocker\s+buildx\s+(build|bake)\b/i.test(c) ||
         /\bpodman\s+(build|push|pull|start|stop)\b/i.test(c) ||
-        /\b(helm\s+(install|upgrade|uninstall|delete|rollback)|kubectl\s+(apply|create|replace|delete|patch|scale|rollout|set)|terraform\s+(apply|destroy|init|import)|pulumi\s+(up|destroy|config|stack)|tofu\s+(apply|destroy|init)|terragrunt\s+(apply|run-all)|helmfile\s+(apply|sync)|cdktf\s+deploy)\b/i.test(c) ||
+        /\b(helm\s+(install|upgrade|uninstall|delete|rollback)|kubectl\s+(apply|create|replace|delete|patch|scale|rollout|set|annotate|label|taint|cordon|drain|uncordon)|terraform\s+(apply|destroy|init|import)|pulumi\s+(up|destroy|config|stack)|tofu\s+(apply|destroy|init)|terragrunt\s+(apply|run-all)|helmfile\s+(apply|sync)|cdktf\s+deploy)\b/i.test(c) ||
+        /\boc\s+(apply|create|replace|delete|patch|scale|rollout|set|annotate|label|ex)\b/i.test(c) ||
         /\bkustomize\s+edit\b/i.test(c) ||
         // v1.1.57: skaffold/tilt/garden/argocd/flux/kind/minikube/k3d cluster mutators
         /\b(skaffold\s+(run|deploy|dev|delete)|tilt\s+up|garden\s+deploy|argocd\s+app\s+(sync|create)|flux\s+bootstrap|istioctl\s+install|linkerd\s+install)\b/i.test(c) ||
@@ -164,7 +176,6 @@ export function isMutatingShellCommand(command) {
         /\baz\s+(webapp\s+up|group\s+create|aks\s+create|containerapp\s+up)\b/i.test(c) ||
         /\b(heroku\s+(create|config:set|container:push)|fly\s+(secrets\s+set|apps\s+create)|railway\s+variables\s+set)\b/i.test(c) ||
         /\bamplify\s+push\b/i.test(c) ||
-        /\bnpx\s+create-/i.test(c) ||
         /\bnpx\s+(husky|msw)\s+init\b/i.test(c) ||
         // v1.1.59: vercel --prod (no deploy verb)
         /\b(vercel|netlify|firebase|fly|flyctl|wrangler)\s+deploy\b/i.test(c) ||
@@ -202,7 +213,7 @@ export function isMutatingShellCommand(command) {
         // scaffolds / codegen (v1.1.54)
         /\b(?:nx\s+(g|generate)|ng\s+(g|generate)|nest\s+g)\b/i.test(c) ||
         /\b(expo\s+prebuild|eas\s+(build|submit)|adb\s+install)\b/i.test(c) ||
-        /\b(psql\s+-f|pg_restore|mongorestore|mongoimport)\b/i.test(c) ||
+        /\b(psql\s+-f|pg_restore|mongorestore|mongoimport|mongoexport)\b/i.test(c) ||
         // stdin redirect into db CLIs (v1.1.59)
         /\b(mysql|sqlite3|psql|mongo)\b[^|&;\n]*</i.test(c) ||
         /\baws\s+s3\s+(cp|sync|mv|rm)\b/i.test(c) ||
@@ -211,8 +222,12 @@ export function isMutatingShellCommand(command) {
         /\bsimple-git-hooks\b/i.test(c) ||
         /\b(pm2\s+(start|stop|delete|restart)|systemctl(?:\s+--user)?\s+(start|stop|restart|enable|disable)|brew\s+services\s+(start|stop)|launchctl\s+(load|unload|bootstrap))\b/i.test(c) ||
         // v1.1.59: gh workflow enable|disable · run delete · extension install · crontab/at
+        // v1.1.60: Windows services / schtasks / net user · disk format tools
         /\bgh\s+(secret\s+set|variable\s+set|workflow\s+(run|enable|disable)|run\s+(cancel|rerun|delete)|extension\s+install|pr\s+(create|merge|close|edit|comment|checkout)|issue\s+(create|close|edit|comment)|release\s+(create|delete|upload)|repo\s+(create|delete|edit|fork|sync)|gist\s+(create|delete|edit)|api\s+-X\s+(POST|PUT|PATCH|DELETE)|api\b[^|&;\n]*dispatches)\b/i.test(c) ||
         /\b(crontab\s+-e|crontab\s+-\s|at\s+now|batch\b)/i.test(c) ||
+        /\b(schtasks\s+\/(?:Create|Delete|Change)|sc\s+(create|delete|config|start|stop)|net\s+(user|localgroup)\b)/i.test(c) ||
+        /\b(New-Service|Remove-Service|Start-Service|Stop-Service|Set-Service|New-ScheduledTask|Unregister-ScheduledTask|New-LocalUser|Remove-LocalUser|Add-LocalGroupMember|Enable-WindowsOptionalFeature|Disable-WindowsOptionalFeature|Install-WindowsFeature|Uninstall-WindowsFeature|Add-AppxPackage|Remove-AppxPackage)\b/i.test(c) ||
+        /\b(mkfs(?:\.\w+)?|wipefs|blkdiscard|cryptsetup|parted|fdisk|losetup|mount|umount)\b/i.test(c) ||
         /\bcomposer\s+dump-?autoload\b/i.test(c) ||
         /\bdotnet\s+(publish|pack|nuget\s+push)\b/i.test(c) ||
         /\b(goreleaser|changeset)\s+(release|publish)\b/i.test(c) ||
@@ -223,16 +238,28 @@ export function isMutatingShellCommand(command) {
         /\b(nix\s+profile\s+install|home-manager\s+switch|direnv\s+allow)\b/i.test(c) ||
         /\bpre-commit\s+autoupdate\b/i.test(c) ||
         /\b(rclone\s+(move|delete|purge)|aws\s+s3\s+(mb|rb)|aws\s+s3api\s+(put-object|delete-object)|gcloud\s+storage\s+(rm|mv)|gsutil\s+(rm|mv)|az\s+storage\s+blob\s+(upload|delete)|vault\s+kv\s+put|redis-cli\s+set)\b/i.test(c) ||
+        // v1.1.60: secrets managers · redis config/shutdown · warehouse CLIs
+        /\b(vault\s+write|aws\s+secretsmanager\s+put-secret-value|gcloud\s+secrets\s+versions\s+add|az\s+keyvault\s+secret\s+set)\b/i.test(c) ||
+        /\bredis-cli\s+(config\s+set|shutdown)\b/i.test(c) ||
+        /\b(clickhouse-client|cqlsh|neo4j-admin)\b/i.test(c) ||
         /\b(psql\s+-c|mysql\s+-e|sqlite3\s+\S+\s+['\"]?(?:CREATE|INSERT|UPDATE|DELETE|DROP|\.read)|mongosh|redis-cli\s+(set|del|flushall|flushdb))\b/i.test(c) ||
         /\b(curl|wget)\b[^|&;\n]*\s(-T|--upload-file|--post-file)\b/i.test(c) ||
         /\b(kubectl\s+cp|docker\s+exec|kubectl\s+exec)\b/i.test(c) ||
         /\bfind\b[^|&;\n]*\s-delete\b/i.test(c) ||
         /\bfallocate\b/i.test(c) ||
         // secrets / env inject
-        /\b(sops\s+-d|op\s+inject|doppler\s+secrets\s+set|infisical\s+secrets\s+set|dotenvx\s+set)\b/i.test(c) ||
+        /\b(sops\s+-d|op\s+inject|doppler\s+(secrets\s+set|setup)|infisical\s+(secrets\s+set|export)|dotenvx\s+set)\b/i.test(c) ||
         /\b(code|cursor)\s+--(install|uninstall)-extension\b/i.test(c) ||
         /\b(nx\s+migrate|rush\s+(update|purge)|turbo\s+gen)\b/i.test(c) ||
         /\b(knex\s+seed:|sequelize\s+db:seed|typeorm\s+schema:sync|atlas\s+schema\s+apply)\b/i.test(c) ||
+        // v1.1.60: bundlers/emit · python package build/publish · install to prefix
+        /\b(esbuild|swc|babel)\b[^|&;\n]*(--outfile|--outdir|-d\s|build\b)/i.test(c) ||
+        /\b(webpack|vite|rollup|parcel)(?:\s|$)/i.test(c) ||
+        /\b(turbo\s+run\s+build|nx\s+build)\b/i.test(c) ||
+        (/\btsc\b/i.test(c) && !/--noEmit|--showConfig|-v\b|--version/i.test(c)) ||
+        /\b(python3?\s+(-m\s+build|setup\.py\s+(install|develop|build))|hatch\s+(build|publish)|flit\s+install|pdm\s+build|maturin\s+(develop|publish|build))\b/i.test(c) ||
+        /\binstall\s+\S+\s+\/(?:usr|opt|home)\//i.test(c) ||
+        /\bupdate-alternatives\s+--install\b/i.test(c) ||
         // formatters that rewrite sources (check-only paths stay allowed)
         // v1.1.52: prettier/eslint/biome --write
         // v1.1.53: black/isort/gofmt/cargo fmt/eslint --fix/dotnet format/…
@@ -279,6 +306,15 @@ export function isMutatingShellCommand(command) {
         return true;
     }
     if (/\bruby\b[^|&;\n]{0,40}\s-e\b/i.test(c) && /\bFile\.write\b/i.test(c)) {
+        return true;
+    }
+    // v1.1.60: lua / Rscript one-liner writes
+    if (/\blua\b[^|&;\n]{0,40}\s-e\b/i.test(c) &&
+        /\bio\.open\b[^|&;\n]*['"]w/i.test(c)) {
+        return true;
+    }
+    if (/\bRscript\b[^|&;\n]{0,40}\s-e\b/i.test(c) &&
+        /\bwriteLines\s*\(/i.test(c)) {
         return true;
     }
     return false;

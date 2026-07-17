@@ -62,6 +62,9 @@ export function extractSpawnRole(toolInput?: Record<string, unknown>): string {
       toolInput.agent ??
       toolInput.agent_type ??
       toolInput.agentType ??
+      toolInput.agentName ??
+      toolInput.agent_name ??
+      toolInput.specialist ??
       toolInput.type ??
       toolInput.role ??
       toolInput.name ??

@@ -538,6 +538,10 @@ describe("isMutatingTool", () => {
     expect(isMutatingTool("EditNotebook")).toBe(true);
     // "Write." → "write" 命中
     expect(isMutatingTool("Write.")).toBe(true);
+    // v1.1.60: MCP filesystem write tools
+    expect(isMutatingTool("mcp__filesystem__write_file")).toBe(true);
+    expect(isMutatingTool("mcp_filesystem_write_file")).toBe(true);
+    expect(isMutatingTool("mcp__filesystem__read_file")).toBe(false);
   });
 
   it("host aliases WriteToFile / ReplaceInFile / SaveFile (v1.1.53)", () => {

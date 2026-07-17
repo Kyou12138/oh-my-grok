@@ -482,6 +482,68 @@ describe("agentGuardDeny", () => {
     expect(isShellTool("Write")).toBe(false);
   });
 
+  it("blocks bunx/npx create, rebuild, bundlers, secrets, windows svc (v1.1.60)", () => {
+    expect(isMutatingShellCommand("bunx create-vite")).toBe(true);
+    expect(isMutatingShellCommand("npx --yes create-react-app app")).toBe(true);
+    expect(isMutatingShellCommand("npm create vite@latest")).toBe(true);
+    expect(isMutatingShellCommand("pnpm create vite")).toBe(true);
+    expect(isMutatingShellCommand("yarn create next-app")).toBe(true);
+    expect(isMutatingShellCommand("npm rebuild")).toBe(true);
+    expect(isMutatingShellCommand("pnpm rebuild")).toBe(true);
+    expect(isMutatingShellCommand("pnpm approve-builds")).toBe(true);
+    expect(isMutatingShellCommand("git gc --prune=now")).toBe(true);
+    expect(isMutatingShellCommand("git reflog expire --all")).toBe(true);
+    expect(isMutatingShellCommand("git hash-object -w file")).toBe(true);
+    expect(isMutatingShellCommand("awk -i inplace '{print}' f")).toBe(true);
+    expect(isMutatingShellCommand("mkfs.ext4 /dev/sdb1")).toBe(true);
+    expect(isMutatingShellCommand("mount /dev/sdb1 /mnt")).toBe(true);
+    expect(isMutatingShellCommand("schtasks /Create /TN x /TR notepad")).toBe(
+      true,
+    );
+    expect(isMutatingShellCommand("sc create x binPath= c:\\x.exe")).toBe(true);
+    expect(isMutatingShellCommand("net user bob password /add")).toBe(true);
+    expect(
+      isMutatingShellCommand("New-Service -Name x -BinaryPathName c:\\x.exe"),
+    ).toBe(true);
+    expect(isMutatingShellCommand("kubectl annotate pod x a=b")).toBe(true);
+    expect(isMutatingShellCommand("kubectl drain node --ignore-daemonsets")).toBe(
+      true,
+    );
+    expect(isMutatingShellCommand("oc apply -f x.yaml")).toBe(true);
+    expect(isMutatingShellCommand("mongoexport --out a.json")).toBe(true);
+    expect(isMutatingShellCommand("redis-cli CONFIG SET requirepass x")).toBe(
+      true,
+    );
+    expect(
+      isMutatingShellCommand("esbuild src/index.ts --outfile=dist/out.js"),
+    ).toBe(true);
+    expect(isMutatingShellCommand("vite build")).toBe(true);
+    expect(isMutatingShellCommand("webpack --mode production")).toBe(true);
+    expect(isMutatingShellCommand("turbo run build")).toBe(true);
+    expect(isMutatingShellCommand("nx build app")).toBe(true);
+    expect(isMutatingShellCommand("tsc -p tsconfig.json")).toBe(true);
+    expect(isMutatingShellCommand("tsc --noEmit")).toBe(false);
+    expect(isMutatingShellCommand("npm run release")).toBe(true);
+    expect(isMutatingShellCommand("npm run deploy")).toBe(true);
+    expect(isMutatingShellCommand("npm run publish:lib")).toBe(true);
+    expect(
+      isMutatingShellCommand(
+        "aws secretsmanager put-secret-value --secret-id x --secret-string y",
+      ),
+    ).toBe(true);
+    expect(isMutatingShellCommand("vault write secret/x a=b")).toBe(true);
+    expect(isMutatingShellCommand("python setup.py install")).toBe(true);
+    expect(isMutatingShellCommand("maturin publish")).toBe(true);
+    expect(
+      isMutatingShellCommand("lua -e \"io.open('a','w'):write('b')\""),
+    ).toBe(true);
+    expect(isMutatingShellCommand("Rscript -e \"writeLines('b','a')\"")).toBe(
+      true,
+    );
+    expect(isMutatingShellCommand("git status")).toBe(false);
+    expect(isMutatingShellCommand("npm test")).toBe(false);
+  });
+
   it("blocks bun add, git notes/lfs, vercel --prod, npm run db:*, codegen (v1.1.59)", () => {
     expect(isMutatingShellCommand("bun add lodash")).toBe(true);
     expect(isMutatingShellCommand("bun i")).toBe(true);
@@ -1054,6 +1116,9 @@ describe("session-role helpers", () => {
     expect(extractSpawnRole({ name: "explore" })).toBe("explore");
     expect(extractSpawnRole({ role: "oracle" })).toBe("oracle");
     expect(extractSpawnRole({ name: "explore the codebase deeply" })).toBe("");
+    // v1.1.60
+    expect(extractSpawnRole({ agentName: "momus" })).toBe("momus");
+    expect(extractSpawnRole({ specialist: "oracle" })).toBe("oracle");
     expect(extractSpawnRole({})).toBe("");
     expect(extractSpawnRole(undefined)).toBe("");
   });

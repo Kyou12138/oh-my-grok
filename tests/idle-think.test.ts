@@ -174,6 +174,27 @@ describe("isIdleAssistantMessage", () => {
     }
   });
 
+  it("status fluff roger/on it/弄好了 (v1.1.60)", () => {
+    for (const m of [
+      "Roger that.",
+      "On it!",
+      "Affirmative.",
+      "10-4",
+      "Looking good!",
+      "All clear.",
+      "Nothing to do.",
+      "No changes needed.",
+      "收到，继续",
+      "好的继续",
+      "这就办",
+      "已经好了",
+      "弄好了",
+      "改好了",
+    ]) {
+      expect(isIdleAssistantMessage(m), m).toBe(true);
+    }
+  });
+
   it("status fluff investigate / cool / 排查中 → idle (v1.1.51)", () => {
     for (const m of [
       "I'll investigate.",

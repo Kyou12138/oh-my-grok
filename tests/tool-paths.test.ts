@@ -172,6 +172,19 @@ describe("pathsFromToolInput", () => {
     expect(pathsFromToolInput({ File: "c.ts" })).toEqual(["c.ts"]);
   });
 
+  it("path aliases fileUri / nested edit / cellPath (v1.1.60)", () => {
+    expect(pathsFromToolInput({ fileUri: "file:///tmp/b.ts" })).toEqual([
+      "/tmp/b.ts",
+    ]);
+    expect(pathsFromToolInput({ file_uri: "file:///tmp/c.ts" })).toEqual([
+      "/tmp/c.ts",
+    ]);
+    expect(pathsFromToolInput({ cellPath: "n.ipynb" })).toEqual(["n.ipynb"]);
+    expect(
+      pathsFromToolInput({ edit: { path: "nested.ts", new_string: "x" } }),
+    ).toEqual(["nested.ts"]);
+  });
+
   it("content aliases new_content / code / value / data (v1.1.58)", () => {
     expect(
       contentSnippetsFromToolInput({ path: "a.ts", new_content: "nc" })[0]

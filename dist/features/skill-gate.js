@@ -60,7 +60,20 @@ export function normalizeToolName(name) {
 export function isMutatingTool(name) {
     if (!name)
         return false;
-    return MUTATING.has(normalizeToolName(name));
+    const n = normalizeToolName(name);
+    if (MUTATING.has(n))
+        return true;
+    // v1.1.60: MCP / composite tool ids that embed write|edit|delete|create|patch
+    // e.g. mcp__filesystem__write_file → mcpfilesystemwritefile
+    if (/(?:writefile|deletefile|createfile|editfile|removefile|overwritefile|applypatch|applydiff|searchreplace|strreplace|notebookedit|multiedit|replaceinfile)/.test(n)) {
+        return true;
+    }
+    if (/^mcp/.test(n) &&
+        /(?:write|delete|create|edit|append|patch|put|upload|remove|move|rename)/.test(n) &&
+        !/(?:read|list|get|search|query|fetch|stat|glob|find|view)/.test(n)) {
+        return true;
+    }
+    return false;
 }
 function parseSkillFrontmatter(content, filePath) {
     const base = path.basename(path.dirname(filePath));

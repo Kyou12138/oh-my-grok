@@ -464,6 +464,16 @@ describe("isVerifyShellCommand 词边界 + echo 段", () => {
       "cargo check",
       "turbo run check-types",
       "nx run-many -t check-types",
+      "npm run coverage",
+      "basedpyright",
+      "ty check",
+      "pants test ::",
+      "buck2 test //...",
+      "please test",
+      "earthly +test",
+      "dagger run test",
+      "mise run test",
+      "cmake --build build --target test",
       // v1.1.51 dart/swift/mono/fmt-check/audit
       "dart test",
       "dart analyze",
@@ -1199,6 +1209,10 @@ describe("ULW ceremony opener gate (v1.1.49)", () => {
     expect(hasUlwCeremonyOpener("ULTRAWORK MODE ENABLED.")).toBe(true);
     expect(hasUlwCeremonyOpener("ULTRAWORK MODE ENABLED")).toBe(true);
     expect(hasUlwCeremonyOpener("启动 ULTRAWORK 模式已启动！")).toBe(false);
+    // v1.1.60: bangs / arrow / numbered list prefix
+    expect(hasUlwCeremonyOpener("!!! ULTRAWORK MODE ENABLED!")).toBe(true);
+    expect(hasUlwCeremonyOpener("→ ULTRAWORK MODE ENABLED!")).toBe(true);
+    expect(hasUlwCeremonyOpener("1. ULTRAWORK MODE ENABLED!")).toBe(true);
   });
 
   it("first ULW stop without opener → CEREMONY INCOMPLETE + loop stays active", () => {

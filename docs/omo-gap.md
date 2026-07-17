@@ -1,6 +1,6 @@
 # oh-my-grok capability map (vs Vanilla Grok / omo)
 
-**Date:** 2026-07-17 · **omg version:** **1.1.59**  
+**Date:** 2026-07-17 · **omg version:** **1.1.60**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 **Product peer:** omo **Codex Light** 同温层（纪律 + 状态），**不是** Ultimate 全量 OS。  
@@ -733,6 +733,15 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **VERIFY** | check-types · cargo check · bun run check · turbo/nx check-types |
 | **paths / idle / ceremony** | TargetFile PascalCase · 没问题了/LGTM 变体 · opener ⚡/# 前缀 |
 
+## Closed this spiral (v1.1.60) — bundlers/secrets/MCP write + path/idle/verify
+
+| Item | Behavior |
+|------|----------|
+| **shell mutators** | bunx/create · rebuild · bundlers/tsc emit · secrets · Windows svc · kubectl drain · oc |
+| **isMutatingTool** | MCP `*write_file*` / write|edit|delete 组合 id |
+| **VERIFY / paths / idle** | basedpyright · coverage · fileUri · nested edit · roger/on it/弄好了 |
+| **spawn / ceremony** | agentName/specialist · opener `!!!`/`→`/`1.` |
+
 ## Next spiral focus (提升)
 
 - **marketplace** + 传播资产（GIF）— 安装转化  
@@ -740,7 +749,7 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 - Hashline native edit tool（宿主能力）  
 - project-memory 仍 defer（omo #74）  
 
-**推荐**: pin **v1.1.59** · `grok plugin update`。
+**推荐**: pin **v1.1.60** · `grok plugin update`。
 
 ## Explicit non-goals
 

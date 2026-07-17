@@ -198,12 +198,14 @@ export function pathsFromToolInput(
   push(toolInput.document_path);
   push(toolInput.resourcePath);
   push(toolInput.resource_path);
-  // file:// URI / URL (v1.1.55 + documentUri v1.1.58)
+  // file:// URI / URL (v1.1.55 + documentUri v1.1.58 + fileUri v1.1.60)
   for (const u of [
     toolInput.uri,
     toolInput.url,
     toolInput.documentUri,
     toolInput.document_uri,
+    toolInput.fileUri,
+    toolInput.file_uri,
   ]) {
     if (typeof u === "string" && /^file:/i.test(u)) {
       try {
@@ -229,6 +231,19 @@ export function pathsFromToolInput(
   push(toolInput.notebook_path);
   push(toolInput.notebookPath);
   push(toolInput.notebook);
+  push(toolInput.cellPath);
+  push(toolInput.cell_path);
+
+  // single nested edit object (v1.1.60)
+  if (toolInput.edit && typeof toolInput.edit === "object") {
+    const e = toolInput.edit as Record<string, unknown>;
+    push(e.file_path);
+    push(e.path);
+    push(e.filePath);
+    push(e.filepath);
+    push(e.target_file);
+    push(e.targetFile);
+  }
 
   const batches = [toolInput.edits, toolInput.files, toolInput.operations, toolInput.changes];
   for (const batch of batches) {
