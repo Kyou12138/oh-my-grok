@@ -107,6 +107,26 @@ describe("ULW shell activity → verify", () => {
     expect(loadRalph(input, c)?.phaseReached.verify).toBe(true);
   });
 
+  it("argv array command still credits ULW verify (v1.1.39)", () => {
+    const ws = tmpWorkspace();
+    const data = path.join(ws, "pdata");
+    const c = cfg(data);
+    const input = base(ws);
+    startRalph(input, c, "ship suite argv", "ulw");
+    // Host often sends command as string[] — String(arr) => "npm,test" misses VERIFY_SHELL_RE
+    const out = handlePostToolShell(
+      base(ws, {
+        event: "post-tool-shell",
+        toolName: "Bash",
+        toolInput: { command: ["npm", "test"] },
+      }),
+      c,
+    );
+    expect(loadUlwActivity(input, c).shells).toBeGreaterThanOrEqual(1);
+    expect(loadRalph(input, c)?.phaseReached.verify).toBe(true);
+    expect(JSON.stringify(out)).toMatch(/OMG_ULW_SHELL|npm test/i);
+  });
+
   it("non-test shell increments activity without auto-verify", () => {
     const ws = tmpWorkspace();
     const data = path.join(ws, "pdata");

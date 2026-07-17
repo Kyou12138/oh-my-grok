@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.39] — 2026-07-17
+
+### MAGI spiral — PostTool shell argv for ULW verify
+
+- **fix(post-tool-shell)** reuse `getShellCommand` instead of `String(command)` so `command: ["npm","test"]` credits ULW verify (was `"npm,test"` → no verify)
+- **test** argv array PostTool shell → phaseReached.verify
+
 ## [1.1.38] — 2026-07-17
 
 ### MAGI spiral — shell argv array command join

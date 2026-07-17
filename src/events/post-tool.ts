@@ -1,4 +1,5 @@
 import type { EnvConfig, HookInput, HookOutput } from "../protocol/types.js";
+import { getShellCommand } from "../features/agent-guard.js";
 import { commentCheckerPostWarn } from "../features/comment-checker.js";
 import { collectDirectoryContext } from "../features/directory-inject.js";
 import { markDirty, runDiagCommand } from "../features/diagnostics.js";
@@ -125,14 +126,18 @@ export function handlePostToolWrite(input: HookInput, cfg: EnvConfig): HookOutpu
   return mergeContext(warn);
 }
 
+/**
+ * Shell command text for ULW / verify.
+ * v1.1.39: use getShellCommand (argv space-join) — String(["npm","test"]) was "npm,test".
+ */
 function commandFromInput(input: HookInput): string {
-  return String(
-    input.toolInput?.command ??
-      input.toolInput?.cmd ??
-      input.toolInput?.script ??
-      input.toolInput?.bash ??
-      "",
-  );
+  const via = getShellCommand(input);
+  if (via) return via;
+  // legacy alias bash only (getShellCommand does not read toolInput.bash)
+  const bash = input.toolInput?.bash;
+  if (typeof bash === "string" && bash.trim()) return bash.trim();
+  if (Array.isArray(bash)) return bash.map(String).join(" ").trim();
+  return "";
 }
 
 /** PostTool for Bash/Shell/run_terminal_command — ULW shell + verify evidence. */
