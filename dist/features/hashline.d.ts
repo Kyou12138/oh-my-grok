@@ -32,5 +32,12 @@ export declare function getCached(input: HookInput, cfg: EnvConfig, filePath: st
  * - Grok read_file: `N→body` (v1.1.10 — agents often paste tool output into old_string)
  */
 export declare function stripHashlinePrefixes(text: string): string;
+/** CRLF/CR → LF for old_string↔disk comparison (v1.1.34). */
+export declare function normalizeNewlines(text: string): string;
+/**
+ * True if needle appears in haystack, allowing LF vs CRLF mismatch.
+ * Exact match first; then newline-normalized (Windows paste false-stale fix).
+ */
+export declare function contentIncludes(haystack: string, needle: string): boolean;
 export declare function hashlinePreToolDeny(input: HookInput, cfg: EnvConfig): string | null;
 export declare function hashlineUserContext(input: HookInput, cfg: EnvConfig): string;

@@ -8,7 +8,7 @@
 
 [中文](./README.md) | **English**
 
-**Discipline harness for [Grok Build](https://x.ai) (Harness Light) + Superpowers.** · **v1.1.33**
+**Discipline harness for [Grok Build](https://x.ai) (Harness Light) + Superpowers.** · **v1.1.34**
 
 > **Hard PreTool gates + agents/skills discipline** — not full OpenCode omo.  
 > **Host truth is [docs/contract.md](./docs/contract.md)** (today only PreToolUse can hard-block tools).

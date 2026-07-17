@@ -162,6 +162,21 @@ export function stripHashlinePrefixes(text: string): string {
     .join("\n");
 }
 
+/** CRLF/CR → LF for old_string↔disk comparison (v1.1.34). */
+export function normalizeNewlines(text: string): string {
+  return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+}
+
+/**
+ * True if needle appears in haystack, allowing LF vs CRLF mismatch.
+ * Exact match first; then newline-normalized (Windows paste false-stale fix).
+ */
+export function contentIncludes(haystack: string, needle: string): boolean {
+  if (!needle) return true;
+  if (haystack.includes(needle)) return true;
+  return normalizeNewlines(haystack).includes(normalizeNewlines(needle));
+}
+
 export function hashlinePreToolDeny(
   input: HookInput,
   cfg: EnvConfig,
@@ -265,7 +280,7 @@ function hashlineDenyBatchEdits(
         ].join("\n");
       }
       const oldPlain = stripHashlinePrefixes(oldRaw);
-      if (oldPlain && !current.includes(oldPlain)) {
+      if (oldPlain && !contentIncludes(current, oldPlain)) {
         return [
           "[Hashline] MultiEdit old_string not found (stale edit).",
           `File: ${file}`,
@@ -448,7 +463,7 @@ function hashlineDenyOneFile(
     }
 
     const oldPlain = stripHashlinePrefixes(oldRaw);
-    if (current && oldPlain && !current.includes(oldPlain)) {
+    if (current && oldPlain && !contentIncludes(current, oldPlain)) {
       return [
         "[Hashline] old_string not found in current file (stale edit).",
         `File: ${file}`,

@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.34] — 2026-07-17
+
+### MAGI spiral — Hashline CRLF/LF old_string false-stale
+
+- **fix(hashline)** `contentIncludes` / `normalizeNewlines` — disk CRLF vs agent LF `old_string` no longer denied as stale (Windows false-positive PreTool deny)
+- **fix** MultiEdit batch path uses same newline-tolerant match
+- **test** StrReplace + MultiEdit CRLF matrix; true content mismatch still denied
+
 ## [1.1.33] — 2026-07-17
 
 ### MAGI spiral — OpenCode-style PostTool matcher aliases (host exact match)

@@ -22,8 +22,10 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  contentIncludes,
   getCached,
   hashlinePreToolDeny,
+  normalizeNewlines,
   recordRead,
   stripHashlinePrefixes,
 } from "../src/features/hashline.js";
@@ -231,6 +233,97 @@ describe("hashline — SearchReplace isReplace branch (v1.1.6)", () => {
       cfg,
     );
     expect(deny).toBeNull();
+  });
+});
+
+describe("hashline — CRLF vs LF old_string (v1.1.34)", () => {
+  it("normalizeNewlines + contentIncludes tolerate CRLF disk / LF needle", () => {
+    expect(normalizeNewlines("a\r\nb\r\n")).toBe("a\nb\n");
+    expect(contentIncludes("export const n = 1;\r\n", "export const n = 1;\n")).toBe(
+      true,
+    );
+    expect(contentIncludes("export const n = 1;\r\n", "export const n = 999;\n")).toBe(
+      false,
+    );
+  });
+
+  it("StrReplace allows LF old_string against CRLF file after Read", () => {
+    const ws = tmpWorkspace();
+    const fileAbs = path.join(ws, "crlf.ts");
+    fs.writeFileSync(
+      fileAbs,
+      "export const n = 1;\r\nexport const m = 2;\r\n",
+      "utf8",
+    );
+    const cfg = makeCfg();
+    recordRead(
+      makeInput(ws, { toolName: "Read", toolInput: { file_path: "crlf.ts" } }),
+      cfg,
+      "crlf.ts",
+    );
+    const deny = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "StrReplace",
+        toolInput: {
+          file_path: "crlf.ts",
+          old_string: "export const n = 1;\nexport const m = 2;\n",
+          new_string: "export const n = 3;\n",
+        },
+      }),
+      cfg,
+    );
+    expect(deny).toBeNull();
+  });
+
+  it("MultiEdit allows LF edits[].old_string against CRLF disk", () => {
+    const ws = tmpWorkspace();
+    const fileAbs = path.join(ws, "batch.ts");
+    fs.writeFileSync(fileAbs, "const a = 1;\r\nconst b = 2;\r\n", "utf8");
+    const cfg = makeCfg();
+    recordRead(
+      makeInput(ws, { toolName: "Read", toolInput: { file_path: "batch.ts" } }),
+      cfg,
+      "batch.ts",
+    );
+    const deny = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "MultiEdit",
+        toolInput: {
+          edits: [
+            {
+              path: "batch.ts",
+              old_string: "const a = 1;\n",
+              new_string: "const a = 9;\n",
+            },
+          ],
+        },
+      }),
+      cfg,
+    );
+    expect(deny).toBeNull();
+  });
+
+  it("still denies true content mismatch after newline normalize", () => {
+    const ws = tmpWorkspace();
+    fs.writeFileSync(path.join(ws, "x.ts"), "const a = 1;\r\n", "utf8");
+    const cfg = makeCfg();
+    recordRead(
+      makeInput(ws, { toolName: "Read", toolInput: { file_path: "x.ts" } }),
+      cfg,
+      "x.ts",
+    );
+    const deny = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "search_replace",
+        toolInput: {
+          file_path: "x.ts",
+          old_string: "const a = 999;\n",
+          new_string: "const a = 2;\n",
+        },
+      }),
+      cfg,
+    );
+    expect(deny).toMatch(/old_string not found|stale/i);
   });
 });
 

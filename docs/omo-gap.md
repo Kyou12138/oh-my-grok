@@ -1,6 +1,6 @@
 # oh-my-grok capability map (vs Vanilla Grok / omo)
 
-**Date:** 2026-07-17 · **omg version:** **1.1.33**  
+**Date:** 2026-07-17 · **omg version:** **1.1.34**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 **Product peer:** omo **Codex Light** 同温层（纪律 + 状态），**不是** Ultimate 全量 OS。  
@@ -514,6 +514,14 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **PostTool shell** | `bash` / `shell` — ULW shell→verify 可计活动 |
 | **host truth** | matcher 精确大小写；漏 alias = 整段 PostTool 不跑 |
 
+## Closed this spiral (v1.1.34) — Hashline CRLF/LF match
+
+| Item | Behavior |
+|------|----------|
+| **contentIncludes** | old_string↔disk 先精确再 LF 归一；CRLF 文件 + LF paste 不再假 stale |
+| **MultiEdit** | edits[].old_string 同规则 |
+| **still deny** | 真内容不一致仍 PreTool deny |
+
 ## Next spiral focus (提升)
 
 - **marketplace** + 传播资产（GIF）— 安装转化  
@@ -521,7 +529,7 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 - Hashline native edit tool（宿主能力）  
 - project-memory 仍 defer（omo #74）  
 
-**推荐**: pin **v1.1.33** · `grok plugin update`。
+**推荐**: pin **v1.1.34** · `grok plugin update`。
 
 ## Explicit non-goals
 
