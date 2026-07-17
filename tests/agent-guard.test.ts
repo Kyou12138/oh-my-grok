@@ -472,6 +472,80 @@ describe("agentGuardDeny", () => {
     expect(isMutatingShellCommand("terraform plan")).toBe(false);
   });
 
+  it("isShellTool covers run_in_terminal / execute_command / run_pty (v1.1.59)", () => {
+    expect(isShellTool("run_in_terminal")).toBe(true);
+    expect(isShellTool("RunInTerminal")).toBe(true);
+    expect(isShellTool("execute_command")).toBe(true);
+    expect(isShellTool("ExecuteCommand")).toBe(true);
+    expect(isShellTool("run_pty")).toBe(true);
+    expect(isShellTool("run_shell")).toBe(true);
+    expect(isShellTool("Write")).toBe(false);
+  });
+
+  it("blocks bun add, git notes/lfs, vercel --prod, npm run db:*, codegen (v1.1.59)", () => {
+    expect(isMutatingShellCommand("bun add lodash")).toBe(true);
+    expect(isMutatingShellCommand("bun i")).toBe(true);
+    expect(isMutatingShellCommand("bun remove lodash")).toBe(true);
+    expect(isMutatingShellCommand("git notes add -m x")).toBe(true);
+    expect(isMutatingShellCommand("git sparse-checkout set src")).toBe(true);
+    expect(isMutatingShellCommand("git update-ref refs/heads/x HEAD")).toBe(true);
+    expect(isMutatingShellCommand("git symbolic-ref HEAD refs/heads/main")).toBe(
+      true,
+    );
+    expect(isMutatingShellCommand("git replace HEAD~1 HEAD")).toBe(true);
+    expect(isMutatingShellCommand("git lfs track *.bin")).toBe(true);
+    expect(isMutatingShellCommand("git lfs install")).toBe(true);
+    expect(isMutatingShellCommand("git hooks install")).toBe(true);
+    expect(isMutatingShellCommand("shred -u f")).toBe(true);
+    expect(isMutatingShellCommand("mkfifo /tmp/p")).toBe(true);
+    expect(isMutatingShellCommand("sqlc generate")).toBe(true);
+    expect(isMutatingShellCommand("drizzle-kit migrate")).toBe(true);
+    expect(isMutatingShellCommand("mysql < schema.sql")).toBe(true);
+    expect(isMutatingShellCommand("sqlite3 db.sqlite < schema.sql")).toBe(true);
+    expect(isMutatingShellCommand("mongoimport --file a.json")).toBe(true);
+    expect(isMutatingShellCommand("podman-compose up -d")).toBe(true);
+    expect(isMutatingShellCommand("nerdctl compose up")).toBe(true);
+    expect(isMutatingShellCommand("vercel --prod")).toBe(true);
+    expect(isMutatingShellCommand("gh workflow enable x")).toBe(true);
+    expect(isMutatingShellCommand("gh workflow disable x")).toBe(true);
+    expect(isMutatingShellCommand("gh run delete 1")).toBe(true);
+    expect(isMutatingShellCommand("gh extension install x")).toBe(true);
+    expect(
+      isMutatingShellCommand("node -p \"require('fs').writeFileSync('a','b')\""),
+    ).toBe(true);
+    expect(
+      isMutatingShellCommand(
+        "python -c \"import pathlib; pathlib.Path('a').write_bytes(b'x')\"",
+      ),
+    ).toBe(true);
+    expect(isMutatingShellCommand("npm run db:migrate")).toBe(true);
+    expect(isMutatingShellCommand("npm run db:push")).toBe(true);
+    expect(isMutatingShellCommand("npm run generate")).toBe(true);
+    expect(isMutatingShellCommand("npm run codegen")).toBe(true);
+    expect(isMutatingShellCommand("yarn dlx create-next-app")).toBe(true);
+    expect(isMutatingShellCommand("pnpm dlx create-vite")).toBe(true);
+    expect(isMutatingShellCommand("sdk install java")).toBe(true);
+    expect(isMutatingShellCommand("scoop update *")).toBe(true);
+    expect(isMutatingShellCommand("apk add curl")).toBe(true);
+    expect(isMutatingShellCommand("cdk synth")).toBe(true);
+    expect(isMutatingShellCommand("serverless package")).toBe(true);
+    expect(isMutatingShellCommand("knife bootstrap x")).toBe(true);
+    expect(isMutatingShellCommand("nix-env -iA nixpkgs.hello")).toBe(true);
+    expect(isMutatingShellCommand("nix profile install nixpkgs#hello")).toBe(
+      true,
+    );
+    expect(isMutatingShellCommand("home-manager switch")).toBe(true);
+    expect(isMutatingShellCommand("direnv allow")).toBe(true);
+    expect(isMutatingShellCommand("simple-git-hooks")).toBe(true);
+    expect(isMutatingShellCommand("setfacl -m u:x:rw f")).toBe(true);
+    expect(isMutatingShellCommand("systemctl --user enable x")).toBe(true);
+    expect(isMutatingShellCommand("launchctl load x.plist")).toBe(true);
+    expect(isMutatingShellCommand("crontab -e")).toBe(true);
+    // allow reads
+    expect(isMutatingShellCommand("git status")).toBe(false);
+    expect(isMutatingShellCommand("npm test")).toBe(false);
+  });
+
   it("blocks git config/stash write, npm pack/link, Bun.write, gh issue (v1.1.58)", () => {
     expect(isMutatingShellCommand("git config user.email a@b.c")).toBe(true);
     expect(isMutatingShellCommand("git config --global core.editor vim")).toBe(

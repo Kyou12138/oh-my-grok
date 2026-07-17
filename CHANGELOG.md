@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.59] — 2026-07-17
+
+### MAGI spiral — shell/path/verify/idle/ceremony false-neg closures
+
+- **feat(hard)** `isShellTool` + hooks: `run_in_terminal` / `execute_command` / `run_pty` / `run_shell`
+- **fix(isMutatingShellCommand)** bun add|i · git notes/sparse-checkout/update-ref/lfs track · shred/mkfifo · sqlc/drizzle migrate · mysql/sqlite stdin · podman-compose/nerdctl · vercel --prod · gh workflow enable|run delete · npm run db:migrate|generate · yarn|pnpm dlx · nix/home-manager/direnv · systemctl --user · crontab · node -p write · pathlib write_bytes
+- **fix(VERIFY_SHELL_RE)** pnpm/yarn check-types · bun run check · cargo check · turbo/nx check-types
+- **fix(tool-paths)** PascalCase `TargetFile` / `FilePath` / `File`
+- **fix(idle)** 没问题了 / 可以了 / Looks good to me / Good enough / 继续吧
+- **fix(hasUlwCeremonyOpener)** leading ⚡/#/> · trailing `.` without `!`
+- **test** matrices for shell/path/verify/idle/ceremony
+
 ## [1.1.58] — 2026-07-17
 
 ### MAGI spiral — ULW 开场仪式 PreTool 硬门 + shell/path/verify 旁路

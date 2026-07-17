@@ -166,6 +166,12 @@ describe("pathsFromToolInput", () => {
     ).toBe("nt");
   });
 
+  it("path aliases TargetFile / FilePath / File PascalCase (v1.1.59)", () => {
+    expect(pathsFromToolInput({ TargetFile: "a.ts" })).toEqual(["a.ts"]);
+    expect(pathsFromToolInput({ FilePath: "b.ts" })).toEqual(["b.ts"]);
+    expect(pathsFromToolInput({ File: "c.ts" })).toEqual(["c.ts"]);
+  });
+
   it("content aliases new_content / code / value / data (v1.1.58)", () => {
     expect(
       contentSnippetsFromToolInput({ path: "a.ts", new_content: "nc" })[0]

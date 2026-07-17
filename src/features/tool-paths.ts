@@ -173,11 +173,13 @@ export function pathsFromToolInput(
   push(toolInput.file_path);
   push(toolInput.path);
   push(toolInput.filePath);
+  push(toolInput.FilePath); // v1.1.59 PascalCase host envelopes
   push(toolInput.filepath); // v1.1.53 lowercase join
   push(toolInput.file_name);
   push(toolInput.fileName);
   push(toolInput.target_file);
   push(toolInput.targetFile);
+  push(toolInput.TargetFile);
   push(toolInput.target_path);
   push(toolInput.targetPath);
   push(toolInput.target); // some hosts use bare target
@@ -191,6 +193,7 @@ export function pathsFromToolInput(
   push(toolInput.fsPath);
   push(toolInput.filename);
   push(toolInput.file);
+  push(toolInput.File);
   push(toolInput.documentPath);
   push(toolInput.document_path);
   push(toolInput.resourcePath);

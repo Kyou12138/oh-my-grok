@@ -159,6 +159,21 @@ describe("isIdleAssistantMessage", () => {
     }
   });
 
+  it("status fluff LGTM zh/en variants (v1.1.59)", () => {
+    for (const m of [
+      "没问题了。",
+      "可以了。",
+      "看起来没问题",
+      "Looks good to me",
+      "Good enough",
+      "继续吧",
+      "先这样吧",
+      "够了",
+    ]) {
+      expect(isIdleAssistantMessage(m), m).toBe(true);
+    }
+  });
+
   it("status fluff investigate / cool / 排查中 → idle (v1.1.51)", () => {
     for (const m of [
       "I'll investigate.",
