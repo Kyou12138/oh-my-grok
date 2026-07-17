@@ -199,6 +199,7 @@ export function pathsFromToolInput(
   push(toolInput.resourcePath);
   push(toolInput.resource_path);
   // file:// URI / URL (v1.1.55 + documentUri v1.1.58 + fileUri v1.1.60)
+  // v1.1.61: vscode-file://vscode-app/c:/path
   for (const u of [
     toolInput.uri,
     toolInput.url,
@@ -207,13 +208,54 @@ export function pathsFromToolInput(
     toolInput.fileUri,
     toolInput.file_uri,
   ]) {
-    if (typeof u === "string" && /^file:/i.test(u)) {
+    if (typeof u !== "string") continue;
+    if (/^file:/i.test(u)) {
       try {
         push(decodeURIComponent(u.replace(/^file:\/\//i, "").replace(/^\/([A-Za-z]:)/, "$1")));
       } catch {
         push(u.replace(/^file:\/\//i, ""));
       }
+    } else if (/^vscode-file:/i.test(u)) {
+      try {
+        const stripped = u
+          .replace(/^vscode-file:\/\/[^/]+/i, "")
+          .replace(/^\/([A-Za-z]:)/, "$1");
+        push(decodeURIComponent(stripped));
+      } catch {
+        push(u.replace(/^vscode-file:\/\/[^/]+/i, ""));
+      }
     }
+  }
+
+  // string path arrays (v1.1.61)
+  for (const key of [
+    "files",
+    "paths",
+    "filePaths",
+    "file_paths",
+    "target_files",
+    "targetFiles",
+  ] as const) {
+    const arr = toolInput[key];
+    if (!Array.isArray(arr)) continue;
+    for (const item of arr) {
+      if (typeof item === "string") push(item);
+    }
+  }
+
+  // nested envelope args/input/parameters/options (depth-1, v1.1.61)
+  for (const key of ["args", "input", "parameters", "params", "options"] as const) {
+    const nest = toolInput[key];
+    if (!nest || typeof nest !== "object" || Array.isArray(nest)) continue;
+    const n = nest as Record<string, unknown>;
+    push(n.file_path);
+    push(n.path);
+    push(n.filePath);
+    push(n.filepath);
+    push(n.target_file);
+    push(n.targetFile);
+    push(n.target);
+    push(n.file);
   }
   // rename / move pairs (v1.1.54)
   push(toolInput.from);
@@ -249,6 +291,10 @@ export function pathsFromToolInput(
   for (const batch of batches) {
     if (!Array.isArray(batch)) continue;
     for (const item of batch) {
+      if (typeof item === "string") {
+        push(item);
+        continue;
+      }
       if (!item || typeof item !== "object") continue;
       const o = item as Record<string, unknown>;
       push(o.file_path);

@@ -38,11 +38,16 @@ export function extractSpawnRole(toolInput) {
     // v1.1.57: also name / role (some hosts use these instead of subagent_type)
     const raw = String(toolInput.subagent_type ??
         toolInput.subagentType ??
+        toolInput.subagent ??
         toolInput.agent ??
         toolInput.agent_type ??
         toolInput.agentType ??
         toolInput.agentName ??
         toolInput.agent_name ??
+        toolInput.agent_role ??
+        toolInput.agentRole ??
+        toolInput.selected_agent ??
+        toolInput.selectedAgent ??
         toolInput.specialist ??
         toolInput.type ??
         toolInput.role ??

@@ -195,6 +195,28 @@ describe("isIdleAssistantMessage", () => {
     }
   });
 
+  it("status fluff sounds good / finished / 好了。 (v1.1.61)", () => {
+    for (const m of [
+      "Sounds good!",
+      "Sounds great.",
+      "That works.",
+      "That works for me.",
+      "Nice!",
+      "Finished.",
+      "Complete.",
+      "All done!",
+      "That's it.",
+      "好了。",
+      "完事了",
+      "结束了",
+      "先到这里",
+      "就到这里",
+      "如上所述",
+    ]) {
+      expect(isIdleAssistantMessage(m), m).toBe(true);
+    }
+  });
+
   it("status fluff investigate / cool / 排查中 → idle (v1.1.51)", () => {
     for (const m of [
       "I'll investigate.",

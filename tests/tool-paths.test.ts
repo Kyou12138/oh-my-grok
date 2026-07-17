@@ -185,6 +185,27 @@ describe("pathsFromToolInput", () => {
     ).toEqual(["nested.ts"]);
   });
 
+  it("path arrays + nested args + vscode-file URI (v1.1.61)", () => {
+    expect(pathsFromToolInput({ files: ["a.ts", "b.ts"] })).toEqual([
+      "a.ts",
+      "b.ts",
+    ]);
+    expect(pathsFromToolInput({ paths: ["a.ts"] })).toEqual(["a.ts"]);
+    expect(pathsFromToolInput({ filePaths: ["x.ts"] })).toEqual(["x.ts"]);
+    expect(pathsFromToolInput({ target_files: ["t.ts"] })).toEqual(["t.ts"]);
+    expect(pathsFromToolInput({ args: { path: "nested-args.ts" } })).toEqual([
+      "nested-args.ts",
+    ]);
+    expect(
+      pathsFromToolInput({ parameters: { file_path: "nested-params.ts" } }),
+    ).toEqual(["nested-params.ts"]);
+    expect(
+      pathsFromToolInput({
+        uri: "vscode-file://vscode-app/c:/work/a.ts",
+      }),
+    ).toEqual(["c:/work/a.ts"]);
+  });
+
   it("content aliases new_content / code / value / data (v1.1.58)", () => {
     expect(
       contentSnippetsFromToolInput({ path: "a.ts", new_content: "nc" })[0]

@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.61] — 2026-07-17
+
+### MAGI spiral — path arrays/nested envelopes + shell/idle/ceremony/verify
+
+- **fix(tool-paths)** string arrays `files`/`paths`/`filePaths` · nested `args|input|parameters|options` · `vscode-file://` URI
+- **fix(isMutatingShellCommand)** pnpm|yarn patch · node --run · tsx -e write · Export-Csv/setx/Stop-Process · docker commit|tag|prune · pg_dump/mongodump · make/just/task deploy · go generate · cargo generate · uv pip sync · git bisect|remote prune
+- **fix(isMutatingTool)** MCP git commit ids
+- **fix(VERIFY_SHELL_RE)** yarn coverage · composer test · ant test · sbt testOnly
+- **fix(idle)** sounds good · that works · finished/complete · 好了。/完事了/先到这里
+- **fix(hasUlwCeremonyOpener)** 🚀 prefix/suffix · 【开场】label
+- **fix(extractSpawnRole)** subagent / agent_role / selected_agent
+- **test** path/shell/idle/ceremony/verify/spawn matrices
+
 ## [1.1.60] — 2026-07-17
 
 ### MAGI spiral — bundlers/secrets/windows svc + MCP write + path/idle/verify

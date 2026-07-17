@@ -482,6 +482,37 @@ describe("agentGuardDeny", () => {
     expect(isShellTool("Write")).toBe(false);
   });
 
+  it("blocks pnpm patch, tsx -e write, docker commit, make deploy (v1.1.61)", () => {
+    expect(isMutatingShellCommand("pnpm patch lodash")).toBe(true);
+    expect(isMutatingShellCommand("pnpm patch-commit /tmp/x")).toBe(true);
+    expect(isMutatingShellCommand("yarn patch lodash")).toBe(true);
+    expect(isMutatingShellCommand("node --run build")).toBe(true);
+    expect(
+      isMutatingShellCommand(
+        "tsx -e \"import fs from 'fs'; fs.writeFileSync('a','b')\"",
+      ),
+    ).toBe(true);
+    expect(isMutatingShellCommand("Export-Csv a.csv")).toBe(true);
+    expect(isMutatingShellCommand("setx FOO bar")).toBe(true);
+    expect(isMutatingShellCommand("Stop-Process -Name x -Force")).toBe(true);
+    expect(isMutatingShellCommand("docker commit c img")).toBe(true);
+    expect(isMutatingShellCommand("docker tag a b")).toBe(true);
+    expect(isMutatingShellCommand("docker image prune -af")).toBe(true);
+    expect(isMutatingShellCommand("pg_dump db -f dump.sql")).toBe(true);
+    expect(isMutatingShellCommand("mysqldump db -r dump.sql")).toBe(true);
+    expect(isMutatingShellCommand("mongodump --out ./dump")).toBe(true);
+    expect(isMutatingShellCommand("redis-cli --rdb dump.rdb")).toBe(true);
+    expect(isMutatingShellCommand("make deploy")).toBe(true);
+    expect(isMutatingShellCommand("just release")).toBe(true);
+    expect(isMutatingShellCommand("task deploy")).toBe(true);
+    expect(isMutatingShellCommand("go generate ./...")).toBe(true);
+    expect(isMutatingShellCommand("cargo generate --git x")).toBe(true);
+    expect(isMutatingShellCommand("uv pip sync requirements.txt")).toBe(true);
+    expect(isMutatingShellCommand("git bisect reset")).toBe(true);
+    expect(isMutatingShellCommand("git remote prune origin")).toBe(true);
+    expect(isMutatingShellCommand("git status")).toBe(false);
+  });
+
   it("blocks bunx/npx create, rebuild, bundlers, secrets, windows svc (v1.1.60)", () => {
     expect(isMutatingShellCommand("bunx create-vite")).toBe(true);
     expect(isMutatingShellCommand("npx --yes create-react-app app")).toBe(true);
@@ -1119,6 +1150,10 @@ describe("session-role helpers", () => {
     // v1.1.60
     expect(extractSpawnRole({ agentName: "momus" })).toBe("momus");
     expect(extractSpawnRole({ specialist: "oracle" })).toBe("oracle");
+    // v1.1.61
+    expect(extractSpawnRole({ subagent: "hephaestus" })).toBe("hephaestus");
+    expect(extractSpawnRole({ agent_role: "metis" })).toBe("metis");
+    expect(extractSpawnRole({ selected_agent: "momus" })).toBe("momus");
     expect(extractSpawnRole({})).toBe("");
     expect(extractSpawnRole(undefined)).toBe("");
   });

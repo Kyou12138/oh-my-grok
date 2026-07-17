@@ -474,6 +474,10 @@ describe("isVerifyShellCommand 词边界 + echo 段", () => {
       "dagger run test",
       "mise run test",
       "cmake --build build --target test",
+      "yarn coverage",
+      "composer test",
+      "ant test",
+      "sbt testOnly *",
       // v1.1.51 dart/swift/mono/fmt-check/audit
       "dart test",
       "dart analyze",
@@ -1213,6 +1217,10 @@ describe("ULW ceremony opener gate (v1.1.49)", () => {
     expect(hasUlwCeremonyOpener("!!! ULTRAWORK MODE ENABLED!")).toBe(true);
     expect(hasUlwCeremonyOpener("→ ULTRAWORK MODE ENABLED!")).toBe(true);
     expect(hasUlwCeremonyOpener("1. ULTRAWORK MODE ENABLED!")).toBe(true);
+    // v1.1.61: rocket / 【开场】 / trailing emoji
+    expect(hasUlwCeremonyOpener("🚀 ULTRAWORK MODE ENABLED!")).toBe(true);
+    expect(hasUlwCeremonyOpener("【开场】ULTRAWORK MODE ENABLED!")).toBe(true);
+    expect(hasUlwCeremonyOpener("ULTRAWORK MODE ENABLED! 🚀")).toBe(true);
   });
 
   it("first ULW stop without opener → CEREMONY INCOMPLETE + loop stays active", () => {

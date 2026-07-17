@@ -542,6 +542,9 @@ describe("isMutatingTool", () => {
     expect(isMutatingTool("mcp__filesystem__write_file")).toBe(true);
     expect(isMutatingTool("mcp_filesystem_write_file")).toBe(true);
     expect(isMutatingTool("mcp__filesystem__read_file")).toBe(false);
+    // v1.1.61: MCP git commit
+    expect(isMutatingTool("mcp__git__git_commit")).toBe(true);
+    expect(isMutatingTool("mcp__git__commit")).toBe(true);
   });
 
   it("host aliases WriteToFile / ReplaceInFile / SaveFile (v1.1.53)", () => {

@@ -1,6 +1,6 @@
 {
   "name": "oh-my-grok",
-  "version": "1.1.60",
+  "version": "1.1.61",
   "description": "omo-style harness for Grok Build (source-aligned): PreTool gates, SubagentStart/End, Hashline, ULW",
   "author": {
     "name": "Kyou12138",

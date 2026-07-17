@@ -91,13 +91,15 @@ export function isMutatingTool(name?: string): boolean {
   }
   if (
     /^mcp/.test(n) &&
-    /(?:write|delete|create|edit|append|patch|put|upload|remove|move|rename)/.test(
+    /(?:write|delete|create|edit|append|patch|put|upload|remove|move|rename|commit|push|addobservations|createentities)/.test(
       n,
     ) &&
     !/(?:read|list|get|search|query|fetch|stat|glob|find|view)/.test(n)
   ) {
     return true;
   }
+  // bare mcp git commit ids (mcpgitgitcommit / mcpgitcommit)
+  if (/^mcp.*git.*commit/.test(n)) return true;
   return false;
 }
 

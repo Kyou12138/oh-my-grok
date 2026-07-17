@@ -65,19 +65,21 @@ export function isMutatingShellCommand(command) {
         /\b(icacls|takeown|attrib|defaults\s+write)\b/i.test(c) ||
         // v1.1.58: -File scripts; ni alias
         /\b(powershell|pwsh)\b[^|&;\n]*\s-(?:EncodedCommand|enc|File|f)\b/i.test(c) ||
-        /\b(Set-Content|Add-Content|Out-File|New-Item|Remove-Item|Move-Item|Copy-Item|Rename-Item|Expand-Archive|Compress-Archive|Start-BitsTransfer|Tee-Object)\b/i.test(c) ||
+        /\b(Set-Content|Add-Content|Out-File|New-Item|Remove-Item|Move-Item|Copy-Item|Rename-Item|Expand-Archive|Compress-Archive|Start-BitsTransfer|Tee-Object|Export-Csv|Start-Process|Stop-Process)\b/i.test(c) ||
         /\bni\s+(?:-ItemType\s+\S+\s+)?["']?[^|&;\s]+/i.test(c) ||
+        /\bsetx\s+\S+/i.test(c) ||
         // v1.1.44: clean/restore rewrite tree; rm/mv already hit bare \brm\b but keep explicit
         // v1.1.50: pull/submodule/worktree; v1.1.51: switch/stash mutators / branch -D / remote set
         // v1.1.52: git lfs pull; v1.1.54: filter-repo / init
         // v1.1.58: config (not --get/--list), stash (not list/show), branch -M, update-index
         // v1.1.59: notes / sparse-checkout / update-ref / symbolic-ref / replace / lfs track|install
-        /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv|pull|submodule|worktree|switch|init|tag|update-index|notes|sparse-checkout|update-ref|symbolic-ref|replace|gc|repack|maintenance|mktree|commit-tree)\b/i.test(c) ||
+        // v1.1.61: bisect state machine
+        /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv|pull|submodule|worktree|switch|init|tag|update-index|notes|sparse-checkout|update-ref|symbolic-ref|replace|gc|repack|maintenance|mktree|commit-tree|bisect)\b/i.test(c) ||
         /\bgit\s+(filter-repo|filter-branch|lfs\s+(pull|track|install|migrate)|reflog\s+expire|interpret-trailers|hash-object|update-server-info)\b/i.test(c) ||
         (/\bgit\s+stash\b/i.test(c) && !/\bgit\s+stash\s+(list|show)\b/i.test(c)) ||
         (/\bgit\s+config\b/i.test(c) &&
             !/\bgit\s+config\s+(--get|--list|-l|--get-regexp)\b/i.test(c)) ||
-        /\bgit\s+remote\s+(add|set-url|remove|rm)\b/i.test(c) ||
+        /\bgit\s+remote\s+(add|set-url|remove|rm|prune)\b/i.test(c) ||
         /\bgit\s+branch\s+(-[dDmM]|--delete|--move|--copy|-c)\b/i.test(c) ||
         /\bgit\s+hooks\s+install\b/i.test(c) ||
         // v1.1.45: npm ci / yarn add; v1.1.46: npm update / yarn upgrade
@@ -85,11 +87,13 @@ export function isMutatingShellCommand(command) {
         // v1.1.55: npm version / ncu -u
         // v1.1.58: link/pack/prune/dedupe + lifecycle scripts that often mutate
         // v1.1.59: bun add|i · yarn|pnpm dlx scaffolds · npm run db:/generate/codegen
-        /\b(npm|pnpm|yarn)\s+(i|install|ci|uninstall|remove|publish|add|update|upgrade|up|create|version|link|unlink|pack|prune|dedupe|shrinkwrap)\b/i.test(c) ||
+        // v1.1.61: pnpm|yarn patch · node --run build
+        /\b(npm|pnpm|yarn)\s+(i|install|ci|uninstall|remove|publish|add|update|upgrade|up|create|version|link|unlink|pack|prune|dedupe|shrinkwrap|patch|patch-commit)\b/i.test(c) ||
         /\b(npm|pnpm|yarn)\s+run\s+(prepare|postinstall|prepublishOnly|db:migrate|db:push|db:seed|generate|codegen|migrate|seed|release|deploy|publish|clean|reset)\b/i.test(c) ||
         /\b(npm|pnpm|yarn)\s+run\s+publish:[^\s]+/i.test(c) ||
         /\b(npm|pnpm|yarn)\s+rebuild\b/i.test(c) ||
         /\bpnpm\s+approve-builds\b/i.test(c) ||
+        /\bnode\s+--run\s+\S+/i.test(c) ||
         /\b(yarn|pnpm)\s+dlx\s+/i.test(c) ||
         /\bbunx\s+/i.test(c) ||
         /\bnpm\s+create\b/i.test(c) ||
@@ -111,7 +115,7 @@ export function isMutatingShellCommand(command) {
         // conda/mamba env create|update only — not `conda env list`
         /\b(?:conda|mamba)\s+env\s+(create|update|remove|prune)\b/i.test(c) ||
         /\bpacman\s+-S\b/i.test(c) ||
-        /\buv\s+(pip\s+install|sync|add|remove|tool\s+install)\b/i.test(c) ||
+        /\buv\s+(pip\s+(install|sync)|sync|add|remove|tool\s+install)\b/i.test(c) ||
         // v1.1.57: pdm/pixi/rye/hatch env managers
         /\b(poetry|pdm|rye|pixi)\s+(add|remove|install|sync)\b/i.test(c) ||
         /\bpoetry\s+update\b/i.test(c) ||
@@ -119,9 +123,12 @@ export function isMutatingShellCommand(command) {
         /\bcorepack\s+(enable|prepare)\b/i.test(c) ||
         /\bmix\s+(deps\.get|ecto\.(migrate|setup|create|drop))\b/i.test(c) ||
         /\bpod\s+install\b/i.test(c) ||
-        /\bmake\s+(install|uninstall|clean|distclean)\b/i.test(c) ||
+        /\bmake\s+(install|uninstall|clean|distclean|deploy|release|publish)\b/i.test(c) ||
+        /\b(just|task)\s+(deploy|release|publish|install)\b/i.test(c) ||
         /\bninja\s+-t\s+clean\b/i.test(c) ||
         /\bcmake\b[^|&;\n]*--target\s+clean\b/i.test(c) ||
+        /\bgo\s+generate\b/i.test(c) ||
+        /\bcargo\s+generate\b/i.test(c) ||
         // PowerShell: Clear-Content; cmd ren/rename (not "render" — use exact tokens)
         /\bClear-Content\b/i.test(c) ||
         /\bren\s+\S+/i.test(c) ||
@@ -159,9 +166,10 @@ export function isMutatingShellCommand(command) {
         /\bdocker\s+compose\s+(up|down|build|push|pull|run|exec|restart|stop|start)\b/i.test(c) ||
         // v1.1.59: podman-compose / nerdctl compose
         /\b(podman-compose|nerdctl\s+compose)\s+(up|down|build|push|pull|run|exec|restart|stop|start)\b/i.test(c) ||
-        /\bdocker\s+(build|push|pull|rmi|system\s+prune|save|load|start|stop|kill)\b/i.test(c) ||
+        /\bdocker\s+(build|push|pull|rmi|system\s+prune|save|load|start|stop|kill|commit|tag|cp)\b/i.test(c) ||
+        /\bdocker\s+(container|image|volume|network)\s+(rm|prune)\b/i.test(c) ||
         /\bdocker\s+buildx\s+(build|bake)\b/i.test(c) ||
-        /\bpodman\s+(build|push|pull|start|stop)\b/i.test(c) ||
+        /\bpodman\s+(build|push|pull|start|stop|commit|tag|cp|run)\b/i.test(c) ||
         /\b(helm\s+(install|upgrade|uninstall|delete|rollback)|kubectl\s+(apply|create|replace|delete|patch|scale|rollout|set|annotate|label|taint|cordon|drain|uncordon)|terraform\s+(apply|destroy|init|import)|pulumi\s+(up|destroy|config|stack)|tofu\s+(apply|destroy|init)|terragrunt\s+(apply|run-all)|helmfile\s+(apply|sync)|cdktf\s+deploy)\b/i.test(c) ||
         /\boc\s+(apply|create|replace|delete|patch|scale|rollout|set|annotate|label|ex)\b/i.test(c) ||
         /\bkustomize\s+edit\b/i.test(c) ||
@@ -213,7 +221,8 @@ export function isMutatingShellCommand(command) {
         // scaffolds / codegen (v1.1.54)
         /\b(?:nx\s+(g|generate)|ng\s+(g|generate)|nest\s+g)\b/i.test(c) ||
         /\b(expo\s+prebuild|eas\s+(build|submit)|adb\s+install)\b/i.test(c) ||
-        /\b(psql\s+-f|pg_restore|mongorestore|mongoimport|mongoexport)\b/i.test(c) ||
+        /\b(psql\s+-f|pg_restore|mongorestore|mongoimport|mongoexport|pg_dump|mysqldump|mongodump)\b/i.test(c) ||
+        /\bredis-cli\s+--rdb\b/i.test(c) ||
         // stdin redirect into db CLIs (v1.1.59)
         /\b(mysql|sqlite3|psql|mongo)\b[^|&;\n]*</i.test(c) ||
         /\baws\s+s3\s+(cp|sync|mv|rm)\b/i.test(c) ||
@@ -289,10 +298,11 @@ export function isMutatingShellCommand(command) {
     // .NET / PowerShell file APIs
     if (/\[(?:System\.)?IO\.File\]::Write/i.test(c))
         return true;
-    // node/python/deno/bun/php/ruby one-liners that write files (not bare console.log/print)
+    // node/python/deno/bun/php/ruby/tsx one-liners that write files (not bare console.log/print)
     // v1.1.58: Bun.write / Deno.writeTextFile / File.write
     // v1.1.59: node -p / --print writeFileSync · pathlib write_bytes
-    if (/\b(node|nodejs|deno|bun|python3?|py)\b[^|&;\n]{0,80}\s(-e|--eval|-c|eval|-p|--print)\b/i.test(c)) {
+    // v1.1.61: tsx / ts-node -e
+    if (/\b(node|nodejs|deno|bun|python3?|py|tsx|ts-node)\b[^|&;\n]{0,80}\s(-e|--eval|-c|eval|-p|--print)\b/i.test(c)) {
         if (/\b(writeFileSync|writeFile|appendFileSync|appendFile|createWriteStream|outputFileSync|outputFile|Bun\.write|writeTextFileSync|writeTextFile|promises\.writeFile)\b/i.test(c) ||
             /\bopen\s*\([^)]*['"]w/i.test(c) ||
             /\bPath\s*\([^)]*\)\s*\.\s*write_(?:text|bytes)\b/i.test(c) ||
