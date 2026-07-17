@@ -8,7 +8,7 @@
 
 **中文** | [English](./README.en.md)
 
-**Grok Build 上的纪律 harness（Harness Light）+ Superpowers。** · **v1.1.40**
+**Grok Build 上的纪律 harness（Harness Light）+ Superpowers。** · **v1.1.41**
 
 > **PreTool 硬门禁 + Agents/Skills 纪律** — 不是 OpenCode 全量 omo。  
 > **宿主真相以 [docs/contract.md](./docs/contract.md) 为准**（当前 Grok 仅 PreToolUse 能硬拦工具）。

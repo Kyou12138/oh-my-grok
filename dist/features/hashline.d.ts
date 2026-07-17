@@ -29,7 +29,7 @@ export declare function getCached(input: HookInput, cfg: EnvConfig, filePath: st
 /**
  * Strip display prefixes from old_string before disk match:
  * - Hashline anchors: `N#TAG| body`
- * - Grok read_file: `N→body` (v1.1.10 — agents often paste tool output into old_string)
+ * - Grok read_file: `N→body` / `N->body` (agents often paste tool output into old_string)
  */
 export declare function stripHashlinePrefixes(text: string): string;
 /** CRLF/CR → LF for old_string↔disk comparison (v1.1.34). */

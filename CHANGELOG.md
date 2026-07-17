@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.41] — 2026-07-17
+
+### MAGI spiral — Hashline read-prefix strip (ASCII arrow + indent)
+
+- **fix(stripHashlinePrefixes / LINE_REF)** accept leading whitespace on `N#TAG|` and read lines
+- **fix** strip ASCII `N->body` as well as unicode `N→body` (models retype tool output)
+- **test** strip matrix + search_replace with `1->` prefixes after Read
+
 ## [1.1.40] — 2026-07-17
 
 ### MAGI spiral — ULW verify shell patterns (bun/deno/yarn/make)

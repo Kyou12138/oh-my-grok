@@ -139,15 +139,23 @@ export function getCached(
   return undefined;
 }
 
-/** Expand LINE#ID refs in old_string to plain text for matching, or validate tags. */
-const LINE_REF = /^(\d+)#([A-Z0-9]{2})\|\s?(.*)$/;
-/** Grok read_file line format: LINE_NUMBER→LINE_CONTENT (not part of file bytes). */
-const GROK_READ_LINE = /^(\d+)→(.*)$/;
+/**
+ * Expand LINE#ID refs in old_string to plain text for matching, or validate tags.
+ * v1.1.41: optional leading whitespace (pasted tool output / indented blocks).
+ */
+const LINE_REF = /^\s*(\d+)#([A-Z0-9]{2})\|\s?(.*)$/;
+/**
+ * Grok / host read_file line formats (not file bytes):
+ * - `N→body` (unicode arrow, v1.1.10)
+ * - `N->body` (ASCII arrow — models often retype)
+ * Leading whitespace allowed (v1.1.41).
+ */
+const GROK_READ_LINE = /^\s*(\d+)(?:→|->)(.*)$/;
 
 /**
  * Strip display prefixes from old_string before disk match:
  * - Hashline anchors: `N#TAG| body`
- * - Grok read_file: `N→body` (v1.1.10 — agents often paste tool output into old_string)
+ * - Grok read_file: `N→body` / `N->body` (agents often paste tool output into old_string)
  */
 export function stripHashlinePrefixes(text: string): string {
   return text

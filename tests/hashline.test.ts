@@ -334,6 +334,40 @@ describe("hashline — Grok read_file N→ prefix strip (v1.1.10)", () => {
     expect(stripHashlinePrefixes("plain")).toBe("plain");
   });
 
+  it("strips ASCII -> arrow and leading whitespace (v1.1.41)", () => {
+    expect(stripHashlinePrefixes("1->hello\n2->world")).toBe("hello\nworld");
+    expect(stripHashlinePrefixes("  1→hello\n\t2#AB| body")).toBe("hello\nbody");
+    expect(stripHashlinePrefixes("  3#CD| x")).toBe("x");
+  });
+
+  it("search_replace allows old_string with ASCII -> read prefixes after Read", () => {
+    const ws = tmpWorkspace();
+    const fileAbs = path.join(ws, "main.ts");
+    fs.writeFileSync(
+      fileAbs,
+      "export function main() {\n  return 1;\n}\n",
+      "utf8",
+    );
+    const cfg = makeCfg();
+    recordRead(
+      makeInput(ws, { toolName: "read_file", toolInput: { file_path: "main.ts" } }),
+      cfg,
+      "main.ts",
+    );
+    const deny = hashlinePreToolDeny(
+      makeInput(ws, {
+        toolName: "search_replace",
+        toolInput: {
+          file_path: "main.ts",
+          old_string: "1->export function main() {\n2->  return 1;\n3->}",
+          new_string: "export function main() {\n  return 2;\n}",
+        },
+      }),
+      cfg,
+    );
+    expect(deny).toBeNull();
+  });
+
   it("search_replace allows old_string pasted from Grok read_file output", () => {
     const ws = tmpWorkspace();
     const fileAbs = path.join(ws, "main.ts");
