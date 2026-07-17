@@ -476,6 +476,45 @@ describe("isVerifyShellCommand 词边界 + echo 段", () => {
     expect(isVerifyShellCommand("ruff format .")).toBe(false);
     expect(isVerifyShellCommand("nx run-many -t build")).toBe(false);
     expect(isVerifyShellCommand("nx affected -t serve")).toBe(false);
+    expect(isVerifyShellCommand("dotnet format")).toBe(false);
+  });
+
+  it("verify 正例: terraform / shellcheck / format:check / rubocop (v1.1.52)", () => {
+    for (const cmd of [
+      "terraform validate",
+      "terraform fmt -check",
+      "tflint",
+      "tfsec",
+      "checkov -d .",
+      "npm run format:check",
+      "npm run fmt:check",
+      "shellcheck script.sh",
+      "actionlint",
+      "hadolint Dockerfile",
+      "yamllint .",
+      "rubocop",
+      "mix credo",
+      "mix format --check-formatted",
+      "govulncheck ./...",
+      "composer audit",
+      "bundle audit",
+      "typos",
+      "codespell",
+      "deno check main.ts",
+      "deno lint",
+      "swiftlint",
+      "ktlint",
+      "dprint check",
+      "opa test",
+      "conftest test",
+      "dotnet format --verify-no-changes",
+      "cargo deny check",
+      "nx run-many -t lint",
+      "turbo lint",
+      "make lint",
+    ]) {
+      expect(isVerifyShellCommand(cmd), cmd).toBe(true);
+    }
   });
 
   it("bun/deno/yarn-run/make test credit ULW verify via noteUlwShell (v1.1.40)", () => {

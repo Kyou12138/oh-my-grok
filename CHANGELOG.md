@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.52] — 2026-07-17
+
+### MAGI spiral — format --write / wrangler-tofu / lint-check verify / idle
+
+- **fix(isMutatingShellCommand)** `prettier|eslint|biome --write` · `wrangler deploy` · `tofu|terragrunt apply` · `sls|amplify` · `Expand-Archive` · `irm|iex` · `gunzip|7za x` · `psql -f|pg_restore` · `gh pr merge|checkout` · `perl -pi` · `php -r file_put_contents` · `git lfs pull` · `npx husky|msw init`
+- **fix(VERIFY_SHELL_RE)** `terraform validate|fmt -check` · `tflint|tfsec|checkov` · `npm run format:check` · `shellcheck|hadolint|actionlint` · `rubocop|mix credo` · `govulncheck|composer audit` · `deno check|lint` · `swiftlint|ktlint` · `opa|conftest test` — still reject bare `dotnet format`
+- **fix(idle-turn)** LGTM / Ship it / Sure thing / Jumping in / 知道了 / 试一下 / 修一下 / 别急
+- **test** shell + verify + idle matrices
+
 ## [1.1.51] — 2026-07-17
 
 ### MAGI spiral — more verify runners + remove/migrate/deploy shells + idle

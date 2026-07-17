@@ -428,6 +428,53 @@ describe("agentGuardDeny", () => {
     expect(isMutatingShellCommand("terraform plan")).toBe(false);
   });
 
+  it("blocks prettier --write / wrangler / tofu / archives / irm|iex (v1.1.52)", () => {
+    expect(isMutatingShellCommand("npx prettier --write .")).toBe(true);
+    expect(isMutatingShellCommand("npx biome check --write .")).toBe(true);
+    expect(isMutatingShellCommand("eslint . --write")).toBe(true);
+    expect(isMutatingShellCommand("npx husky init")).toBe(true);
+    expect(isMutatingShellCommand("npx msw init")).toBe(true);
+    expect(isMutatingShellCommand("npx prisma db pull")).toBe(true);
+    expect(isMutatingShellCommand("wrangler deploy")).toBe(true);
+    expect(isMutatingShellCommand("wrangler pages deploy")).toBe(true);
+    expect(isMutatingShellCommand("supabase db reset")).toBe(true);
+    expect(isMutatingShellCommand("tofu apply")).toBe(true);
+    expect(isMutatingShellCommand("tofu destroy")).toBe(true);
+    expect(isMutatingShellCommand("terragrunt apply")).toBe(true);
+    expect(isMutatingShellCommand("sls deploy")).toBe(true);
+    expect(isMutatingShellCommand("amplify push")).toBe(true);
+    expect(isMutatingShellCommand("helm rollback x 1")).toBe(true);
+    expect(isMutatingShellCommand("kubectl set image deploy/x c=img")).toBe(
+      true,
+    );
+    expect(isMutatingShellCommand("docker save -o x.tar img")).toBe(true);
+    expect(isMutatingShellCommand("docker load -i x.tar")).toBe(true);
+    expect(isMutatingShellCommand("podman build -t x .")).toBe(true);
+    expect(isMutatingShellCommand("rclone sync a b")).toBe(true);
+    expect(isMutatingShellCommand("Expand-Archive a.zip dest")).toBe(true);
+    expect(isMutatingShellCommand("Compress-Archive a a.zip")).toBe(true);
+    expect(isMutatingShellCommand("irm u | iex")).toBe(true);
+    expect(isMutatingShellCommand("iex (iwr u)")).toBe(true);
+    expect(isMutatingShellCommand("certutil -decode a b")).toBe(true);
+    expect(isMutatingShellCommand("gunzip a.gz")).toBe(true);
+    expect(isMutatingShellCommand("7za x a.7z")).toBe(true);
+    expect(isMutatingShellCommand("psql -f schema.sql")).toBe(true);
+    expect(isMutatingShellCommand("pg_restore -d db dump")).toBe(true);
+    expect(isMutatingShellCommand("mongorestore")).toBe(true);
+    expect(isMutatingShellCommand("gh pr merge 1")).toBe(true);
+    expect(isMutatingShellCommand("gh pr checkout 1")).toBe(true);
+    expect(isMutatingShellCommand("git lfs pull")).toBe(true);
+    expect(isMutatingShellCommand("perl -pi -e s/a/b/ f")).toBe(true);
+    expect(
+      isMutatingShellCommand("php -r \"file_put_contents('f','x');\""),
+    ).toBe(true);
+    expect(isMutatingShellCommand("fsutil file createnew f 1")).toBe(true);
+    // check-only formatters still allowed
+    expect(isMutatingShellCommand("npx prettier --check .")).toBe(false);
+    expect(isMutatingShellCommand("npx biome check .")).toBe(false);
+    expect(isMutatingShellCommand("terraform plan")).toBe(false);
+  });
+
   it("denies oracle git clean via PreTool (v1.1.44)", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));

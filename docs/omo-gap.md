@@ -1,6 +1,6 @@
 # oh-my-grok capability map (vs Vanilla Grok / omo)
 
-**Date:** 2026-07-17 · **omg version:** **1.1.51**  
+**Date:** 2026-07-17 · **omg version:** **1.1.52**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 **Product peer:** omo **Codex Light** 同温层（纪律 + 状态），**不是** Ultimate 全量 OS。  
@@ -654,6 +654,15 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **shell mutators** | pip/cargo/poetry remove · knex/sequelize/typeorm migrate · cdk/serverless · git switch/stash pop · find -delete · scoop · wget -P |
 | **idle-turn** | investigate / cool|great|noted / 排查中 / 我去查一下 / 请稍等 |
 
+## Closed this spiral (v1.1.52) — format-write / wrangler-tofu / lint verify / idle
+
+| Item | Behavior |
+|------|----------|
+| **shell mutators** | prettier/eslint/biome --write · wrangler/tofu/sls · Expand-Archive · irm\|iex · gunzip/7za · psql -f · gh pr merge · perl -pi · php file_put_contents |
+| **VERIFY_SHELL** | terraform validate/fmt-check · shellcheck/hadolint · rubocop/mix credo · format:check · govulncheck · deno check · opa/conftest |
+| **VERIFY negatives** | bare `dotnet format` 不计 verify |
+| **idle-turn** | LGTM / Ship it / Sure thing / 知道了 / 试一下 / 修一下 / 别急 |
+
 ## Next spiral focus (提升)
 
 - **marketplace** + 传播资产（GIF）— 安装转化  
@@ -661,7 +670,7 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 - Hashline native edit tool（宿主能力）  
 - project-memory 仍 defer（omo #74）  
 
-**推荐**: pin **v1.1.51** · `grok plugin update`。
+**推荐**: pin **v1.1.52** · `grok plugin update`。
 
 ## Explicit non-goals
 

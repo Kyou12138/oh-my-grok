@@ -187,6 +187,37 @@ describe("isIdleAssistantMessage", () => {
     }
   });
 
+  it("status fluff LGTM / ship it / 试一下 → idle (v1.1.52)", () => {
+    for (const m of [
+      "Sure thing.",
+      "You got it.",
+      "Can do.",
+      "On my way.",
+      "Jumping in.",
+      "Continue.",
+      "Resuming.",
+      "Moving on.",
+      "All set.",
+      "All good.",
+      "LGTM",
+      "lgtm",
+      "WIP",
+      "Ship it.",
+      "Shipping.",
+      "知道了。",
+      "懂了。",
+      "好吧。",
+      "就这样。",
+      "我试试。",
+      "试一下。",
+      "修一下。",
+      "看下。",
+      "别急。",
+    ]) {
+      expect(isIdleAssistantMessage(m), m).toBe(true);
+    }
+  });
+
   it("emoji / ellipsis noise → idle", () => {
     expect(isIdleAssistantMessage("👍")).toBe(true);
     expect(isIdleAssistantMessage("✅")).toBe(true);

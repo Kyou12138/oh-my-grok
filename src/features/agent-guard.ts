@@ -41,15 +41,18 @@ export function isMutatingShellCommand(command?: string): boolean {
   if (
     /\b(tee|truncate|rm|rmdir|unlink|del|erase|rd)\b/i.test(c) ||
     /\b(mv|move|cp|copy|mkdir|md|touch|chmod|chown|ln|link)\b/i.test(c) ||
-    /\b(sed|perl|ruby)\b[^|&;\n]*\s-i\b/i.test(c) ||
-    /\b(Set-Content|Add-Content|Out-File|New-Item|Remove-Item|Move-Item|Copy-Item|Rename-Item)\b/i.test(
+    // sed -i / perl -pi / ruby -i.bak (v1.1.52: -pi combined flag)
+    /\b(sed|perl|ruby)\b[^|&;\n]*\s-[a-z]*i[a-z.]*/i.test(c) ||
+    /\b(Set-Content|Add-Content|Out-File|New-Item|Remove-Item|Move-Item|Copy-Item|Rename-Item|Expand-Archive|Compress-Archive|Start-BitsTransfer|Tee-Object)\b/i.test(
       c,
     ) ||
     // v1.1.44: clean/restore rewrite tree; rm/mv already hit bare \brm\b but keep explicit
     // v1.1.50: pull/submodule/worktree; v1.1.51: switch/stash mutators / branch -D / remote set
+    // v1.1.52: git lfs pull
     /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv|pull|submodule|worktree|switch)\b/i.test(
       c,
     ) ||
+    /\bgit\s+lfs\s+pull\b/i.test(c) ||
     /\bgit\s+stash\s+(drop|pop|apply|push|save)\b/i.test(c) ||
     /\bgit\s+remote\s+(add|set-url|remove|rm)\b/i.test(c) ||
     /\bgit\s+branch\s+-[dD]\b/i.test(c) ||
@@ -96,32 +99,48 @@ export function isMutatingShellCommand(command?: string): boolean {
   // v1.1.48: vercel|netlify|firebase deploy
   // v1.1.50: prisma/migrate/deploy CLIs / docker-compose / k8s create|delete / scp
   // v1.1.51: more ORM migrate / cloud deploy / helm uninstall / find -delete
+  // v1.1.52: wrangler/tofu/prettier --write / archives / irm|iex / db restore
   if (
     /\bunzip\b/i.test(c) ||
+    /\b(gunzip|unrar)\b/i.test(c) ||
+    /\bgzip\s+-d\b/i.test(c) ||
     /\brsync\b/i.test(c) ||
+    /\brclone\s+(sync|copy|move)\b/i.test(c) ||
     /\b(xcopy|robocopy)\b/i.test(c) ||
     /\bdd\b[\s\S]{0,120}\bof=/i.test(c) ||
     /\btar\b[^|&;\n]{0,80}(?:-[a-zA-Z]*x|--extract|\sx[fvc\s])/i.test(c) ||
-    /\b7z\s+x\b/i.test(c) ||
+    /\b7z(?:a)?\s+x\b/i.test(c) ||
     /\bpatch\b[^|&;\n]*\s-p\d/i.test(c) ||
     /\bgit\s+clone\b/i.test(c) ||
     /\bdegit\b/i.test(c) ||
     /\bgh\s+repo\s+clone\b/i.test(c) ||
+    /\bgh\s+pr\s+(merge|checkout)\b/i.test(c) ||
+    /\bgh\s+release\s+download\b/i.test(c) ||
     /\b(svn\s+checkout|hg\s+clone)\b/i.test(c) ||
     /\b(?:curl|wget)\b[^|&;\n]{0,120}\|\s*(?:ba)?sh\b/i.test(c) ||
-    /\bdocker-compose\s+(up|down)\b/i.test(c) ||
-    /\bdocker\s+compose\s+(up|down)\b/i.test(c) ||
-    /\bdocker\s+(build|push|pull|rmi|system\s+prune)\b/i.test(c) ||
-    /\b(helm\s+(install|upgrade|uninstall|delete)|kubectl\s+(apply|create|replace|delete|patch|scale|rollout)|terraform\s+(apply|destroy)|pulumi\s+(up|destroy))\b/i.test(
+    /\b(?:irm|iwr|Invoke-WebRequest)\b[^|&;\n]{0,100}\|\s*(?:iex|Invoke-Expression)\b/i.test(
       c,
     ) ||
-    /\b(cdk|serverless|sam)\s+(deploy|destroy)\b/i.test(c) ||
-    /\bgcloud\s+(run\s+deploy|app\s+deploy)\b/i.test(c) ||
+    /\biex\s*\(/i.test(c) ||
+    /\bdocker-compose\s+(up|down)\b/i.test(c) ||
+    /\bdocker\s+compose\s+(up|down)\b/i.test(c) ||
+    /\bdocker\s+(build|push|pull|rmi|system\s+prune|save|load)\b/i.test(c) ||
+    /\bpodman\s+(build|push|pull)\b/i.test(c) ||
+    /\b(helm\s+(install|upgrade|uninstall|delete|rollback)|kubectl\s+(apply|create|replace|delete|patch|scale|rollout|set)|terraform\s+(apply|destroy)|pulumi\s+(up|destroy)|tofu\s+(apply|destroy)|terragrunt\s+apply)\b/i.test(
+      c,
+    ) ||
+    /\b(cdk|serverless|sam|sls)\s+(deploy|destroy)\b/i.test(c) ||
+    /\bgcloud\s+(run\s+deploy|app\s+deploy|storage\s+cp)\b/i.test(c) ||
+    /\bamplify\s+push\b/i.test(c) ||
     /\bnpx\s+create-/i.test(c) ||
-    /\b(vercel|netlify|firebase|fly)\s+deploy\b/i.test(c) ||
+    /\bnpx\s+(husky|msw)\s+init\b/i.test(c) ||
+    /\b(vercel|netlify|firebase|fly|wrangler)\s+deploy\b/i.test(c) ||
+    /\bwrangler\s+pages\s+deploy\b/i.test(c) ||
     /\brailway\s+up\b/i.test(c) ||
-    /\bsupabase\s+db\s+push\b/i.test(c) ||
-    /\b(?:npx\s+)?prisma\s+(migrate|db\s+push|db\s+seed|generate)\b/i.test(c) ||
+    /\bsupabase\s+db\s+(push|reset)\b/i.test(c) ||
+    /\b(?:npx\s+)?prisma\s+(migrate|db\s+push|db\s+seed|db\s+pull|generate)\b/i.test(
+      c,
+    ) ||
     /\bdrizzle-kit\s+push\b/i.test(c) ||
     /\balembic\s+upgrade\b/i.test(c) ||
     /\bknex\s+migrate:/i.test(c) ||
@@ -134,10 +153,17 @@ export function isMutatingShellCommand(command?: string): boolean {
     /\brake\s+db:migrate\b/i.test(c) ||
     /\bphp\s+artisan\s+(migrate|db:seed)\b/i.test(c) ||
     /\b(?:python3?\s+)?manage\.py\s+migrate\b/i.test(c) ||
+    /\b(psql\s+-f|pg_restore|mongorestore)\b/i.test(c) ||
     /\baws\s+s3\s+(cp|sync|mv|rm)\b/i.test(c) ||
     /\b(scp|sftp)\b/i.test(c) ||
     /\b(pre-commit|husky|lefthook|yorkie)\s+install\b/i.test(c) ||
-    /\bfind\b[^|&;\n]*\s-delete\b/i.test(c)
+    /\bfind\b[^|&;\n]*\s-delete\b/i.test(c) ||
+    // formatters that rewrite sources (check-only paths stay allowed)
+    /\b(prettier|eslint)\b[^|&;\n]*--write\b/i.test(c) ||
+    /\bbiome\b[^|&;\n]*--write\b/i.test(c) ||
+    /\binstall\s+-[a-zA-Z]*D\b/i.test(c) ||
+    /\bfsutil\s+file\s+createnew\b/i.test(c) ||
+    /\bcertutil\b[^|&;\n]*\s(-decode|-urlcache)\b/i.test(c)
   ) {
     return true;
   }
@@ -156,7 +182,7 @@ export function isMutatingShellCommand(command?: string): boolean {
   // .NET / PowerShell file APIs
   if (/\[(?:System\.)?IO\.File\]::Write/i.test(c)) return true;
 
-  // node/python/deno/bun one-liners that write files (not bare console.log/print)
+  // node/python/deno/bun/php one-liners that write files (not bare console.log/print)
   if (
     /\b(node|nodejs|deno|bun|python3?|py)\b[^|&;\n]{0,60}\s(-e|--eval|-c)\b/i.test(
       c,
@@ -173,6 +199,12 @@ export function isMutatingShellCommand(command?: string): boolean {
     ) {
       return true;
     }
+  }
+  if (
+    /\bphp\b[^|&;\n]{0,40}\s-r\b/i.test(c) &&
+    /\bfile_put_contents\b/i.test(c)
+  ) {
+    return true;
   }
 
   return false;
