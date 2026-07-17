@@ -36,15 +36,16 @@ oh-my-grok still **writes** `additionalContext` / Stop `decision:block` for test
 
 1. Agent guard (read-only roles + spawn/task deny for read-only / no-redelegate)  
 2. Prometheus **role** path deny (sticky prometheus → only `.omg/plans/`)  
-3. Prometheus plan-mode path deny  
-4. Category discipline (specialist work + zero spawns, once per session)  
-5. Spawn follow-through (child finished + still pending, once per wave)  
-6. Diagnostics hard fail (`lastErrors` from diagCommand — until clean)  
-7. Hashline (fresh Read + old_string + LINE#ID)  
-8. Comment checker hard deny (when deny mode)  
-9. Skill Gate (skipped for plan-mode **plan-only** writes)  
+3. **Workspace boundary** — mutating paths must stay under `workspaceRoot` (no `../` / foreign abs; hard)  
+4. Prometheus plan-mode path deny  
+5. Category discipline (specialist work + zero spawns, once per session)  
+6. Spawn follow-through (child finished + still pending, once per wave)  
+7. Diagnostics hard fail (`lastErrors` from diagCommand — until clean)  
+8. Hashline (fresh Read + old_string + LINE#ID)  
+9. Comment checker hard deny (when deny mode)  
+10. Skill Gate (skipped for plan-mode **plan-only** writes)  
 
-Plan-only writes are checked against the configured `plansDir` after resolving the workspace base, nearest existing ancestor, and real filesystem paths. A lexical `.omg/plans/` substring alone never grants write access.
+Plan-only writes are checked against the configured `plansDir` after resolving the workspace base, nearest existing ancestor, and real filesystem paths. A lexical `.omg/plans/` substring alone never grants write access. Workspace boundary uses the same containment helpers for the project root.
 
 ## Stop order (state machine; stdout not host-enforced)
 

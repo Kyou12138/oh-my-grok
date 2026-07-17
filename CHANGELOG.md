@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.32] — 2026-07-17
+
+### MAGI spiral — workspace write boundary (hard PreTool)
+
+- **feat(workspace-boundary)** mutating tools cannot escape `workspaceRoot` via `../` or foreign absolute paths (realpath containment, same helpers as plan path boundary)
+- **wire** PreTool order: after prometheus-role, before plan-mode; independent of Hashline on/off
+- **docs** contract + CONTRIBUTING PreTool order
+- **test** isWorkspaceWritePath + MultiEdit partial escape + ApplyPatch outside + hashline-off still deny
+
 ## [1.1.31] — 2026-07-17
 
 ### MAGI spiral — Hashline pathless fail-closed + apply_patch parse

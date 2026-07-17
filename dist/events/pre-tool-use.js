@@ -8,6 +8,7 @@ import { resolveAgentRole } from "../features/agent-guard.js";
 import { skillGateContext } from "../features/last-prompt.js";
 import { isMutatingTool, loadSkillGateState, refreshCatalog, skillGateDenyReason, } from "../features/skill-gate.js";
 import { spawnFollowThroughPreDeny } from "../features/spawn-followthrough.js";
+import { workspaceBoundaryDeny } from "../features/workspace-boundary.js";
 export function handlePreToolUse(input, cfg) {
     // 0) Agent role guard (even before mutating-tool short-circuit helpers)
     const agentDeny = agentGuardDeny(input, cfg);
@@ -21,6 +22,11 @@ export function handlePreToolUse(input, cfg) {
     const roleDeny = prometheusRoleDeny(input, cfg, resolveAgentRole(input, cfg));
     if (roleDeny) {
         return { output: { decision: "deny", reason: roleDeny }, exitCode: 2 };
+    }
+    // 0.6) Workspace boundary — no ../ or foreign abs paths (v1.1.32, hard)
+    const wsDeny = workspaceBoundaryDeny(input);
+    if (wsDeny) {
+        return { output: { decision: "deny", reason: wsDeny }, exitCode: 2 };
     }
     // 1) Prometheus plan-mode
     const planDeny = planModeDeny(input, cfg);

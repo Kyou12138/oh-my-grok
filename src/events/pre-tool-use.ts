@@ -18,6 +18,7 @@ import {
   skillGateDenyReason,
 } from "../features/skill-gate.js";
 import { spawnFollowThroughPreDeny } from "../features/spawn-followthrough.js";
+import { workspaceBoundaryDeny } from "../features/workspace-boundary.js";
 
 export function handlePreToolUse(
   input: HookInput,
@@ -44,6 +45,12 @@ export function handlePreToolUse(
   );
   if (roleDeny) {
     return { output: { decision: "deny", reason: roleDeny }, exitCode: 2 };
+  }
+
+  // 0.6) Workspace boundary — no ../ or foreign abs paths (v1.1.32, hard)
+  const wsDeny = workspaceBoundaryDeny(input);
+  if (wsDeny) {
+    return { output: { decision: "deny", reason: wsDeny }, exitCode: 2 };
   }
 
   // 1) Prometheus plan-mode
