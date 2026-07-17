@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.29] — 2026-07-17
+
+### MAGI spiral — path boundary + plan markdown path
+
+- **feat** shared `path-boundary` (`canonicalizeTargetPath` / `isPathInside` / `isTargetInside`) for plan gates + directory inject
+- **fix(prometheus)** plan-mode / prometheus-role use canonical containment (no `includes(".omg/plans")` escape)
+- **fix(isPlanMarkdownPath)** same boundary for post-write plan↔todo sync; reject foreign `.../.omg/plans/` substrings
+- **fix(directory-inject)** reject external AGENTS/rule file links via realpath containment
+- **test** path-boundary suite + isPlanMarkdownPath evil-path matrix
+
 ## [1.1.28] — 2026-07-16
 
 ### MAGI spiral — gate false-negatives / false-positives

@@ -1,6 +1,6 @@
 # oh-my-grok capability map (vs Vanilla Grok / omo)
 
-**Date:** 2026-07-16 · **omg version:** **1.1.28**  
+**Date:** 2026-07-17 · **omg version:** **1.1.29**  
 **MAGI method:** 审视 → 执行 → 提升 (spiral)
 
 **Product peer:** omo **Codex Light** 同温层（纪律 + 状态），**不是** Ultimate 全量 OS。  
@@ -473,14 +473,23 @@ Platform facts: Grok Build now supports native MCP servers, `spawn_subagent` (up
 | **DONE/VERIFIED hedges** | cannot/unable/impossible/refuse/missing/far from + 无法/不能/没法/难以 |
 | **hooks snake_case** | write_file / create_file / delete_file / multi_edit 等进 Pre/Post matcher |
 
+## Closed this spiral (v1.1.29) — path boundary
+
+| Item | Behavior |
+|------|----------|
+| **path-boundary** | `canonicalizeTargetPath` + `isPathInside` / `isTargetInside`（realpath 祖先 + 相对路径规则） |
+| **prometheus plan paths** | plan-mode / role 锁用容器判定，抗 `../`、跨盘、假 `.omg/plans` 子串 |
+| **isPlanMarkdownPath** | plan↔todo sync 同边界；拒 workspace 外 `.../.omg/plans/` |
+| **directory-inject** | 外部 symlink 规则文件不注入 |
+
 ## Next spiral focus (提升)
 
 - **marketplace** + 传播资产（GIF）— 安装转化  
-- **Harness Light 架构** → [harness-light-architecture.md](./harness-light-architecture.md)（core / adapter 分层；1.2 = 硬门禁稳定，非功能膨胀）  
+- **Harness Light 架构** → [harness-light-architecture.md](./harness-light-architecture.md)  
 - Hashline native edit tool（宿主能力）  
 - project-memory 仍 defer（omo #74）  
 
-**推荐**: pin **v1.1.28** · `grok plugin update`。
+**推荐**: pin **v1.1.29** · `grok plugin update`。
 
 ## Explicit non-goals
 

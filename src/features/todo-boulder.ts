@@ -2,6 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import type { EnvConfig, HookInput } from "../protocol/types.js";
 import { ensureDir, readJson, readText, removeFile, writeJsonAtomic } from "../state/fs.js";
+import {
+  canonicalizeTargetPath,
+  isTargetInside,
+} from "../state/path-boundary.js";
 import { pathsFor } from "../state/paths.js";
 
 export interface TodoItem {
@@ -498,28 +502,49 @@ export function seedTodosFromPlanIfEmpty(
   return todos;
 }
 
-/** True when path looks like a plan markdown we should sync (boulder / .omg/plans / plan.md). */
+/**
+ * True when path is a plan markdown we should sync (boulder / .omg/plans / root plan.md).
+ * v1.1.29: use canonical containment — reject `../.omg/plans` / foreign `.../.omg/plans/` substrings.
+ */
 export function isPlanMarkdownPath(
   filePath: string,
   input: HookInput,
   cfg: EnvConfig,
 ): boolean {
   if (!filePath?.trim()) return false;
-  const n = path.resolve(filePath).replace(/\\/g, "/").toLowerCase();
-  if (!n.endsWith(".md")) return false;
-  const base = path.basename(n);
-  if (base === "plan.md") return true;
-  const plans = path
-    .resolve(pathsFor(input.workspaceRoot, input.sessionId, cfg).plansDir)
-    .replace(/\\/g, "/")
-    .toLowerCase();
-  if (n.includes("/.omg/plans/") || n.startsWith(plans + "/") || n.includes(plans + "/")) {
+  const baseDir = input.workspaceRoot || input.cwd || ".";
+  const target = canonicalizeTargetPath(baseDir, filePath);
+  if (!target) return false;
+  if (!/\.md$/i.test(target)) return false;
+
+  const plansDir = pathsFor(baseDir, input.sessionId, cfg).plansDir;
+  if (
+    isTargetInside({
+      boundary: plansDir,
+      baseDir,
+      target: filePath,
+    })
+  ) {
     return true;
   }
+
+  // Workspace-root plan.md / PLAN.md (exact file boundary)
+  for (const name of ["plan.md", "PLAN.md"]) {
+    if (
+      isTargetInside({
+        boundary: path.join(baseDir, name),
+        baseDir,
+        target: filePath,
+      })
+    ) {
+      return true;
+    }
+  }
+
   const boulder = loadBoulder(input, cfg);
-  if (boulder?.planPath) {
-    const bp = path.resolve(boulder.planPath).replace(/\\/g, "/").toLowerCase();
-    if (bp === n) return true;
+  if (boulder?.planPath?.trim()) {
+    const bp = canonicalizeTargetPath(baseDir, boulder.planPath);
+    if (bp && bp.toLowerCase() === target.toLowerCase()) return true;
   }
   return false;
 }

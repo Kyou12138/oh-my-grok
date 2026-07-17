@@ -102,7 +102,10 @@ export declare function planTasksToTodos(tasks: PlanTaskCheckbox[]): TodoItem[];
  * Does not overwrite an existing non-empty todo list.
  */
 export declare function seedTodosFromPlanIfEmpty(input: HookInput, cfg: EnvConfig, planPath: string): TodoItem[];
-/** True when path looks like a plan markdown we should sync (boulder / .omg/plans / plan.md). */
+/**
+ * True when path is a plan markdown we should sync (boulder / .omg/plans / root plan.md).
+ * v1.1.29: use canonical containment — reject `../.omg/plans` / foreign `.../.omg/plans/` substrings.
+ */
 export declare function isPlanMarkdownPath(filePath: string, input: HookInput, cfg: EnvConfig): boolean;
 /**
  * Align todo mirror with plan checkbox progress (v1.1.20).

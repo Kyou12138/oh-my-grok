@@ -17,6 +17,7 @@ import {
   hasOpenPlanCheckboxes,
   incompleteTodos,
   isAbortLikeStopReason,
+  isPlanMarkdownPath,
   isStopPaused,
   isTodoMergeMode,
   isTodoOpenStatus,
@@ -494,6 +495,50 @@ describe("boulder + stop pause", () => {
     expect(isStopPaused(input, c)).toBe(true);
     setStopPaused(input, c, false);
     expect(isStopPaused(input, c)).toBe(false);
+  });
+});
+
+describe("isPlanMarkdownPath (v1.1.29 canonical)", () => {
+  it("accepts .omg/plans and root plan.md; rejects foreign .omg/plans substring", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    const plans = path.join(ws, ".omg", "plans");
+    fs.mkdirSync(plans, { recursive: true });
+    const inside = path.join(plans, "a.md");
+    fs.writeFileSync(inside, "# a\n", "utf8");
+    fs.writeFileSync(path.join(ws, "plan.md"), "# root\n", "utf8");
+
+    expect(isPlanMarkdownPath(inside, input, c)).toBe(true);
+    expect(isPlanMarkdownPath(path.join(ws, "plan.md"), input, c)).toBe(true);
+    expect(isPlanMarkdownPath(path.join(ws, "src", "x.md"), input, c)).toBe(false);
+
+    // Substring trap: path contains "/.omg/plans/" but is outside workspace plans dir
+    const evilRoot = fs.mkdtempSync(path.join(os.tmpdir(), "omg-evil-plans-"));
+    tmpRoots.push(evilRoot);
+    const evilPlans = path.join(evilRoot, ".omg", "plans");
+    fs.mkdirSync(evilPlans, { recursive: true });
+    const evilFile = path.join(evilPlans, "trap.md");
+    fs.writeFileSync(evilFile, "# trap\n", "utf8");
+    expect(isPlanMarkdownPath(evilFile, input, c)).toBe(false);
+  });
+
+  it("accepts active boulder.planPath even outside .omg/plans", () => {
+    const ws = tmpWorkspace();
+    const c = cfg(path.join(ws, "pdata"));
+    const input = base(ws);
+    const custom = path.join(ws, "docs", "exec-plan.md");
+    fs.mkdirSync(path.dirname(custom), { recursive: true });
+    fs.writeFileSync(custom, "# plan\n", "utf8");
+    setBoulder(input, c, {
+      schemaVersion: 1,
+      active: true,
+      planPath: custom,
+      title: "custom",
+      notes: "",
+      updatedAt: new Date().toISOString(),
+    });
+    expect(isPlanMarkdownPath(custom, input, c)).toBe(true);
   });
 });
 
