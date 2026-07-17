@@ -427,10 +427,55 @@ describe("isVerifyShellCommand 词边界 + echo 段", () => {
       "pnpm typecheck",
       "pnpm lint",
       "yarn typecheck",
+      // v1.1.51 dart/swift/mono/fmt-check/audit
+      "dart test",
+      "dart analyze",
+      "swift test",
+      "zig build test",
+      "flutter analyze",
+      "nx run-many -t test",
+      "nx affected -t test",
+      "turbo test",
+      "lerna run test",
+      "lein test",
+      "stack test",
+      "cabal test",
+      "make check",
+      "just check",
+      "task check",
+      "xcodebuild test -scheme App",
+      "fastlane test",
+      "svelte-check",
+      "astro check",
+      "oxlint .",
+      "black --check .",
+      "ruff format --check",
+      "prettier --check .",
+      "staticcheck ./...",
+      "cargo fmt --check",
+      "cargo audit",
+      "python3 -m unittest",
+      "poetry run pytest",
+      "uv run pytest",
+      "hatch run test",
+      "tsx --test",
+      "npm audit",
+      "semgrep scan",
+      "bats test/",
+      "ng test",
+      "ember test",
+      "ninja test",
     ];
     for (const cmd of positives) {
       expect(isVerifyShellCommand(cmd), cmd).toBe(true);
     }
+  });
+
+  it("verify 负例: cargo fmt / ruff format / nx build 不算校验 (v1.1.51)", () => {
+    expect(isVerifyShellCommand("cargo fmt")).toBe(false);
+    expect(isVerifyShellCommand("ruff format .")).toBe(false);
+    expect(isVerifyShellCommand("nx run-many -t build")).toBe(false);
+    expect(isVerifyShellCommand("nx affected -t serve")).toBe(false);
   });
 
   it("bun/deno/yarn-run/make test credit ULW verify via noteUlwShell (v1.1.40)", () => {

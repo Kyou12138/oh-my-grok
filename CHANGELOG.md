@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.51] — 2026-07-17
+
+### MAGI spiral — more verify runners + remove/migrate/deploy shells + idle
+
+- **fix(VERIFY_SHELL_RE)** credit `dart test|analyze` / `swift test` / `zig build test` / `nx run-many|affected … test` / `turbo test` / `make|just|task check` / `cargo fmt --check` / `ruff format --check` / `black|prettier --check` / `npm audit` / `poetry|uv run pytest` / `bats` / `svelte-check` / `astro check` — still reject bare `cargo fmt` / `ruff format` / `nx … -t build`
+- **fix(isMutatingShellCommand)** package `remove|uninstall` / knex·sequelize·typeorm migrate / rails db:seed / mix ecto.setup / helm uninstall / kubectl patch|scale / cdk|serverless deploy / git switch|stash pop / find -delete / scoop install / wget -P / iwr -OutFile
+- **fix(idle-turn)** investigate / digging in / cool|great|noted / 排查中 / 我去查一下 / 请稍等
+- **test** verify negatives + shell + idle matrices
+
 ## [1.1.50] — 2026-07-17
 
 ### MAGI spiral — verify runners + migrate/scaffold shells + idle fluff

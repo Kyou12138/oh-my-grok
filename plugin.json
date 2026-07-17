@@ -1,6 +1,6 @@
 {
   "name": "oh-my-grok",
-  "version": "1.1.50",
+  "version": "1.1.51",
   "description": "omo-style harness for Grok Build (source-aligned): PreTool gates, SubagentStart/End, Hashline, ULW",
   "author": {
     "name": "Kyou12138",
@@ -9,9 +9,17 @@
   "homepage": "https://github.com/Kyou12138/oh-my-grok",
   "repository": "https://github.com/Kyou12138/oh-my-grok",
   "license": "MIT",
-  "skills": ["./skills", "./vendor/superpowers/skills"],
+  "skills": [
+    "./skills",
+    "./vendor/superpowers/skills"
+  ],
   "agents": "./agents",
-  "categories": ["productivity", "workflow", "multi-agent", "loops"],
+  "categories": [
+    "productivity",
+    "workflow",
+    "multi-agent",
+    "loops"
+  ],
   "keywords": [
     "grok-build",
     "oh-my-grok",
@@ -23,4 +31,3 @@
     "harness"
   ]
 }
-

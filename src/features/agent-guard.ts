@@ -46,34 +46,42 @@ export function isMutatingShellCommand(command?: string): boolean {
       c,
     ) ||
     // v1.1.44: clean/restore rewrite tree; rm/mv already hit bare \brm\b but keep explicit
-    // v1.1.50: pull/submodule/worktree also rewrite workspace or .git links
-    /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv|pull|submodule|worktree)\b/i.test(
+    // v1.1.50: pull/submodule/worktree; v1.1.51: switch/stash mutators / branch -D / remote set
+    /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv|pull|submodule|worktree|switch)\b/i.test(
       c,
     ) ||
+    /\bgit\s+stash\s+(drop|pop|apply|push|save)\b/i.test(c) ||
+    /\bgit\s+remote\s+(add|set-url|remove|rm)\b/i.test(c) ||
+    /\bgit\s+branch\s+-[dD]\b/i.test(c) ||
     // v1.1.45: npm ci / yarn add; v1.1.46: npm update / yarn upgrade
     // v1.1.50: npm|yarn|pnpm|bun create scaffolds
     /\b(npm|pnpm|yarn)\s+(i|install|ci|uninstall|remove|publish|add|update|upgrade|up|create)\b/i.test(
       c,
     ) ||
     /\bbun\s+create\b/i.test(c) ||
-    /\b(pip3?|cargo|go|bun|deno|composer|bundle|poetry|pipenv|gem)\s+(install|update)\b/i.test(
+    /\b(pip3?|cargo|go|bun|deno|composer|bundle|poetry|pipenv|gem)\s+(install|update|uninstall|remove)\b/i.test(
       c,
     ) ||
     /\b(pip3?|cargo|go)\s+get\b/i.test(c) ||
-    /\bcargo\s+(add|new|init)\b/i.test(c) ||
+    /\bcargo\s+(add|new|init|remove)\b/i.test(c) ||
     /\bgo\s+mod\s+(init|tidy)\b/i.test(c) ||
     /\bdeno\s+init\b/i.test(c) ||
-    /\bcomposer\s+(require|create-project)\b/i.test(c) ||
-    /\bbundle\s+add\b/i.test(c) ||
-    /\bdotnet\s+(add|new|restore|tool\s+install)\b/i.test(c) ||
-    /\b(flutter\s+pub\s+get|dart\s+pub\s+(get|add))\b/i.test(c) ||
-    /\b(conda|choco|winget|apt(?:-get)?|brew)\s+install\b/i.test(c) ||
-    /\buv\s+(pip\s+install|sync|add)\b/i.test(c) ||
-    /\b(poetry|pdm|rye|pixi)\s+add\b/i.test(c) ||
+    /\bcomposer\s+(require|create-project|remove)\b/i.test(c) ||
+    /\bbundle\s+(add|remove)\b/i.test(c) ||
+    /\bdotnet\s+(add|new|restore|tool\s+install|remove|ef)\b/i.test(c) ||
+    /\b(flutter\s+pub\s+(get|add|remove)|dart\s+pub\s+(get|add|remove))\b/i.test(
+      c,
+    ) ||
+    /\b(conda|choco|winget|apt(?:-get)?|brew|scoop|yum|dnf|snap|flatpak|pipx)\s+(install|uninstall|upgrade|remove)\b/i.test(
+      c,
+    ) ||
+    /\bpacman\s+-S\b/i.test(c) ||
+    /\buv\s+(pip\s+install|sync|add|remove|tool\s+install)\b/i.test(c) ||
+    /\b(poetry|pdm|rye|pixi)\s+(add|remove)\b/i.test(c) ||
     /\bpoetry\s+update\b/i.test(c) ||
-    /\bmix\s+(deps\.get|ecto\.migrate)\b/i.test(c) ||
+    /\bmix\s+(deps\.get|ecto\.(migrate|setup|create|drop))\b/i.test(c) ||
     /\bpod\s+install\b/i.test(c) ||
-    /\bmake\s+install\b/i.test(c) ||
+    /\bmake\s+(install|uninstall|clean)\b/i.test(c) ||
     // PowerShell: Clear-Content; cmd ren/rename (not "render" — use exact tokens)
     /\bClear-Content\b/i.test(c) ||
     /\bren\s+\S+/i.test(c) ||
@@ -87,6 +95,7 @@ export function isMutatingShellCommand(command?: string): boolean {
   // v1.1.47: docker compose up / helm|kubectl|terraform apply / npx create-*
   // v1.1.48: vercel|netlify|firebase deploy
   // v1.1.50: prisma/migrate/deploy CLIs / docker-compose / k8s create|delete / scp
+  // v1.1.51: more ORM migrate / cloud deploy / helm uninstall / find -delete
   if (
     /\bunzip\b/i.test(c) ||
     /\brsync\b/i.test(c) ||
@@ -98,34 +107,48 @@ export function isMutatingShellCommand(command?: string): boolean {
     /\bgit\s+clone\b/i.test(c) ||
     /\bdegit\b/i.test(c) ||
     /\bgh\s+repo\s+clone\b/i.test(c) ||
+    /\b(svn\s+checkout|hg\s+clone)\b/i.test(c) ||
     /\b(?:curl|wget)\b[^|&;\n]{0,120}\|\s*(?:ba)?sh\b/i.test(c) ||
     /\bdocker-compose\s+(up|down)\b/i.test(c) ||
     /\bdocker\s+compose\s+(up|down)\b/i.test(c) ||
-    /\bdocker\s+(build|push|pull)\b/i.test(c) ||
-    /\b(helm\s+(install|upgrade)|kubectl\s+(apply|create|replace|delete)|terraform\s+(apply|destroy)|pulumi\s+up)\b/i.test(
+    /\bdocker\s+(build|push|pull|rmi|system\s+prune)\b/i.test(c) ||
+    /\b(helm\s+(install|upgrade|uninstall|delete)|kubectl\s+(apply|create|replace|delete|patch|scale|rollout)|terraform\s+(apply|destroy)|pulumi\s+(up|destroy))\b/i.test(
       c,
     ) ||
+    /\b(cdk|serverless|sam)\s+(deploy|destroy)\b/i.test(c) ||
+    /\bgcloud\s+(run\s+deploy|app\s+deploy)\b/i.test(c) ||
     /\bnpx\s+create-/i.test(c) ||
     /\b(vercel|netlify|firebase|fly)\s+deploy\b/i.test(c) ||
     /\brailway\s+up\b/i.test(c) ||
     /\bsupabase\s+db\s+push\b/i.test(c) ||
-    /\b(?:npx\s+)?prisma\s+(migrate|db\s+push)\b/i.test(c) ||
+    /\b(?:npx\s+)?prisma\s+(migrate|db\s+push|db\s+seed|generate)\b/i.test(c) ||
     /\bdrizzle-kit\s+push\b/i.test(c) ||
     /\balembic\s+upgrade\b/i.test(c) ||
-    /\brails\s+db:migrate\b/i.test(c) ||
-    /\bphp\s+artisan\s+migrate\b/i.test(c) ||
-    /\b(?:python\s+)?manage\.py\s+migrate\b/i.test(c) ||
+    /\bknex\s+migrate:/i.test(c) ||
+    /\bsequelize\s+db:migrate\b/i.test(c) ||
+    /\btypeorm\s+migration:run\b/i.test(c) ||
+    /\b(diesel\s+migration|goose\s+up|flyway\s+migrate|liquibase\s+update)\b/i.test(
+      c,
+    ) ||
+    /\brails\s+db:(migrate|seed|reset)\b/i.test(c) ||
+    /\brake\s+db:migrate\b/i.test(c) ||
+    /\bphp\s+artisan\s+(migrate|db:seed)\b/i.test(c) ||
+    /\b(?:python3?\s+)?manage\.py\s+migrate\b/i.test(c) ||
     /\baws\s+s3\s+(cp|sync|mv|rm)\b/i.test(c) ||
     /\b(scp|sftp)\b/i.test(c) ||
-    /\b(pre-commit|husky)\s+install\b/i.test(c)
+    /\b(pre-commit|husky|lefthook|yorkie)\s+install\b/i.test(c) ||
+    /\bfind\b[^|&;\n]*\s-delete\b/i.test(c)
   ) {
     return true;
   }
 
-  // Download-to-file (curl -o / wget -O / Invoke-WebRequest -OutFile)
+  // Download-to-file (curl -o / wget -O|-P / Invoke-WebRequest|iwr -OutFile)
   if (
-    /\b(curl|wget)\b[^|&;\n]*\s(-o|--output|-O)\b/i.test(c) ||
-    /\bInvoke-WebRequest\b[^|&;\n]*\s-OutFile\b/i.test(c)
+    /\b(curl|wget)\b[^|&;\n]*\s(-o|--output|-O|-P|--directory-prefix)\b/i.test(
+      c,
+    ) ||
+    /\b(Invoke-WebRequest|iwr)\b[^|&;\n]*\s-OutFile\b/i.test(c) ||
+    /\baria2c\b[^|&;\n]*\s-o\b/i.test(c)
   ) {
     return true;
   }

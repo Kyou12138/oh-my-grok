@@ -385,6 +385,49 @@ describe("agentGuardDeny", () => {
     expect(isMutatingShellCommand("kubectl get pods")).toBe(false);
   });
 
+  it("blocks package remove / ORM migrate / cloud deploy / git switch (v1.1.51)", () => {
+    expect(isMutatingShellCommand("pip uninstall -y x")).toBe(true);
+    expect(isMutatingShellCommand("cargo remove serde")).toBe(true);
+    expect(isMutatingShellCommand("poetry remove requests")).toBe(true);
+    expect(isMutatingShellCommand("uv remove httpx")).toBe(true);
+    expect(isMutatingShellCommand("flutter pub add http")).toBe(true);
+    expect(isMutatingShellCommand("flutter pub remove http")).toBe(true);
+    expect(isMutatingShellCommand("composer remove monolog/monolog")).toBe(true);
+    expect(isMutatingShellCommand("knex migrate:latest")).toBe(true);
+    expect(isMutatingShellCommand("sequelize db:migrate")).toBe(true);
+    expect(isMutatingShellCommand("typeorm migration:run")).toBe(true);
+    expect(isMutatingShellCommand("rails db:seed")).toBe(true);
+    expect(isMutatingShellCommand("rake db:migrate")).toBe(true);
+    expect(isMutatingShellCommand("php artisan db:seed")).toBe(true);
+    expect(isMutatingShellCommand("mix ecto.setup")).toBe(true);
+    expect(isMutatingShellCommand("dotnet ef database update")).toBe(true);
+    expect(isMutatingShellCommand("npx prisma generate")).toBe(true);
+    expect(isMutatingShellCommand("helm uninstall x")).toBe(true);
+    expect(isMutatingShellCommand("kubectl patch deploy x -p '{}'")).toBe(true);
+    expect(isMutatingShellCommand("kubectl scale deploy x --replicas=0")).toBe(
+      true,
+    );
+    expect(isMutatingShellCommand("docker rmi img")).toBe(true);
+    expect(isMutatingShellCommand("cdk deploy")).toBe(true);
+    expect(isMutatingShellCommand("serverless deploy")).toBe(true);
+    expect(isMutatingShellCommand("gcloud run deploy x")).toBe(true);
+    expect(isMutatingShellCommand("pulumi destroy")).toBe(true);
+    expect(isMutatingShellCommand("git switch -c feat")).toBe(true);
+    expect(isMutatingShellCommand("git stash pop")).toBe(true);
+    expect(isMutatingShellCommand("git branch -D old")).toBe(true);
+    expect(isMutatingShellCommand("git remote add origin x")).toBe(true);
+    expect(isMutatingShellCommand("find . -name '*.o' -delete")).toBe(true);
+    expect(isMutatingShellCommand("wget -P out https://x")).toBe(true);
+    expect(isMutatingShellCommand("iwr u -OutFile f")).toBe(true);
+    expect(isMutatingShellCommand("scoop install git")).toBe(true);
+    expect(isMutatingShellCommand("lefthook install")).toBe(true);
+    expect(isMutatingShellCommand("hg clone url")).toBe(true);
+    // allow list/read
+    expect(isMutatingShellCommand("git branch")).toBe(false);
+    expect(isMutatingShellCommand("git stash list")).toBe(false);
+    expect(isMutatingShellCommand("terraform plan")).toBe(false);
+  });
+
   it("denies oracle git clean via PreTool (v1.1.44)", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));

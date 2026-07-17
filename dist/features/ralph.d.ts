@@ -86,6 +86,7 @@ export declare function noteUlwWrite(input: HookInput, cfg: EnvConfig, filePath?
  * v1.1.47: cargo nextest / just|task test / playwright|cypress / tox|hatch
  * v1.1.48: flutter/phpunit/rspec/mix/sbt/bazel test
  * v1.1.50: node --test / mocha/ava/pest / rails / mono / static analysis
+ * v1.1.51: dart/swift/nx run-many / turbo test / fmt-check / audit / bats
  */
 export declare const VERIFY_SHELL_RE: RegExp;
 export declare function isVerifyShellCommand(command?: string): boolean;

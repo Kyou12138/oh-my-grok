@@ -159,6 +159,34 @@ describe("isIdleAssistantMessage", () => {
     }
   });
 
+  it("status fluff investigate / cool / 排查中 → idle (v1.1.51)", () => {
+    for (const m of [
+      "I'll investigate.",
+      "Investigating.",
+      "Digging into it.",
+      "Diving in.",
+      "Proceeding.",
+      "Almost there.",
+      "Stay tuned.",
+      "BRB.",
+      "Cool.",
+      "Perfect.",
+      "Great.",
+      "Noted.",
+      "thx",
+      "yep",
+      "好哒。",
+      "搞定。",
+      "我去查一下。",
+      "排查中。",
+      "调试中。",
+      "请稍等。",
+      "等我一下。",
+    ]) {
+      expect(isIdleAssistantMessage(m), m).toBe(true);
+    }
+  });
+
   it("emoji / ellipsis noise → idle", () => {
     expect(isIdleAssistantMessage("👍")).toBe(true);
     expect(isIdleAssistantMessage("✅")).toBe(true);
