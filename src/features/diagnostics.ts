@@ -99,6 +99,26 @@ export function runDiagCommand(input: HookInput, cfg: EnvConfig): DiagState {
 
 export function isVerifiedMessage(msg?: string): boolean {
   if (!msg) return false;
+
+  // v1.1.46: deferred/future verify claims must not markVerified (align isDoneMessage v1.1.45)
+  // e.g. "I will mark VERIFIED later", "pending OMG_VERIFIED", "will claim all tests passed after CI"
+  const VERIFY_MARK =
+    /(?:<promise>VERIFIED<\/promise>|OMG_VERIFIED|\ball tests passed\b)/i;
+  const ZH_PASS_MARK =
+    /(?:全部|所有)测试(?:均)?(?:已)?通过|测试(?:全部|均)(?:已)?通过/;
+  const DEFERRED_BEFORE =
+    /\b(will|going\s+to|gonna|plan(?:ning)?\s+to|intend(?:ing)?\s+to|should|must|need\s+to|about\s+to|pending|todo|skip(?:ping)?|wait(?:ing)?|before|later|soon)\b[^.!\n]{0,80}(?:<promise>VERIFIED<\/promise>|OMG_VERIFIED|\ball tests passed\b)/i;
+  const DEFERRED_AFTER =
+    /(?:<promise>VERIFIED<\/promise>|OMG_VERIFIED|\ball tests passed\b)[^.!\n]{0,80}\b(later|after|once|when|until|then|pending|todo|skip|wait|yet|soon)\b/i;
+  const DEFERRED_ZH =
+    /(?:稍后|待会|之后|以后|还要|尚未)[^。\n]{0,24}(?:全部|所有)?测试|(?:全部|所有)测试(?:均)?(?:已)?通过[^。\n]{0,16}(?:之后|以后|later)|(?:稍后|待会|之后)[^。\n]{0,16}(?:VERIFIED|OMG_VERIFIED)|(?:VERIFIED|OMG_VERIFIED)[^。\n]{0,16}(?:之后|以后)/i;
+  if (
+    (VERIFY_MARK.test(msg) || ZH_PASS_MARK.test(msg)) &&
+    (DEFERRED_BEFORE.test(msg) || DEFERRED_AFTER.test(msg) || DEFERRED_ZH.test(msg))
+  ) {
+    return false;
+  }
+
   if (/<promise>VERIFIED<\/promise>/i.test(msg)) return true;
   if (/\bOMG_VERIFIED\b/.test(msg)) return true;
   // diagnostics clean — reject obvious negation

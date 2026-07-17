@@ -156,6 +156,28 @@ describe("diagnostics — isVerifiedMessage 真值表", () => {
     expect(isVerifiedMessage("无法全部测试通过")).toBe(false);
     expect(isVerifiedMessage("没法所有测试通过")).toBe(false);
   });
+
+  it("负例: future/deferred VERIFIED 不得 markVerified (v1.1.46)", () => {
+    expect(
+      isVerifiedMessage("I will mark <promise>VERIFIED</promise> later"),
+    ).toBe(false);
+    expect(isVerifiedMessage("pending OMG_VERIFIED")).toBe(false);
+    expect(isVerifiedMessage("will claim all tests passed after CI")).toBe(
+      false,
+    );
+    expect(isVerifiedMessage("all tests passed later tonight")).toBe(false);
+    expect(isVerifiedMessage("稍后全部测试通过")).toBe(false);
+    expect(isVerifiedMessage("全部测试通过 later")).toBe(false);
+    expect(isVerifiedMessage("TODO: add <promise>VERIFIED</promise>")).toBe(
+      false,
+    );
+    // still accept real verify claims
+    expect(isVerifiedMessage("CI green. <promise>VERIFIED</promise>")).toBe(
+      true,
+    );
+    expect(isVerifiedMessage("all tests passed")).toBe(true);
+    expect(isVerifiedMessage("全部测试通过")).toBe(true);
+  });
 });
 
 describe("diagnostics — diagStopReason 三分支", () => {

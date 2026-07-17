@@ -49,17 +49,19 @@ export function isMutatingShellCommand(command?: string): boolean {
     /\bgit\s+(add|commit|push|checkout|reset|rebase|merge|am|apply|cherry-pick|clean|restore|rm|mv)\b/i.test(
       c,
     ) ||
-    // v1.1.45: npm ci / yarn add / pnpm add
-    /\b(npm|pnpm|yarn)\s+(i|install|ci|uninstall|remove|publish|add)\b/i.test(
+    // v1.1.45: npm ci / yarn add; v1.1.46: npm update / yarn upgrade
+    /\b(npm|pnpm|yarn)\s+(i|install|ci|uninstall|remove|publish|add|update|upgrade|up)\b/i.test(
       c,
     ) ||
     /\b(pip3?|cargo|go|bun|deno|composer|bundle)\s+install\b/i.test(c) ||
-    /\b(pip3?|cargo|go)\s+get\b/i.test(c)
+    /\b(pip3?|cargo|go)\s+get\b/i.test(c) ||
+    /\b(conda|choco|winget|apt(?:-get)?|brew)\s+install\b/i.test(c)
   ) {
     return true;
   }
 
   // Archives / sync / raw disk write (v1.1.44) — list-only tar -t stays allowed
+  // v1.1.46: git clone / curl|bash pipes / degit
   if (
     /\bunzip\b/i.test(c) ||
     /\brsync\b/i.test(c) ||
@@ -67,7 +69,10 @@ export function isMutatingShellCommand(command?: string): boolean {
     /\bdd\b[\s\S]{0,120}\bof=/i.test(c) ||
     /\btar\b[^|&;\n]{0,80}(?:-[a-zA-Z]*x|--extract|\sx[fvc\s])/i.test(c) ||
     /\b7z\s+x\b/i.test(c) ||
-    /\bpatch\b[^|&;\n]*\s-p\d/i.test(c)
+    /\bpatch\b[^|&;\n]*\s-p\d/i.test(c) ||
+    /\bgit\s+clone\b/i.test(c) ||
+    /\bdegit\b/i.test(c) ||
+    /\b(?:curl|wget)\b[^|&;\n]{0,120}\|\s*(?:ba)?sh\b/i.test(c)
   ) {
     return true;
   }

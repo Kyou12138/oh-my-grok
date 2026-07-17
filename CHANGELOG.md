@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.1.46] — 2026-07-17
+
+### MAGI spiral — deferred VERIFIED false-positive + clone/update shell
+
+- **fix(isVerifiedMessage)** reject future/deferred claims (`will/pending … VERIFIED`, `all tests passed later`, 稍后全部测试通过) — align DONE v1.1.45
+- **fix(isMutatingShellCommand)** `npm update` / `yarn upgrade` / `git clone` / `curl|bash` / `degit` / `choco|winget|conda|apt|brew install`
+- **test** deferred VERIFIED matrix; clone/update shell matrix
+
 ## [1.1.45] — 2026-07-17
 
 ### MAGI spiral — deferred DONE false-positive + shell package writes

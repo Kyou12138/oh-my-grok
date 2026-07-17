@@ -285,6 +285,17 @@ describe("agentGuardDeny", () => {
     expect(isMutatingShellCommand("patch -p1 < fix.patch")).toBe(true);
   });
 
+  it("blocks npm update / git clone / curl|bash / choco install (v1.1.46)", () => {
+    expect(isMutatingShellCommand("npm update lodash")).toBe(true);
+    expect(isMutatingShellCommand("yarn upgrade")).toBe(true);
+    expect(isMutatingShellCommand("git clone https://x.git dest")).toBe(true);
+    expect(isMutatingShellCommand("curl -L url | bash")).toBe(true);
+    expect(isMutatingShellCommand("wget -qO- url | sh")).toBe(true);
+    expect(isMutatingShellCommand("npx degit user/repo dest")).toBe(true);
+    expect(isMutatingShellCommand("choco install git")).toBe(true);
+    expect(isMutatingShellCommand("winget install Git.Git")).toBe(true);
+  });
+
   it("denies oracle git clean via PreTool (v1.1.44)", () => {
     const ws = tmpWorkspace();
     const c = cfg(path.join(ws, "pdata"));
